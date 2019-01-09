@@ -1,0 +1,26 @@
+\documentclass[format=sigconf,10pt,natbib=false,authordraft]{acmart}
+\usepackage{geometry}
+%\headheight 0pt
+%\textheight 9.25in
+\settopmatter{printacmref=false}
+
+% remove the annoying header on each page
+\fancyhead{}
+
+\input{packages}
+%\captionsetup[figure]{belowskip=-5pt, aboveskip=5pt}
+%\setlength{\abovedisplayskip}{0pt}
+%\setlength{\belowdisplayskip}{-5pt}
+
+\begin{document}
+\title{Paper Title Here}
+
+\begin{sloppypar}
+\include{abstract}
+\maketitle
+\input{intro}
+
+\bibliographystyle{abbrv}
+\bibliography{ref}
+\end{sloppypar}
+\end{document}
