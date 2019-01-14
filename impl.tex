@@ -1,0 +1,25 @@
+\section{Implementation}\label{s:impl}
+\begin{outline}
+\1 Overview
+\1 Our design is not specific to a single implementation.
+    \2 Modern NFV platforms~\cite{netbricks, bess} offer opportunities for implementing \name
+    \2 We implement the inbox using \ct{tc}, the Linux traffic control mechanism, along with a userspace component. We adapt the \ct{tbf} qdisc to implement packet pacing
+        \3 When the qdisc observes an epoch-marked packet, it sends a message to the inbox process in userspace.
+        \3 The userspace component of the inbox process manages the qdisc and acts as a CCP datapath. It communicates with the CCP congestion control algorithm via unix sockets or channels if the algorithm is run in a thread within the same process.
+        \3 The userspace component of the inbox also listens for messages from the outbox. When it receives one, it updates the congestion control measurements and notifies CCP that new measurements are available.
+        \3 The inbox enforces congestion windows by converting them to rates (by dividing by RTT). The inbox tells the qdisc to pace at rate min(set rate, cwnd effective rate).
+        \3 The inbox dynamically sets the epoch duration to be (rate * rtt) rounded down to the nearest power of two. It then communicates the epoch duration to the outbox.
+            \4 If this communication is lost, since the epoch duration is set to be a power of two, the inbox and outbox will still agree on a set of measurements.
+    \2 We implement a scheduler with \an{something}
+    \2 We implement the outbox using \ct{libpcap}.
+        \3 It listens for incoming packets (it is not on the datapath and does not need to forward packets), checks their hash values, and increments byte counts.
+\1 Discovery \an{should we even mention this? we don't implement it and it's not really important}
+    \2 One practical concern in a \name deployment is how the inbox and outbox discover each others' presence.
+    \2 The inbox should not apply pacing to packets which will not traverse an outbox: they may interfere with scheduling and consume unnecessary resources.
+        \3 Instead, when the inbox encounters packets not included in a bundle group, it should immediately forward them without counting them against its statistics.
+        \3 The inbox needs to know which packets are part of a bundle.
+    \2 Also, the outbox needs to know what inbox to send feedback messages to.
+    \2 Fortunately, with packet marking, this is straightforward. The inbox first assumes that all packets are not bundled, and transmits them normally.
+    \2 The outbox first assumes all packets are bundled. Since it does not initially know of the existence of the inbox, it sends its feedback messages to the source IP address of the marked packet along with its IP address. As an optimization, the outbox could also include information such as the subnet of machines behind it.
+        \3 When the inbox receives this feedback, it begins tracking congestion primitives for the bundle of flows destined for the outbox's subnet.
+\end{outline}

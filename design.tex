@@ -1,0 +1,47 @@
+\section{Design Overview}\label{s:design}
+\begin{outline}
+\1 In-Box and Out-Box
+    \2 need to collect congestion control information on the path.
+    \2 want to do this with unmodified end-hosts, using only middleboxes
+    \2 to accurately capture both ends (rtt, rates), we must have access to packets both near the sender and near the receiver.
+    \2 we call the middlebox (or congestion control gateway) near the sender(s) the in-box, and the middlebox near the receiver(s) the out-box.
+    \2 the in-box is responsible for performing congestion control (and enforcing congestion control decisions) and gathering sender-side measurements.
+    \2 the out-box is responsible for performing measurements on traffic destined for receivers that flows through it.
+    \2 one consideration is how to ensure that traffic between the senders and receivers indeed flows through the in-box and out-box, with the prevalence of SDN, something like way-point routing~\cite{waypoint-routing} can be used. Also network verification~\cite{network-verification} to ensure that traffic indeed traverses in- and out- boxes.
+\1 In-band vs out-of-band
+    \2 A primary consideration for a \name is whether the two gateways should communicate their congestion control measurements \emph{in-band}, by encapsulating packets with \eg a custom UDP header.
+    \2 Indeed, past approaches to network-assisted congestion control have relied either on encapsulation or custom congestion headers~\cite{xcp, rcp} (probably can cite some cellular thing here).
+    \2 encapsulation has two drawbacks:
+        \3 fault tolerance: if the in-box and out-box fail, as middleboxes often do~\cite{aplomb}, encapsulated traffic flows would also fail. We want to avoid this fate-sharing.
+        \3 performance: although modern software switches can achieve high line rates~\cite{netbricks, bess}, they cannot match the performance of hardware. \an{can we say this? could an in-band approach still work with a hardware implementation of the in-box?} 
+        \3 load balancing: commonly-deployed ECMP load balancing relies on the 5-tuple of the connection. Encapsulating packets changes the 5-tuple. 
+            \4 A naive implementation of encapsulation would simply pick one UDP port, but this would lose all the benefits of load balancing. 
+            \4 Instead an implementation would have to carefully set the udp src and dest ports to ensure both that ECMP load balancers in the network still performed correctly, and that the distribution of paths traversed by the encapsulated flows matched those that the unmodified traffic would have traversed without encapsulation.
+    \2 Therefore, instead, we select an out-of-band approach. In this approach, flows from the senders traverse the network exactly as they otherwise would have. This is nice in terms of the end-to-end principle.
+\1 Packet marking for hands-off measurement
+    \2 Congestion control protocols require accurate measurements for their decisions to be meaningful. How can an inbox and outbox collaborate to measure network conditions along their path?
+    \2 Congestion control protocols need only a small, common set of measurements~\cite{ccp-hotnets} to function. We observe that these can be reconstructed with three core measurements: the sending rate at the in-box, the receiving rate at the out-box, and the round-trip time between the two gateways.
+    \2 Unfortunately, to be most useful, the sending and receiving rates should be calculated over the same set of packets. Otherwise \an{why}.
+        \3 Otherwise instantaneous measurements can't be used and everything has to be ewma'd?
+    \2 We use packet flagging to synchronize these measurement epochs between the sender and the receiver.
+    \2 Packet flagging is a technique where the inbox and outbox agree on some desired epoch length in packets.
+    \2 Then, the inbox takes the hash of some field in the packet header (\eg TCP sequence number or IP ID).   
+        \3 A suitable field should change with every packet (\ie, is not static for the lifetime of the connection).
+        \3 On every packet p, given a desired epoch duration d, the inbox computes x = H(p) mod d where H is some hash function (which need not be cryptographically secure)
+    \2 Epoch-based measurements
+        \3 The inbox checks if x == 0. If it is, the inbox marks the start of a new epoch. It records the current time, and the cumulative number of bytes sent since some previous super-epoch.
+        \3 Similarly, the outbox computes x = H(p) mod d on every packet. On a packet marking the start of a new epoch, the outbox sends an out-of-band packet to the inbox containing the hash of the epoch-marked packet, its current time, and the cumulative number of received bytes sent since the super-epoch.
+        \3 When the inbox receives an out-of-band feedback message, it looks up that hash. If the packet which ended the previous epoch was sent at time $s_1$ and received at $r_1$, and the packet ending the current epoch was sent at time $s_2$ and received at $r_2$, the inbox can calculate:
+            \4 rtt = current time - $s_2$
+            \4 bytes in send epoch = bytes sent at s2 - bytes sent at s1
+            \4 bytes in recv epoch = bytes sent at r2 - bytes sent at r1
+            \4 send epoch duration = r2 - r1
+            \4 received rate = bytes in recv epoch / recv epoch duration
+        \3 Epoch durations are in expectation, since they depend on hash values.
+    \2 The inbox now has relevant measurements, and can compute estimates of higher-level measurement primitives.
+        \3 \eg loss rate = send rate - recv rate
+\1 Suitable congestion control algorithms
+    \2 Since \name cannot track low-level metrics used by traditional congestion control algorithms such as the number of inflight packets, implementations of window-based algorithms may not be suitable for use.
+    \2 Fortunately there are rate-based algorithms available~\cite{bbr, nimbus}.
+    \2 The inbox acts as a datapath for CCP~\cite{ccp}, and we use CCP implementations of BBR and Nimbus without modification.
+\end{outline}

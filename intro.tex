@@ -1,3 +1,33 @@
 \section{Introduction}\label{s:intro}
 
-Intro here.
+Congestion control on the Internet is done by individual TCP connections. 
+Each connection independently probes for bandwidth, detects congestion on its path, and reacts to it. 
+This per-connection paradigm for congestion control has served the Internet well for 30 years, but it is a poor fit in many modern traffic control scenarios where a large number of nodes exchange traffic between a few sites. 
+Examples innyclude: traffic between different datacenters~\cite{b4, swan}; traffic between campuses of an organization; traffic between collaborating universities or companies; traffic between a large content provider (e.g., Netflix) and a network with many clients (e.g., a regional ISP); large-scale data backups from an organization to an external site; etc. 
+
+In all these cases, treating traffic from many connections as a {\em single aggregate} presents a opportunity to significantly improve transport performance, \an{as recently observed in a position paper~\cite{msr-hotnets}}. This approach, which we call {\em aggregate traffic control}, has three benefits: 
+\begin{enumerate}
+    \item {\bf Shared learning.} It allows flows that share common bottlenecks to share congestion information. Thus new flows can discover and adapt to their path's congestion conditions much more quickly, which is particularly beneficial for short flows~\cite{CM}. 
+    
+    \item {\bf Traffic persistence.} By aggregating traffic from many flows, it is highly likely that there will always be packets waiting to be sent. As we show, persistent traffic greatly improves our ability to accurately estimate the {\em volume} and {\em nature} of the cross traffic and react to it appropriately. 
+    In other words: traffic is power for congestion control; having more of it gives us better visibility into path congestion and more influence to control it. 
+    
+    \item {\bf Flow scheduling.} It enables fine-grained scheduling for flows within a traffic aggregate. For example, we can schedule flows based on size (short flows first), application priorities, deadlines, etc. Aggregate traffic control enables such flow-level scheduling on Internet paths without any modifications to routers.
+\end{enumerate}
+
+\begin{outline}
+\1 Meanwhile, middleboxes are now prevalent in the Internet architecture~\cite{aplomb}.
+\1 The rise of middleboxes allows us, as congestion control developers, a new vantage point into flows, and an opportunity to perform congestion control operations in the network without modifying end hosts.
+\1 Previously, this approach has required terminating the TCP connection at the middlebox; \ie implementing a TCP proxy.
+    \2 TCP proxies are widely used to add congestion control functionality in the network.
+    \2 \an{drawbacks of TCP proxies}
+        \3 head of line blocking
+        \3 implementation complexity
+        \3 end-to-end principle
+\1 We propose a new type of middlebox, which we call a \name
+\1 A \name performs two functions: first, it performs measurements of network conditions -- RTT, sending rate, and receiving rate -- to feed as input to a congestion control algorithm, and enforces the decisions of that congestion control algorithm on the traffic aggregate.
+    \2 Secondly, it performs scheduling within the flows of a traffic aggregate.
+\1 We make the following contributions
+    \2 The design and implementation of a bundler middlebox
+    \2 An evaluation of the benefits, compared to both the status quo and an idealized deployment where bottleneck queues deploy AQM
+\end{outline}
