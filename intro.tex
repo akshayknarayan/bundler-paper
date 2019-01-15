@@ -3,7 +3,7 @@
 Congestion control on the Internet is done by individual TCP connections. 
 Each connection independently probes for bandwidth, detects congestion on its path, and reacts to it. 
 This per-connection paradigm for congestion control has served the Internet well for 30 years, but it is a poor fit in many modern traffic control scenarios where a large number of nodes exchange traffic between a few sites. 
-Examples innyclude: traffic between different datacenters~\cite{b4, swan}; traffic between campuses of an organization; traffic between collaborating universities or companies; traffic between a large content provider (e.g., Netflix) and a network with many clients (e.g., a regional ISP); large-scale data backups from an organization to an external site; etc. 
+Examples include: traffic between different datacenters~\cite{b4, swan}; traffic between campuses of an organization; traffic between collaborating universities or companies; traffic between a large content provider (e.g., Netflix) and a network with many clients (e.g., a regional ISP); large-scale data backups from an organization to an external site; etc. 
 
 In all these cases, treating traffic from many connections as a {\em single aggregate} presents a opportunity to significantly improve transport performance, \an{as recently observed in a position paper~\cite{msr-hotnets}}. This approach, which we call {\em aggregate traffic control}, has three benefits: 
 \begin{enumerate}

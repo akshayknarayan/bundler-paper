@@ -1,23 +1,75 @@
 \section{Design Overview}\label{s:design}
+\begin{figure*}
+    \centering
+    \includegraphics[width=2\columnwidth]{img/bundler-diagram}
+    \caption{Bundler System Design}\label{fig:bundler}
+\end{figure*}
+
 \begin{outline}
-\1 In-Box and Out-Box
-    \2 need to collect congestion control information on the path.
-    \2 want to do this with unmodified end-hosts, using only middleboxes
-    \2 to accurately capture both ends (rtt, rates), we must have access to packets both near the sender and near the receiver.
-    \2 we call the middlebox (or congestion control gateway) near the sender(s) the in-box, and the middlebox near the receiver(s) the out-box.
-    \2 the in-box is responsible for performing congestion control (and enforcing congestion control decisions) and gathering sender-side measurements.
-    \2 the out-box is responsible for performing measurements on traffic destined for receivers that flows through it.
-    \2 one consideration is how to ensure that traffic between the senders and receivers indeed flows through the in-box and out-box, with the prevalence of SDN, something like way-point routing~\cite{waypoint-routing} can be used. Also network verification~\cite{network-verification} to ensure that traffic indeed traverses in- and out- boxes.
-\1 In-band vs out-of-band
-    \2 A primary consideration for a \name is whether the two gateways should communicate their congestion control measurements \emph{in-band}, by encapsulating packets with \eg a custom UDP header.
-    \2 Indeed, past approaches to network-assisted congestion control have relied either on encapsulation or custom congestion headers~\cite{xcp, rcp} (probably can cite some cellular thing here).
-    \2 encapsulation has two drawbacks:
-        \3 fault tolerance: if the in-box and out-box fail, as middleboxes often do~\cite{aplomb}, encapsulated traffic flows would also fail. We want to avoid this fate-sharing.
-        \3 performance: although modern software switches can achieve high line rates~\cite{netbricks, bess}, they cannot match the performance of hardware. \an{can we say this? could an in-band approach still work with a hardware implementation of the in-box?} 
-        \3 load balancing: commonly-deployed ECMP load balancing relies on the 5-tuple of the connection. Encapsulating packets changes the 5-tuple. 
-            \4 A naive implementation of encapsulation would simply pick one UDP port, but this would lose all the benefits of load balancing. 
-            \4 Instead an implementation would have to carefully set the udp src and dest ports to ensure both that ECMP load balancers in the network still performed correctly, and that the distribution of paths traversed by the encapsulated flows matched those that the unmodified traffic would have traversed without encapsulation.
-    \2 Therefore, instead, we select an out-of-band approach. In this approach, flows from the senders traverse the network exactly as they otherwise would have. This is nice in terms of the end-to-end principle.
+\1 A \name has the following properties:
+    \2 It measures congestion control information from the network path.
+    \2 It enforces a pacing rate determined by a congestion control algorithm.
+        \3 The congestion control algorithm takes as input measurements from the network path, and returns an aggregate rate at which \name should send its component traffic.
+    \2 It provides a mechanism for scheduling the packets comprising the bundle.
+\1 Simultaneously, a practical modern design cannot rely on changes in end-hosts.
+\1 It must also scale to high link rates.
+\end{outline}
+
+\subsection{Two-sided Measurement}\label{s:design:twosided}
+\begin{outline}
+\1 Traditionally, end-host congestion control has been tightly integrated with end-host packet transmission logic.
+    \1 Therefore, it traditionally uses a \emph{one-sided} mechanism for measuring congestion control primitives.
+    \2 Therefore, it has relied on those measurements that are readily available on end-hosts, \ie the number of in-order packets accounted for by the receipt of an acknowledgement from the receiver.
+    \2 Hosts can easily measure the rate at which they send, and the round-trip time.
+    \2 However, recent proposals observe~\cite{bbr, sprout, remy, nimbus} that it is often useful to account for the receiver's view of a connection's rate.
+        \3 These proposals estimate the received rate at the sender using the timing between received acknowledgements.
+        \3 Sender-side only measurements of the bottleneck rate have long been known to have limited accuracy; receiver-side measurements are more accurate~\cite{packet-dynamics, path-properties}.
+\1 In contrast, we propose a \emph{two-sided} mechanism for measuring network path properties.
+    \2 We do this using middleboxes.
+    \2 We refer to the middlebox near the sender(s) the \emph{\inbox}, and the middlebox near the receiver(s) the \emph{\outbox}.
+    \2 The \inbox is responsible for performing congestion control (and enforcing congestion control decisions) and gathering sender-side measurements.
+    \2 The \outbox is responsible for performing measurements on traffic destined for receivers that flows through it.
+    \2 One consideration is how to ensure that traffic between the senders and receivers indeed flows through the in-box and out-box, with the prevalence of SDN, something like way-point routing~\cite{waypoint-routing} can be used. Also network verification~\cite{network-verification} to ensure that traffic indeed traverses in- and out- boxes.
+\end{outline}
+
+\subsection{What About TCP Proxies?}\label{s:design:prior}
+\begin{outline}
+\1 An existing approach which could fulfill these design objectives is a TCP Proxy.
+    \2 TCP proxies are popular in cellular networks
+    \2 They are usually used to shorten the observed round-trip time of a connection, so it can quickly ramp up its sending rate.
+    \2 They do this by sending acknowledgements to the sender.  
+        \3 This means they must take responsibility for reliable delivery.
+    \2 Because TCP proxies take responsibility for reliability, they must implement full TCP stacks.
+        \3 As a result, they are difficult to implement in hardware. \an{maybe mention this later, once it's more clear our design is hardware-compatible?}
+    \2 They furthermore remain limited by one-sided measurements.
+    \2 They do not allow fate-sharing:
+        \3 If a TCP proxy fails, as middleboxes often do~\cite{aplomb}, the underlying connection is broken.
+\1 We describe in \S\ref{s:measurement} how a \name can perform precise congestion control measurements without implementing a TCP proxy
+    \2 and how to perform these measurements in a fault-tolerant way that preserves fate-sharing.
+\end{outline}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{img/rate-calculation}
+    \caption{Epoch-based measurement calculation}\label{fig:ratecalc}
+\end{figure}
+\begin{outline}
+
+\subsection{Out-of-band Coordination}\label{s:design:oob}
+\1 A primary consideration for a \name is whether the two gateways should communicate their congestion control measurements \emph{in-band}, by encapsulating packets with \eg a custom UDP header.
+\1 Indeed, past approaches to network-assisted congestion control have relied either on encapsulation or custom congestion headers~\cite{xcp, rcp} (probably can cite some cellular thing here).
+\1 encapsulation has two drawbacks:
+    \2 fault tolerance: if the in-box and out-box fail, as middleboxes often do~\cite{aplomb}, encapsulated traffic flows would also fail. We want to avoid this fate-sharing.
+    \2 performance: although modern software switches can achieve high line rates~\cite{netbricks, bess}, they cannot match the performance of hardware. \an{can we say this? could an in-band approach still work with a hardware implementation of the in-box?} 
+    \2 load balancing: commonly-deployed ECMP load balancing relies on the 5-tuple of the connection. Encapsulating packets changes the 5-tuple. 
+        \3 A naive implementation of encapsulation would simply pick one UDP port, but this would lose all the benefits of load balancing. 
+        \3 Instead an implementation would have to carefully set the udp src and dest ports to ensure both that ECMP load balancers in the network still performed correctly, and that the distribution of paths traversed by the encapsulated flows matched those that the unmodified traffic would have traversed without encapsulation.
+\1 Therefore, instead, we select an out-of-band approach. In this approach, flows from the senders traverse the network exactly as they otherwise would have. This is nice in terms of the end-to-end principle.
+\1 We explain in \S\ref{s:measurement} our measurement methodology
+\end{outline}
+
+\section{Measurement Strategy}\label{s:measurement}
+\begin{outline}
 \1 Packet marking for hands-off measurement
     \2 Congestion control protocols require accurate measurements for their decisions to be meaningful. How can an inbox and outbox collaborate to measure network conditions along their path?
     \2 Congestion control protocols need only a small, common set of measurements~\cite{ccp-hotnets} to function. We observe that these can be reconstructed with three core measurements: the sending rate at the in-box, the receiving rate at the out-box, and the round-trip time between the two gateways.

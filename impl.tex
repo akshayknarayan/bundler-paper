@@ -2,7 +2,7 @@
 \begin{outline}
 \1 Overview
 \1 Our design is not specific to a single implementation.
-    \2 Modern NFV platforms~\cite{netbricks, bess} offer opportunities for implementing \name
+    \2 Modern NFV platforms~\cite{bess, mos, netbricks} offer opportunities for implementing \name
     \2 We implement the inbox using \ct{tc}, the Linux traffic control mechanism, along with a userspace component. We adapt the \ct{tbf} qdisc to implement packet pacing
         \3 When the qdisc observes an epoch-marked packet, it sends a message to the inbox process in userspace.
         \3 The userspace component of the inbox process manages the qdisc and acts as a CCP datapath. It communicates with the CCP congestion control algorithm via unix sockets or channels if the algorithm is run in a thread within the same process.
