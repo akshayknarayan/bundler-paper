@@ -1,22 +1,16 @@
 \section{Design Overview}\label{s:design}
-\begin{figure*}
+\begin{figure}
     \centering
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[b]{0.5\textwidth}
         \includegraphics[width=\textwidth]{img/shift-bottleneck-before}
         \caption{Shift-bottleneck before}\label{fig:design:shift-bottleneck:before}
     \end{subfigure}
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[b]{0.5\textwidth}
         \includegraphics[width=\textwidth]{img/shift-bottleneck-after}
         \caption{Shift-bottleneck after}\label{fig:design:shift-bottleneck:after}
     \end{subfigure}
     \caption{Shift-bottleneck}\label{fig:design:shift-bottleneck}
-\end{figure*}
-
-\begin{figure*}
-    \centering
-    \includegraphics[width=2\columnwidth]{img/bundler-diagram}
-    \caption{Bundler System Design}\label{fig:bundler}
-\end{figure*}
+\end{figure}
 
 \begin{outline}
 \1 A \name has the following properties:
@@ -61,14 +55,8 @@
     \2 and how to perform these measurements in a fault-tolerant way that preserves fate-sharing.
 \end{outline}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=\columnwidth]{img/rate-calculation}
-    \caption{Epoch-based measurement calculation}\label{fig:ratecalc}
-\end{figure}
-\begin{outline}
-
 \subsection{Out-of-band Coordination}\label{s:design:oob}
+\begin{outline}
 \1 A primary consideration for a \name is whether the two gateways should communicate their congestion control measurements \emph{in-band}, by encapsulating packets with \eg a custom UDP header.
 \1 Indeed, past approaches to network-assisted congestion control have relied either on encapsulation or custom congestion headers~\cite{xcp, rcp} (probably can cite some cellular thing here).
 \1 encapsulation has two drawbacks:
@@ -82,6 +70,18 @@
 \end{outline}
 
 \section{Measurement Strategy}\label{s:measurement}
+\begin{figure*}
+    \centering
+    \includegraphics[width=2\columnwidth]{img/bundler-diagram}
+    \caption{Bundler System Design}\label{fig:bundler}
+\end{figure*}
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{img/rate-calculation}
+    \caption{Epoch-based measurement calculation}\label{fig:ratecalc}
+\end{figure}
+
+
 \begin{outline}
 \1 Packet marking for hands-off measurement
     \2 Congestion control protocols require accurate measurements for their decisions to be meaningful. How can an inbox and outbox collaborate to measure network conditions along their path?
