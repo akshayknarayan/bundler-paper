@@ -1,33 +1,59 @@
 \section{Introduction}\label{s:intro}
 
-Congestion control on the Internet is done by individual TCP connections. 
-Each connection independently probes for bandwidth, detects congestion on its path, and reacts to it. 
-This per-connection paradigm for congestion control has served the Internet well for 30 years, but it is a poor fit in many modern traffic control scenarios where a large number of nodes exchange traffic between a few sites. 
-Examples include: traffic between different datacenters~\cite{b4, swan}; traffic between campuses of an organization; traffic between collaborating universities or companies; traffic between a large content provider (e.g., Netflix) and a network with many clients (e.g., a regional ISP); large-scale data backups from an organization to an external site; etc. 
+Most Internet paths today employ first-in, first-out (\emph{FIFO}) scheduling. 
+However, traffic could benefit from different scheduling algorithms.
+Unfortunately, networks have proven difficult to evolve; although router vendors have, over the years, implemented other scheduling algorithms (such as fair queueing~\cite{fair-queueing}), operators often do not enable these features \an{cite?}. 
+Thus, the emergence of programmable switching~\cite{p4} is not a panacea; while it might now be simpler to implement scheduling policy, it remains difficult to see deployment.
+Meanwhile, in privately operated wide-area networks, operators have achieved significant benefits just by enabling scheduling algorithms already commonly available in commercial routers~\cite{b4, swan}. 
 
-In all these cases, treating traffic from many connections as a {\em single aggregate} presents a opportunity to significantly improve transport performance, \an{as recently observed in a position paper~\cite{msr-hotnets}}. This approach, which we call {\em aggregate traffic control}, has three benefits: 
+Indeed, it is impractical to expect operators in the public Internet to follow suit; indeed, their position is a challenging one, as each of their various customers may desire diverging (often incompatible) features. For example, due to the prevalence of VPN tunnelling, enabling fair queueing in routers may penalize flows bundled within a VPN tunnel.
+Thus, operators cannot see the full picture, and cannot offer scheduling that will appease any one customer.
+
+Crucially, however, \emph{individual customers} can often choose a policy that suits their needs; that is, scheduling policy is easier to express at the edge. 
+Examples include: traffic between different datacenters over the public Internet; traffic between campuses of an organization; traffic between collaborating universities or companies; traffic between a large content provider (\eg Netflix) and a network with many clients (e.g., a regional ISP); large-scale data backups from an organization to an external site (\eg Dropbox); etc. 
+In each of these scenarios the sender has enough information to unilaterally choose a scheduling policy for its component connections, but usually lacks the control over the bottleneck link necessary to realize it.
+
+While it may be easier to \emph{express} scheduling policy near the edge, it is not immediately obvious how to \emph{implement} it. 
+The bottleneck link, where congestion occurs and therefore where scheduling is the most useful, is often not within the edge network but rather on inter-domain links~\cite{inferring-interdomain-congestion}. 
+Therefore deploying scheduling algorithms on one's own routers is of limited utility.
+Simultaneously, traffic from a domain is naturally comprised of numerous individual connections;
+each connection independently probes for bandwidth, detects congestion on its path, and reacts accordingly.
+
+Treating the traffic from many connections as a \emph{single aggregate}, \ie as a router would view them, presents a opportunity to significantly improve performance. This approach, which we call {\em aggregate traffic control}, has two components: 
 \begin{enumerate}
-    \item {\bf Shared learning.} It allows flows that share common bottlenecks to share congestion information. Thus new flows can discover and adapt to their path's congestion conditions much more quickly, which is particularly beneficial for short flows~\cite{CM}. 
+    \item {\bf Congestion control.} At what combined rate should the traffic aggregate send packets? This depends on network conditions at the bottleneck, which the traffic aggregate cannot directly observe. 
+    Fortunately, this is exactly the question answered by congestion control algorithms; they take as input measurements of network conditions -- RTT, sending rate, and receiving rate -- and yield as output the correct rate at which to send packets.
+    Furthermore, since the traffic aggregate as a whole determines the sending rate, this approach causes component flows share congestion information.
+    Thus new flows can discover and adapt to their path's congestion conditions much more quickly, which is particularly beneficial for short flows~\cite{CM}. 
     
-    \item {\bf Traffic persistence.} By aggregating traffic from many flows, it is highly likely that there will always be packets waiting to be sent. As we show, persistent traffic greatly improves our ability to accurately estimate the {\em volume} and {\em nature} of the cross traffic and react to it appropriately. 
-    In other words: traffic is power for congestion control; having more of it gives us better visibility into path congestion and more influence to control it. 
-    
-    \item {\bf Flow scheduling.} It enables fine-grained scheduling for flows within a traffic aggregate. For example, we can schedule flows based on size (short flows first), application priorities, deadlines, etc. Aggregate traffic control enables such flow-level scheduling on Internet paths without any modifications to routers.
+    \item {\bf Flow scheduling.} Given a combined rate, in what order should the aggregate transmit packets?  This enables fine-grained scheduling for flows within a traffic aggregate. 
+    For example, we can schedule flows based on size (short flows first), application priorities, deadlines, etc.
 \end{enumerate}
 
+How should we implement and deploy a traffic aggregator? 
+We note that middleboxes are now prevalent in the Internet architecture~\cite{aplomb}.
+The rise of middleboxes allows a new vantage point into flows, and an opportunity to implement a traffic aggregator.
+We therefore propose a new type of middlebox to perform traffic aggregation, which we call a \name.
+
+We make the following contributions:
+\begin{enumerate}
+    \item The design and implementation of a \name.
+    \item An evaluation of the benefits, compared to both the status quo (FIFO) and an idealized deployment where bottleneck queues deploy a scheduling algorithm.
+\end{enumerate}
+
+The rest of this paper is organized as follows: 
+\S\ref{s:design} describes various tradeoffs in the design of a \name. 
+\S\ref{s:measurement} describes our approach to gathering measurements from the network. 
+\S\ref{s:impl} describes our prototype implementation. 
+\S\ref{s:eval} shows an evaluation of the benefits of \name.
+
+\cut{
 \begin{outline}
-\1 Meanwhile, middleboxes are now prevalent in the Internet architecture~\cite{aplomb}.
-\1 The rise of middleboxes allows us, as congestion control developers, a new vantage point into flows, and an opportunity to perform congestion control operations in the network without modifying end hosts.
 \1 Previously, this approach has required terminating the TCP connection at the middlebox; \ie implementing a TCP proxy.
     \2 TCP proxies are widely used to add congestion control functionality in the network.
     \2 \an{drawbacks of TCP proxies}
         \3 head of line blocking
         \3 implementation complexity
         \3 end-to-end principle
-\1 We propose a new type of middlebox, which we call a \name
-\1 A \name performs two functions: first, it performs measurements of network conditions -- RTT, sending rate, and receiving rate -- to feed as input to a congestion control algorithm, and enforces the decisions of that congestion control algorithm on the traffic aggregate.
-    \2 Secondly, it performs scheduling within the flows of a traffic aggregate.
-\1 We make the following contributions
-    \2 The design and implementation of a bundler middlebox
-    \2 An evaluation of the benefits, compared to both the status quo and an idealized deployment where bottleneck queues deploy AQM
 \end{outline}
+}
