@@ -1,6 +1,9 @@
 \section{Implementation}\label{s:impl}
+
+The prevalence of middleboxes today means that there are multiple options for implementing a \name.
+
+
 \begin{outline}
-\1 Overview
 \1 Our design is not specific to a single implementation.
     \2 Modern NFV platforms~\cite{bess, mos, netbricks} offer opportunities for implementing \name
     \2 We implement the inbox using \ct{tc}, the Linux traffic control mechanism, along with a userspace component. We adapt the \ct{tbf} qdisc to implement packet pacing

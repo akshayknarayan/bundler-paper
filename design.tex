@@ -3,13 +3,13 @@
     \centering
     \begin{subfigure}[b]{0.5\textwidth}
         \includegraphics[width=\textwidth]{img/shift-bottleneck-before}
-        \caption{Shift-bottleneck before}\label{fig:design:shift-bottleneck:before}
+        \caption{Today, large queues can grow on congested routers that are outside the control of a customer.}\label{fig:design:shift-bottleneck:before}
     \end{subfigure}
     \begin{subfigure}[b]{0.5\textwidth}
         \includegraphics[width=\textwidth]{img/shift-bottleneck-after}
-        \caption{Shift-bottleneck after}\label{fig:design:shift-bottleneck:after}
+        \caption{\name can \emph{move} the bottleneck using a congestion control algorithm on the traffic aggregate.}\label{fig:design:shift-bottleneck:after}
     \end{subfigure}
-    \caption{Shift-bottleneck}\label{fig:design:shift-bottleneck}
+    \caption{This illustrative example (with FIFO scheduling) shows how \name can take control of queueing delays in the network. The queue where delays build up can best make scheduling decisions, since that is where there is the most choice between packets to send.}\label{fig:design:shift-bottleneck}
 \end{figure}
 
 \begin{outline}
