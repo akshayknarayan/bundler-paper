@@ -375,6 +375,19 @@ title = {{Linux Socket Filtering aka Berkeley Packet Filter (BPF)}},
 howpublished={\url{https://www.kernel.org/doc/Documentation/networking/filter.txt}},
 }
 
+@misc{tc,
+key="tc",
+author = {Alexey N. Kuznetsov},
+title = {{tc}},
+howpublished={\url{https://linux.die.net/man/8/tc}},
+}
+
+@misc{tbf,
+author = {Alexey N. Kuznetsov},
+title = {{tbf}},
+howpublished={\url{https://linux.die.net/man/8/tc-tbf}},
+}
+
 @misc{ccp-impl,
 title = {{CCP user-space}},
 howpublished={\url{https://github.com/mit-nms/ccp}},
@@ -754,6 +767,96 @@ year = {2013},
     year={2002},
 }
 
+@inproceedings{fair-queueing,
+ author = {Demers, A. and Keshav, S. and Shenker, S.},
+ title = {{Analysis and Simulation of a Fair Queueing Algorithm}},
+ booktitle = {SIGCOMM},
+ year = {1989},
+} 
+
+@techreport{bess,
+    Author = {Han, Sangjin and Jang, Keon and Panda, Aurojit and Palkar, Shoumik and Han, Dongsu and Ratnasamy, Sylvia},
+    Title = {{SoftNIC: A Software NIC to Augment Hardware}},
+    Institution = {EECS Department, University of California, Berkeley},
+    Year = {2015},
+    Month = {May},
+    URL = {http://www2.eecs.berkeley.edu/Pubs/TechRpts/2015/EECS-2015-155.html},
+    Number = {UCB/EECS-2015-155},
+}
+
+@article{waypoint-routing,
+ author = {Amiri, Saeed Akhoondian and Foerster, Klaus-Tycho and Jacob, Riko and Schmid, Stefan},
+ title = {Charting the Algorithmic Complexity of Waypoint Routing},
+ journal = {SIGCOMM Comput. Commun. Rev.},
+ issue_date = {January 2018},
+ volume = {48},
+ number = {1},
+ month = apr,
+ year = {2018},
+ issn = {0146-4833},
+ pages = {42--48},
+ numpages = {7},
+}
+
+@inproceedings{anteater,
+ author = {Mai, Haohui and Khurshid, Ahmed and Agarwal, Rachit and Caesar, Matthew and Godfrey, P. Brighten and King, Samuel Talmadge},
+ title = {{Debugging the Data Plane with Anteater}},
+ booktitle = {SIGCOMM},
+ year = {2011},
+} 
+
+@inproceedings {veriflow,
+author = {Ahmed Khurshid and Xuan Zou and Wenxuan Zhou and Matthew Caesar and P. Brighten Godfrey},
+title = {{VeriFlow: Verifying Network-Wide Invariants in Real Time}},
+booktitle = {NSDI},
+year = {2013},
+}
+
+@inproceedings {reachability,
+author = {Aurojit Panda and Ori Lahav and Katerina Argyraki and Mooly Sagiv and Scott Shenker},
+title = {{Verifying Reachability in Networks with Mutable Datapaths}},
+booktitle = {NSDI},
+year = {2017},
+}
+
+@inproceedings {flowtags,
+author = {Seyed Kaveh Fayazbakhsh and Luis Chiang and Vyas Sekar and Minlan Yu and Jeffrey C. Mogul},
+title = {{Enforcing Network-Wide Policies in the Presence of Dynamic Middlebox Actions using FlowTags}},
+booktitle = {{NSDI}},
+year = {2014},
+url = {https://www.usenix.org/conference/nsdi14/technical-sessions/presentation/fayazbakhsh},
+}
+
+@article{click,
+ author = {Kohler, Eddie and Morris, Robert and Chen, Benjie and Jannotti, John and Kaashoek, M. Frans},
+ title = {{The Click Modular Router}},
+ journal = {ACM Trans. Comput. Syst.},
+ issue_date = {Aug. 2000},
+ volume = {18},
+ number = {3},
+ month = aug,
+ year = {2000},
+ issn = {0734-2071},
+ pages = {263--297},
+ numpages = {35},
+} 
+
+@inproceedings{bwe,
+title	= {BwE: Flexible, Hierarchical Bandwidth Allocation for WAN Distributed Computing},
+author	= {Alok Kumar and Sushant Jain and Uday Naik and Nikhil Kasinadhuni and Enrique Cauich Zermeno and C. Stephen Gunn and Jing Ai and Björn Carlin and Mihai Amarandei-Stavila and Mathieu Robin and Aspi Siganporia and Stephen Stuart and Amin Vahdat},
+year	= {2015},
+booktitle	= {SIGCOMM}
+}
+
+@inproceedings{inferring-interdomain-congestion,
+       Author = {Dhamdhere, A. and Clark, D. and Gamero-Garrido, A. and Luckie, M. and Mok, R. and Akiwate, G. and Gogia, K. and Bajpai, V. and Snoeren, A. and claffy, k.}, 
+       Title = {{Inferring Persistent Interdomain Congestion}},
+       BookTitle = {SIGCOMM},
+       Year = {2018},
+       Keywords = {congestion   measurement methodology   passive data analysis   topology}
+}
+
+
 @inproceedings{Tan09,
     author = "T. Lan and D. Kao and M. Chiang and A. Sabharwal",
     title = {{An Axiomatic Theory of Fairness}},
@@ -1094,7 +1197,8 @@ year = {2011},
 @inproceedings {netbricks,
     author = {Aurojit Panda and Sangjin Han and Keon Jang and Melvin Walls and Sylvia Ratnasamy and Scott Shenker},
     title = {{NetBricks: Taking the V out of NFV}},
-    series = {OSDI 2016},
+    booktitle = {OSDI},
+    year = {2016},
 }
 
 @misc {intel-turboboost,

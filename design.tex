@@ -3,13 +3,13 @@
     \centering
     \begin{subfigure}[b]{0.5\textwidth}
         \includegraphics[width=\textwidth]{img/shift-bottleneck-before}
-        \caption{Today, large queues can grow on congested routers that are outside the control of a customer.}\label{fig:design:shift-bottleneck:before}
+        \caption{Today, large queues can grow on congested routers that are outside the control of a domain.}\label{fig:design:shift-bottleneck:before}
     \end{subfigure}
     \begin{subfigure}[b]{0.5\textwidth}
         \includegraphics[width=\textwidth]{img/shift-bottleneck-after}
         \caption{\name can \emph{move} the bottleneck using a congestion control algorithm on the traffic aggregate.}\label{fig:design:shift-bottleneck:after}
     \end{subfigure}
-    \caption{This illustrative example (with FIFO scheduling) shows how \name can take control of queueing delays in the network. The queue where delays build up can best make scheduling decisions, since that is where there is the most choice between packets to send.}\label{fig:design:shift-bottleneck}
+    \caption{This illustrative example with a single flow and FIFO scheduling shows how \name can take control of queues in the network. The bubbles show the trend in measured queueing delays at the relevant queue over time. The queue where delays build up can best make scheduling decisions, since that is where there is the most choice between packets to send.}\label{fig:design:shift-bottleneck}
 \end{figure}
 
 \begin{outline}
@@ -19,7 +19,23 @@
         \3 The congestion control algorithm takes as input measurements from the network path, and returns an aggregate rate at which \name should send its component traffic.
     \2 It provides a mechanism for scheduling the packets comprising the bundle.
 \1 Simultaneously, a practical modern design cannot rely on changes in end-hosts.
-\1 It must also scale to high link rates.
+\1 As discussed, \name must be compatible with deployments on the edge of a domain. Therefore, it must also scale to high link rates.
+    \2 As a result, it should not maintain per-connection state -- only per-aggregate state.
+\end{outline}
+
+\subsection{Shifting the Queues}\label{s:design:shifting}
+\begin{outline}
+\1 \name is able to schedule the packets by shifting the queues from the bottleneck to its own queue.
+\1 Note that \name can only shift (and therefore can only schedule) that component of the bottleneck queue which is self-inflicted; that is, it can only control its own traffic.
+\1 \name must therefore decide what fraction of the bottleneck queue it is willing to occupy.
+\1 We make a simple, but powerful, observation: end-host congestion control algorithms perform exactly this calculation when deciding what rate to send packets at.
+\1 If we run a congestion control algorithm at the \name, it will decide on a fair sending rate for the aggregate as it competes with non-aggregate traffic from other domains.
+\1 Component flows will then queue at the \name as their packets are sent at this rate.
+\1 Figure~\ref{fig:design:shift-bottleneck} illustrates this method: 
+    \2 in Figure~\ref{fig:design:shift-bottleneck:before}, packets from the end-hosts queue in a FIFO queue in the network. The FIFO queue at the edge is unoccupied.
+    \2 In contrast, the \name implementation (described in \S\ref{s:impl}), in Figure~\ref{fig:design:shift-bottleneck:after} maintains low queueing delays at the bottleneck queue by estimating and sending at the bottleneck rate. 
+        \3 Since component flows, running traditional congestion control algorithms, will probe for bandwidth until they experience loss, they build queues at the \name instead of at the bottleneck.
+    \2 Since the \name now controls the queues corresponding to the traffic aggregate, it can now schedule the packets of the component flows.
 \end{outline}
 
 \subsection{Two-sided Measurement}\label{s:design:twosided}
@@ -31,12 +47,16 @@
     \2 However, recent proposals observe~\cite{bbr, sprout, remy, nimbus} that it is often useful to account for the receiver's view of a connection's rate.
         \3 These proposals estimate the received rate at the sender using the timing between received acknowledgements.
         \3 Sender-side only measurements of the bottleneck rate have long been known to have limited accuracy; receiver-side measurements are more accurate~\cite{packet-dynamics, path-properties}.
+\1 However, we want a scalable design that does not maintain per-connection state. 
+    \2 Tracking acknowledgements requires maintaining this state.
+    \2 It also requires path symmetry.
 \1 In contrast, we propose a \emph{two-sided} mechanism for measuring network path properties.
     \2 We do this using middleboxes.
     \2 We refer to the middlebox near the sender(s) the \emph{\inbox}, and the middlebox near the receiver(s) the \emph{\outbox}.
     \2 The \inbox is responsible for performing congestion control (and enforcing congestion control decisions) and gathering sender-side measurements.
     \2 The \outbox is responsible for performing measurements on traffic destined for receivers that flows through it.
-    \2 One consideration is how to ensure that traffic between the senders and receivers indeed flows through the in-box and out-box, with the prevalence of SDN, something like way-point routing~\cite{waypoint-routing} can be used. Also network verification~\cite{network-verification} to ensure that traffic indeed traverses in- and out- boxes.
+    \2 One consideration is how to ensure that traffic between the senders and receivers indeed flows through the in-box and out-box, with the prevalence of SDN, something like way-point routing~\cite{waypoint-routing, flowtags} can be used. 
+    \2 Also network verification~\cite{veriflow, anteater, reachability} to ensure that traffic indeed traverses in- and out- boxes.
 \end{outline}
 
 \subsection{What About TCP Proxies?}\label{s:design:prior}
@@ -47,7 +67,7 @@
     \2 They do this by sending acknowledgements to the sender.  
         \3 This means they must take responsibility for reliable delivery.
     \2 Because TCP proxies take responsibility for reliability, they must implement full TCP stacks.
-        \3 As a result, they are difficult to implement in hardware. \an{maybe mention this later, once it's more clear our design is hardware-compatible?}
+        \3 As a result, they are difficult to implement in hardware and difficult to scale. \an{maybe mention this later, once it's more clear our design is hardware-compatible?}
     \2 They furthermore remain limited by one-sided measurements.
     \2 They do not allow fate-sharing:
         \3 If a TCP proxy fails, as middleboxes often do~\cite{aplomb}, the underlying connection is broken.
@@ -70,11 +90,6 @@
 \end{outline}
 
 \section{Measurement Strategy}\label{s:measurement}
-\begin{figure*}
-    \centering
-    \includegraphics[width=2\columnwidth]{img/bundler-diagram}
-    \caption{Bundler System Design}\label{fig:bundler}
-\end{figure*}
 \begin{figure}
     \centering
     \includegraphics[width=\columnwidth]{img/rate-calculation}
