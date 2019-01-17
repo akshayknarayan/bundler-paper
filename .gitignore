@@ -1,0 +1,7 @@
+*.bbl
+*.aux
+*.out
+*.blg
+*.log
+bundler-sigcomm19.pdf
+_minted*/
