@@ -12,6 +12,7 @@
     \caption{This illustrative example with a single flow shows how \name can take control of queues in the network. The bubbles show the trend in measured queueing delays at the relevant queue over time. The queue where delays build up can best make scheduling decisions, since that is where there is the most choice between packets to send.}\label{fig:design:shift-bottleneck}
 \end{figure}
 
+\cut{
 \begin{outline}
 \1 A \name has the following properties:
     \2 It measures congestion control information from the network path.
@@ -37,6 +38,71 @@
         \3 Since component flows, running traditional congestion control algorithms, will probe for bandwidth until they experience loss, they build queues at the \name instead of at the bottleneck.
     \2 Since the \name now controls the queues corresponding to the traffic aggregate, it can now schedule the packets of the component flows.
 \end{outline}
+}
+
+
+\cut{
+In this section we describe the tradeoffs in the design of a \name.
+
+Bundler is designed to be simple, scalable, and easy-to-deploy.
+- Needs to scale to high link rates since it sits on the path and traffic from many hosts will be
+passing through it
+- Should be simple and possible ot move to hardware for even more scalability
+- Must not rely on changes in end-hosts or significant changes to the middlebox in order to 
+be practical and readily deployable
+- Must be robust to failure scenarios and not cause more harm than good (i.e. if it fails, 
+it should at worst make the situation the same as it was before, not any worse)
+
+
+- To schedule flows, bundler needs to build queues and control the bottleneck
+- To control the bottleneck, it needs to perform congestion control
+- To perform congestion control, it needs to collect measurements about the state of the network
+- It needs at least the sending and receiving rates and RTT 
+- It can directly observe the send rate, but the receive rate is known to be difficult to estimate
+and an RTT estimate doesn't make much sense
+
+Bundler
+Bundler uses two-sided measurements
+Bundler does not split connections
+Bundler is out-of-band
+
+
+In order to perform congestion control, \name needs to collect and maintain measurements about 
+the current state of the network. State-of-the-art rate-based algorithms such as BBR and Nimbus use
+the sending and receiving rates as well as an estimate of the RTT. Although \name can 
+directly compute its own sending rate, it can only estimate the receive rate using the timing between received
+acknowledgements, which prior work has shown to have limited accuracy~\cite{packet-dynamics, path-properties}.
+It would also be difficult to compute a useful estimate of a single RTT representing the entire bundle as each 
+flow may experience different sources of latency after traversing the shared bottleneck. We are fundamentally
+limited in the accuracy of measurements we can obtain by only observing one side of the bottleneck.
+Thus, to obtain more robust and useful measurements, \name actually uses a pair of middleboxes, both
+on the network path: one before the bottleneck, and one after, which we refer to as the \textit{\inbox}
+and \textit{\outbox}, respectively.
+
+By rate limiting flows in a bundle, we can shift the bottleneck from an intermediate router
+to \name itself, and thus allow the queues to build at the inbox. This provides the opportunity
+for \name to schedule flows, which is one of \name's key benefits. 
+
+- Since the bottleneck must be between the inbox and outbox, it makes sense to push them as 
+close to the sender and receiver as possible to capture as many bottlenecks as possible
+- At the same time, the further they are into the network, the more senders and receivers they
+can aggregate
+- Thus the position should be balanced
+- This only works if the bottlebneck is between the inbox and outbox, but if it isn't, it doesn't do any harm
+
+The two middlebox design also allows us to sidestep the problem of determining which flows share
+the same bottleneck and thus should be bundled together.  If packets for two different flows are traversing
+both the same inbox and outbox on their way from source to destination, 
+must 
+}
+
+\subsection{Bundler Does Not Split Connections}
+\label{s:design:split}
+
+An existing approach that fulfills objectives X and Y is a TCP proxy. 
+A TCP proxy is a server that acts as an intermediary between the client and server in a normal 
+TCP session. 
+
 
 \subsection{Two-sided Measurement}\label{s:design:twosided}
 \begin{outline}
@@ -76,6 +142,7 @@
 \end{outline}
 
 \subsection{Out-of-band Coordination}\label{s:design:oob}
+    \cut{
 \begin{outline}
 \1 A primary consideration for a \name is whether the two gateways should communicate their congestion control measurements \emph{in-band}, by encapsulating packets with \eg a custom UDP header.
 \1 Indeed, past approaches to network-assisted congestion control have relied either on encapsulation or custom congestion headers~\cite{xcp, rcp} (probably can cite some cellular thing here).
@@ -88,40 +155,30 @@
 \1 Therefore, instead, we select an out-of-band approach. In this approach, flows from the senders traverse the network exactly as they otherwise would have. This is nice in terms of the end-to-end principle.
 \1 We explain in \S\ref{s:measurement} our measurement methodology
 \end{outline}
+}
 
-\section{Measurement Strategy}\label{s:measurement}
-\begin{figure}
-    \centering
-    \includegraphics[width=\columnwidth]{img/rate-calculation}
-    \caption{Epoch-based measurement calculation}\label{fig:ratecalc}
-\end{figure}
+The \inbox and \outbox must communicate in order to share measurements and coordinate actions. 
+This communication can either be in-band, which would involve encapsulating packets
+at the \inbox with a custom header and then decapsulating them at the \outbox, or out-of-band,
+which would not touch any of the actual traffic and send separate packets
+An \emph{in-band} approach would involve encapsulating packets at the \inbox with a custom 
+header that contains measurement or control information and then decapsulating them at the \outbox.
+An \emph{out-of-band} approach 
+There are broadly two styles of communication that a \name could use to communicate measurements
+and coordinate actions: 
 
+- The inbox and outbox must communicate to coordinate
+- Communucation can be in band with the traffic we are trying to control or out of band
+    - In band involves encapsulating packets with a custom UDP header
+    - Out of band does not touch packets and sends separate packets explicitly on a different channel
+- Prior work on network assisted vongestion control has used encapsulation and/or custom headers 
+- This is the most flexible option because you can put whatever you want into the header, but it has a 
+a few major drawbacks that violate our design objectives
+    1. Adding a header adds overhead, both in terms of the CPU cycles necessary to rewrite each packet
+    (as opposed to just passively observing it in the out-of-band case) and in terms of the extra data
+    on the wire. This hurts scalability and would be more difficult to implement in hardware.
+    2. Bad fault tolerance story -- if either of the boxes fail, which bmiddleboxes often do, 
+    all flows currenly in bundles would also fail, fate sharing
+    3. Messes with ECMP load balancing in the network -- ECMP typically load balances based on five-tuple
+    but a naive encapsulation 
 
-\begin{outline}
-\1 Packet marking for hands-off measurement
-    \2 Congestion control protocols require accurate measurements for their decisions to be meaningful. How can an inbox and outbox collaborate to measure network conditions along their path?
-    \2 Congestion control protocols need only a small, common set of measurements~\cite{ccp-hotnets} to function. We observe that these can be reconstructed with three core measurements: the sending rate at the in-box, the receiving rate at the out-box, and the round-trip time between the two gateways.
-    \2 Unfortunately, to be most useful, the sending and receiving rates should be calculated over the same set of packets. Otherwise \an{why}.
-        \3 Otherwise instantaneous measurements can't be used and everything has to be ewma'd?
-    \2 We use packet flagging to synchronize these measurement epochs between the sender and the receiver.
-    \2 Packet flagging is a technique where the inbox and outbox agree on some desired epoch length in packets.
-    \2 Then, the inbox takes the hash of some field in the packet header (\eg TCP sequence number or IP ID).   
-        \3 A suitable field should change with every packet (\ie, is not static for the lifetime of the connection).
-        \3 On every packet p, given a desired epoch duration d, the inbox computes x = H(p) mod d where H is some hash function (which need not be cryptographically secure)
-    \2 Epoch-based measurements
-        \3 The inbox checks if x == 0. If it is, the inbox marks the start of a new epoch. It records the current time, and the cumulative number of bytes sent since some previous super-epoch.
-        \3 Similarly, the outbox computes x = H(p) mod d on every packet. On a packet marking the start of a new epoch, the outbox sends an out-of-band packet to the inbox containing the hash of the epoch-marked packet, its current time, and the cumulative number of received bytes sent since the super-epoch.
-        \3 When the inbox receives an out-of-band feedback message, it looks up that hash. If the packet which ended the previous epoch was sent at time $s_1$ and received at $r_1$, and the packet ending the current epoch was sent at time $s_2$ and received at $r_2$, the inbox can calculate:
-            \4 rtt = current time - $s_2$
-            \4 bytes in send epoch = bytes sent at s2 - bytes sent at s1
-            \4 bytes in recv epoch = bytes sent at r2 - bytes sent at r1
-            \4 send epoch duration = r2 - r1
-            \4 received rate = bytes in recv epoch / recv epoch duration
-        \3 Epoch durations are in expectation, since they depend on hash values.
-    \2 The inbox now has relevant measurements, and can compute estimates of higher-level measurement primitives.
-        \3 \eg loss rate = send rate - recv rate
-\1 Suitable congestion control algorithms
-    \2 Since \name cannot track low-level metrics used by traditional congestion control algorithms such as the number of inflight packets, implementations of window-based algorithms may not be suitable for use.
-    \2 Fortunately there are rate-based algorithms available~\cite{bbr, nimbus}.
-    \2 The inbox acts as a datapath for CCP~\cite{ccp}, and we use CCP implementations of BBR and Nimbus without modification.
-\end{outline}
