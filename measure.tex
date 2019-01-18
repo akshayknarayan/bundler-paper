@@ -34,31 +34,28 @@
 In this section we describe how the \inbox and \outbox can coordinate to compute accurate and robust
 measurements of the network conditions necessary for congestion control.
 
-Prior work has shown that congestion control algorithms typically need only a small, common
-set of measurements~\cite{ccp-hotnets} to function. In particular, rate-based algorithms typically
-need only three core measurements: the sending rate, receiving rate, and round-trip time between
-the source and destination. 
-However, a primary concern for some algorithms, such as Nimbus, is that the send and receive rates must
-be calculated over the same set of packets because \fc{reasons}~\cite{nimbus}. 
+Prior work has shown that congestion control algorithms typically need only a small, common set of measurements~\cite{ccp-hotnets} to function. 
+In particular, rate-based algorithms need only three measurements: 
+the sending rate, receiving rate, and path round-trip time.
+A significant complication is that send and receive rates, to be accurate, must be calculated over the same set of packets~\cite{packettrain}.
 This requirement drives the design of our methodology.
 
 \subsection{Determining Boundary Packets}
 \label{s:measure:marking}
-Consider the stream of packets $P_B$ from all flows in a bundle $B$ in the order they leave the 
-\inbox after being scheduled. The \inbox and \outbox need to know how to divide this stream into sets 
-of packets, which we call ``epochs,'' over which they can calculate measurements. 
+Consider the stream of packets $P_B$ from all flows in a bundle $B$ in the order they leave the \inbox after scheduling.
+The \inbox and \outbox need to know how to divide this stream into sets 
+of packets --- which we call \emph{epochs} --- over which they can calculate measurements.
 For now, we make the simplifying assumption that packets arrive at the \outbox in the same order they 
 left the \inbox (we address re-ordering in Section~\ref{s:measure:limitation:reorder}).
 This simplifies the problem into deciding on the boundary packet at which one epoch should
 end and the next should begin. 
 Suppose for now that we wish to have a fixed epoch size of $N$ packets.
-A strawman approach would be to mark the boundary between epochs every $N$ packets. However,
-this strategy is very brittle; even a single lost packet would desynchronize the boxes' views
-of the epochs. More generally, any strategy that requires synchronization of the \inbox and
+A straw-man approach would be to mark the boundary between epochs every $N$ packets. However,
+this strategy is very brittle; even a single lost packet would de-synchronize the boxes' views of the epochs. 
+More generally, any strategy that requires synchronization of the \inbox and
 \outbox introduces a slew of other problems.
-The key ieda of our methodology is that we can \emph{avoid} the synchronization problem by determing 
-the boundary of an epoch \emph{using only information contained in the packet} rather than the current
-state at the middleboxes.   
+The key idea of our methodology is that we can \emph{avoid} the synchronization problem by determining 
+the boundary of an epoch \emph{using only information contained in the packet} rather than the current state at the middleboxes.   
 This requires finding a field in the packet headers that changes with every packet and is
 uniquely identifying at least among all packets currently in flight.
 For TCP, this could be the sequence number, or more generally for IP, this could be the IP ID value.
@@ -67,7 +64,7 @@ More specifically, we propose the following: a packet $p$ is a boundary packet i
 of the unique field in the header modulo the epoch size $N$ is equal to 0:
 $$B(p,N) \coloneqq (H(p.field)\ \text{mod}\ N) == 0$$
 We use this function because unique fields such as the TCP sequence number will typically advance
-in fixed increments 
+in fixed increments \fc{...}
 This function has the nice property that we can expect, on average, it will find a boundary 
 packet roughly every $N$ packets, regardless of how the unique value changes.
 However, this is just one possible function. Any function that can be calculated by the middleboxes
@@ -133,10 +130,10 @@ to be the start of the next epoch.
 
 \subsection{What About Lost Packets?}
 \label{s:measure:loss}
-This method is robust to the loss of boundary packets between the inbox and outbox.
-Suppose the inbox sees boundary packets $p_1, p_2, p_3$, but $p_2$ is lost after passing through
-the inbox so the inbox only receives feedback for $p_1$ and $p_3$. Upon receiving $p_1$, 
-the inbox will truncate its data structure up until $p_1$. Upon receiving $p_3$, he inbox 
+This method is robust to the loss of boundary packets between the \inbox and \outbox.
+Suppose the \inbox sees boundary packets $p_1, p_2, p_3$, but $p_2$ is lost after passing through
+the \inbox so the \inbox only receives feedback for $p_1$ and $p_3$. Upon receiving $p_1$, 
+the \inbox will truncate its data structure up until $p_1$. Upon receiving $p_3$, the \inbox 
 looks up the oldest remaining boundary packet, $p_1$, and considers that the beginning of the epoch.
 As a result, the epoch is longer than intended, but no measurements are lost or corrupted. 
 The same argument applies to the loss of feedback messages. 
@@ -167,8 +164,8 @@ always a multiple of the old one and thus will be compatible.
 
 For examaple, \fc{is an example necessary?}
 if the inbox is marking every 256 packets
-and the outbox is marking every 512 packets, 
-the inbox is just marking a super set of the outbox packets, 
+and the \outbox is marking every 512 packets, 
+the inbox is just marking a super set of the \outbox packets, 
 so it is effectively equivalent to them both marking every 512 packets.
     
 \subsection{Microbenchmarks}

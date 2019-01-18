@@ -12,34 +12,30 @@
     \caption{This illustrative example with a single flow shows how \name can take control of queues in the network. The bubbles show the trend in measured queueing delays at the relevant queue over time. The queue where delays build up can best make scheduling decisions, since that is where there is the most choice between packets to send.}\label{fig:design:shift-bottleneck}
 \end{figure}
 
-\cut{
-\begin{outline}
-\1 A \name has the following properties:
-    \2 It measures congestion control information from the network path.
-    \2 It enforces a pacing rate determined by a congestion control algorithm.
-        \3 The congestion control algorithm takes as input measurements from the network path, and returns an aggregate rate at which \name should send its component traffic.
-    \2 It provides a mechanism for scheduling the packets comprising the bundle.
-\1 Simultaneously, a practical modern design cannot rely on changes in end-hosts.
-\1 As discussed, \name must be compatible with deployments on the edge of a domain. Therefore, it must also scale to high link rates.
-    \2 As a result, it should not maintain per-connection state -- only per-aggregate state.
-\end{outline}
+A \name must have the following properties:
+\cut{ % these items could be considered implementation details
+    \item It measures congestion control information from the network path.
+    \item It enforces a pacing rate determined by a congestion control algorithm. The congestion control algorithm takes as input measurements from the network path, and returns an aggregate rate at which \name should send its component traffic.
+}
+\begin{enumerate}
+    \item It provides a mechanism for scheduling the packets comprising the bundle.
+    \item It must be deployable, therefore, it cannot rely on changes in end-hosts.
+    \item It must be capable of deployments on the edge of a domain. Therefore, it must also scale to high link rates. As a result, it should not maintain per-connection state -- only per-aggregate state.
+\end{enumerate}
 
 \subsection{Shifting the Queues}\label{s:design:shifting}
-\begin{outline}
-\1 \name is able to schedule the packets by shifting the queues from the bottleneck to its own queue.
-\1 Note that \name can only shift (and therefore can only schedule) that component of the bottleneck queue which is self-inflicted; that is, it can only control its own traffic.
-\1 \name must therefore decide what fraction of the bottleneck queue it is willing to occupy.
-\1 We make a simple, but powerful, observation: end-host congestion control algorithms perform exactly this calculation when deciding what rate to send packets at.
-\1 If we run a congestion control algorithm at the \name, it will decide on a fair sending rate for the aggregate as it competes with non-aggregate traffic from other domains.
-\1 Component flows will then queue at the \name as their packets are sent at this rate.
-\1 Figure~\ref{fig:design:shift-bottleneck} illustrates this method: 
-    \2 in Figure~\ref{fig:design:shift-bottleneck:before}, packets from the end-hosts queue in a FIFO queue in the network. The FIFO queue at the edge is unoccupied.
-    \2 In contrast, the \name implementation (described in \S\ref{s:impl}), in Figure~\ref{fig:design:shift-bottleneck:after} maintains low queueing delays at the bottleneck queue by estimating and sending at the bottleneck rate. 
-        \3 Since component flows, running traditional congestion control algorithms, will probe for bandwidth until they experience loss, they build queues at the \name instead of at the bottleneck.
-    \2 Since the \name now controls the queues corresponding to the traffic aggregate, it can now schedule the packets of the component flows.
-\end{outline}
-}
 
+The key insight of \name is that shifting the queues from the bottleneck to the edge enables scheduling for the aggregate.
+Note that \name can only shift (and therefore can only schedule) that component of the bottleneck queue which is self-inflicted; that is, it can only control its own traffic.
+\name must therefore decide what fraction of the bottleneck queue it is willing to occupy.
+We make a simple, but powerful, observation: end-host congestion control algorithms perform exactly this calculation!
+If we run a congestion control algorithm at the \name, it will decide on a fair sending rate for the aggregate as it competes with non-aggregate traffic from other domains.
+Component flows will then queue at the \name as their packets are sent at this rate.
+Figure~\ref{fig:design:shift-bottleneck} illustrates this method: 
+in Figure~\ref{fig:design:shift-bottleneck:before}, packets from the end-hosts queue in a FIFO queue in the network. The FIFO queue at the edge is unoccupied.
+In contrast, the \name implementation (described in \S\ref{s:impl}), in Figure~\ref{fig:design:shift-bottleneck:after} maintains low queueing delays at the bottleneck queue by estimating and sending at the bottleneck rate. 
+Since component flows, running traditional congestion control algorithms, will probe for bandwidth until they experience loss, they build queues at the \name instead of at the bottleneck.
+Since the \name now controls the queues corresponding to the traffic aggregate, it can schedule the packets of component flows.
 
 \cut{
 In this section we describe the tradeoffs in the design of a \name.
@@ -95,14 +91,6 @@ the same bottleneck and thus should be bundled together.  If packets for two dif
 both the same inbox and outbox on their way from source to destination, 
 must 
 }
-
-\subsection{Bundler Does Not Split Connections}
-\label{s:design:split}
-
-An existing approach that fulfills objectives X and Y is a TCP proxy. 
-A TCP proxy is a server that acts as an intermediary between the client and server in a normal 
-TCP session. 
-
 
 \subsection{Two-sided Measurement}\label{s:design:twosided}
 \begin{outline}
@@ -168,17 +156,16 @@ There are broadly two styles of communication that a \name could use to communic
 and coordinate actions: 
 
 - The inbox and outbox must communicate to coordinate
-- Communucation can be in band with the traffic we are trying to control or out of band
+- Communication can be in band with the traffic we are trying to control or out of band
     - In band involves encapsulating packets with a custom UDP header
     - Out of band does not touch packets and sends separate packets explicitly on a different channel
-- Prior work on network assisted vongestion control has used encapsulation and/or custom headers 
+- Prior work on network assisted congestion control has used encapsulation and/or custom headers 
 - This is the most flexible option because you can put whatever you want into the header, but it has a 
 a few major drawbacks that violate our design objectives
     1. Adding a header adds overhead, both in terms of the CPU cycles necessary to rewrite each packet
     (as opposed to just passively observing it in the out-of-band case) and in terms of the extra data
     on the wire. This hurts scalability and would be more difficult to implement in hardware.
-    2. Bad fault tolerance story -- if either of the boxes fail, which bmiddleboxes often do, 
-    all flows currenly in bundles would also fail, fate sharing
+    2. Bad fault tolerance story -- if either of the boxes fail, which middleboxes often do, 
+    all flows currently in bundles would also fail, fate sharing
     3. Messes with ECMP load balancing in the network -- ECMP typically load balances based on five-tuple
     but a naive encapsulation 
-
