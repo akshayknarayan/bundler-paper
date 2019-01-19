@@ -93,6 +93,9 @@ must
 }
 
 \subsection{Two-sided Measurement}\label{s:design:twosided}
+\fc{lock}
+In order to perform congestion control, \name needs to collect and maintain measurements about the current state of the network. Traditionally, end-host congestion control has been tightly integrated with end-host packet transmission logic.
+\cut{
 \begin{outline}
 \1 Traditionally, end-host congestion control has been tightly integrated with end-host packet transmission logic.
     \1 Therefore, it traditionally uses a \emph{one-sided} mechanism for measuring congestion control primitives.
@@ -112,8 +115,12 @@ must
     \2 One consideration is how to ensure that traffic between the senders and receivers indeed flows through the in-box and out-box, with the prevalence of SDN, something like way-point routing~\cite{waypoint-routing, flowtags} can be used. 
     \2 Also network verification~\cite{veriflow, anteater, reachability} to ensure that traffic indeed traverses in- and out- boxes.
 \end{outline}
+}
 
 \subsection{What About TCP Proxies?}\label{s:design:prior}
+\fc{lock}
+\fc{Maybe this belongs in related work instead?}
+\cut{
 \begin{outline}
 \1 An existing approach which could fulfill these design objectives is a TCP Proxy.
     \2 TCP proxies are popular in cellular networks
@@ -128,8 +135,10 @@ must
 \1 We describe in \S\ref{s:measurement} how a \name can perform precise congestion control measurements without implementing a TCP proxy
     \2 and how to perform these measurements in a fault-tolerant way that preserves fate-sharing.
 \end{outline}
+}
 
 \subsection{Out-of-band Coordination}\label{s:design:oob}
+\fc{lock}
     \cut{
 \begin{outline}
 \1 A primary consideration for a \name is whether the two gateways should communicate their congestion control measurements \emph{in-band}, by encapsulating packets with \eg a custom UDP header.
