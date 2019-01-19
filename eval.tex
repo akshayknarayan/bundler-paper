@@ -9,6 +9,7 @@ We evaluate the following aspects of our design:
 \subsection{Flow Completion Time}\label{s:eval:fct}
 
 \input{overview-benefits}
+
 We evaluate our implementation of \name (discussed in \S\ref{s:impl}) using network emulation via mahimahi~\cite{mahimahi}.
 There are three machines in our setup: one machine is a traffic generator, another is configured as a middlebox, and a third is the receiver.
 We run an empirical traffic generator, in which a many-threaded client generates requests from a given request size CDF and sends them to one of $200$ server processes on the traffic generator.
@@ -35,6 +36,13 @@ With \name, they instead queue at the \inbox.
 We can see this by measuring the relative performance of using FIFO scheduling at the \name compared to the SFQ scheduling in Figure~\ref{fig:eval:best}.
 The results are in Figure~\ref{fig:eval:fifo}. 
 Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a median FCT of $173$ms, it is $18$\% worse than the baseline.
+
+\paragrapha{Impact of congestion control} How does our choice of congestion control impact our results? 
+It is important to choose a congestion control algorithm carefully based on the known or inferred characteristics of the bottleneck link. 
+In Figure~\ref{fig:eval:cc} we show three congestion control protocols: BBR~\cite{bbr}, Nimbus~\cite{nimbus}, and Copa~\cite{copa}.
+In this scenario, it is important to control delays. Nimbus and BBR both maintain slightly higher queueing delays at the bottleneck link, and thus they achieve higher median FCTs \an{numbers}.
+
+\input{congestion-control}
 
 \cut{
 \begin{outline}[enumerate]

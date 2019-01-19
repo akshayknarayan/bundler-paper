@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-    <<eval:fifo,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
+    <<eval:cc,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
 library(ggplot2)
 df <- read.csv("84Mbps-bk-flows.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
@@ -15,9 +15,9 @@ ggplot(df, aes(x=Duration, linetype=Alg)) +
         breaks=c(0.05, 0.1, 0.15, 0.2, 0.25, 0.5, 0.75, 1, 2, 5, 10),
         name="Duration (sec)") +
     scale_linetype_manual(
-        limit=c("copa_sfq", "copa_fifo", "nobundler_fifo"),
-        labels=c("copa_sfq" = "Bundler - SFQ", "copa_fifo" = "Bundler - FIFO", "nobundler_fifo" = "Baseline"),
-        values=c("copa_sfq" = "solid", "copa_fifo" = "dotted", "nobundler_fifo" = "twodash")
+        limit=c("copa_sfq", "nimbus_sfq", "bbr_sfq", "nobundler_fifo"),
+        labels=c("copa_sfq" = "Bundler - Copa", "nimbus_sfq" = "Bundler - Nimbus", "bbr_sfq" = "Bundler - BBR", "nobundler_fifo" = "Baseline"),
+        values=c("copa_sfq" = "solid", "nimbus_sfq" = "longdash", "bbr_sfq" = "dotted", "nobundler_fifo" = "twodash")
     ) +
     ylab("CDF") +
     theme_minimal() +
@@ -27,6 +27,6 @@ ggplot(df, aes(x=Duration, linetype=Alg)) +
         legend.text=element_text(size=12)
     )
 @
-    \caption{With FIFO scheduling, the benefits of \name are lost: FCTs become 18\% worse.}
-    \label{fig:eval:fifo}
+    \caption{Choosing a congestion control algorithm at \name remains important, just as it is at the end-host.}
+    \label{fig:eval:cc}
 \end{figure}
