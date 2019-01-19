@@ -1,0 +1,32 @@
+\begin{figure}
+    \centering
+    <<echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
+library(ggplot2)
+df <- read.csv("84Mbps-bk-flows.out", sep=" ")
+df$Duration <- df$Duration.usec. / 1e6
+bw <- 12e6
+df$ofct <- (df$Size / bw) + 0.05
+df$NormFct <- df$Duration / df$ofct
+
+ggplot(df, aes(x=Duration, linetype=Alg)) +
+    stat_ecdf() +
+    scale_x_log10(
+        limits=c(0.05, 5), 
+        breaks=c(0.05, 0.1, 0.15, 0.2, 0.25, 0.5, 0.75, 1, 2, 5, 10), 
+        name="Duration (sec)") +
+    scale_linetype_manual(
+        limit=c("copa_sfq", "nobundler_fifo"), 
+        labels=c("copa_sfq" = "Bundler", "nobundler_fifo" = "Baseline"),
+        values=c("copa_sfq" = "solid", "nobundler_fifo" = "twodash")
+    ) +
+    ylab("CDF") +
+    theme_minimal() +
+    theme(
+        legend.position=c(0.9, 0.2), 
+        legend.title=element_blank(),
+        legend.text=element_text(size=12)
+    )
+@
+    \caption{\name achieves \an{XX}\% lower FCTs.}
+    \label{fig:eval:test}
+\end{figure}
