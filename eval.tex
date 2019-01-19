@@ -1,5 +1,7 @@
 \section{Evaluation}\label{s:eval}
 
+
+
 \input{graphs/overview-benefits}
 
 \begin{outline}[enumerate]
@@ -10,7 +12,7 @@
             \3 Show how close bundler is to ideal situation (bottleneck router doing FQ scheduling) without actually having to change the middle of the network
         \2 Add inelastic background traffic
         \2 Add elastic background traffic
-            \3 Have to enable x-tcp mode (perhaps dynamic number of flows) for bundler
+            \3 Have to enable x-tcp mode (perhaps dynamic number of flows) for bundle
             \3 can measure number of flows by looking at the number of backlogged queues
     \1 Microbenchmarks
         \2 Show that the bundler architecture is capable of emulating rate-based congestion control algorithms: \textbf{PLOT} throughput and delay of Nimbus/BBR/etc with and without bundler show that they look the same and achieve the same average behavior 
