@@ -44,7 +44,7 @@ This requirement drives the design of our methodology.
 \label{s:measure:marking}
 Consider the stream of packets $P_B$ from all flows in a bundle $B$ in the order they leave the \inbox after scheduling.
 The \inbox and \outbox need to know how to divide this stream into sets 
-of packets --- which we call \emph{epochs} --- over which they can calculate measurements.
+of packets---which we call \emph{epochs}---over which they can calculate measurements.
 For now, we make the simplifying assumption that packets arrive at the \outbox in the same order they 
 left the \inbox (we address re-ordering in Section~\ref{s:measure:limitation:reorder}).
 This simplifies the problem into deciding on the boundary packet at which one epoch should
@@ -88,7 +88,12 @@ independently and can scale epoch sizes based on a desired epoch size will work 
 \begin{figure}
     \centering
     \includegraphics[width=\columnwidth]{img/rate-calculation}
-    \caption{Epoch-based measurement calculation}\label{fig:ratecalc}
+    \caption{Example of epoch-based measurement calculation. Time moves from top to bottom.
+    Packets from flows in a bundle
+    pass through the \inbox and \outbox middleboxes on the way to their destination. When 
+    the inbox observes a packet header matching the boundary condition, it records it. When
+    the \outbox observes such a packet, it sends an out-of-band feedback message back to
+    the \inbox, which allows it to calculate the RTT and epochs.}\label{fig:ratecalc}
 \end{figure}
 
 Given this method of marking epochs, we can now construct the procedure for computing measurements.
@@ -153,7 +158,7 @@ As shown in prior work, congestion control algorithms can behave properly even i
 signals are only updated roughly once per RTT~\cite{ccp-hotnets}.
 Setting the epoch size equal to our estimate of the number of packets currently inflight 
 (our current sending rate multipled by our current esimate of the RTT) will yield roughly
-one epoch and thus a new set of measurements once per RTT.
+one epoch and thus a new set of measurements per RTT.
 
 Since the rate and thus the number of inflight packets is continuously changing over time,
 we need to continually update the epoch size. Rather than using exactly the number of inflight
