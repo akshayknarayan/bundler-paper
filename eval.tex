@@ -20,8 +20,8 @@ We first run \name with no cross traffic.
 On a $96$Mbps link, we generate $84$Mbps of offered request load from a simple CDF with a heavy-tailed mix of short and long requests: 90\% of the requests are less than $5$KB, and 100\% of the requests are less than $1$MB. 
 In addition, there is a persistently backlogged connection inside the traffic aggregate.
 We use a Copa~\cite{copa} congestion controller at the \inbox to manage the bottleneck queue, and the stochastic fair queueing~\cite{sfq} scheduling policy.
-The results are in Figure~\ref{fig:eval:test}.
-With \name, the median flow completion time (FCT) decreases from $147$ms using FIFO scheduling at the bottleneck link to $58$ms with \name: 61\% lower.
+The results are in Figure~\ref{fig:eval:best}.
+With \name, the median flow completion time (FCT) decreases from $147$ms using FIFO scheduling at the bottleneck link (the baseline configuration) to $58$ms with \name: 61\% lower.
 
 Where do these benefits come from? We devote the remainder of this section to exploring this question.
 
@@ -30,8 +30,11 @@ To see why this is the case, recall that \name does not modify the end-hosts: th
 Indeed, the packets end-host Cubic sends beyond those the link can transmit must queue somewhere in the network or be lost. Without \name, they queue at the bottleneck link.
 With \name, they instead queue at the \inbox.
 
-We can see this by measuring the relative performance of using FIFO scheduling at the \name compared to the SFQ scheduling in Figure~\ref{fig:eval:test}.
+\input{fifo-not-enough}
+
+We can see this by measuring the relative performance of using FIFO scheduling at the \name compared to the SFQ scheduling in Figure~\ref{fig:eval:best}.
 The results are in Figure~\ref{fig:eval:fifo}. 
+Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a median FCT of $173$ms, it is $18$\% worse than the baseline.
 
 \cut{
 \begin{outline}[enumerate]

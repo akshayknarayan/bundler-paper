@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-    <<eval:best,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
+    <<eval:fifo,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
 library(ggplot2)
 df <- read.csv("84Mbps-bk-flows.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
@@ -15,9 +15,9 @@ ggplot(df, aes(x=Duration, linetype=Alg)) +
         breaks=c(0.05, 0.1, 0.15, 0.2, 0.25, 0.5, 0.75, 1, 2, 5, 10),
         name="Duration (sec)") +
     scale_linetype_manual(
-        limit=c("copa_sfq", "nobundler_fifo"),
-        labels=c("copa_sfq" = "Bundler", "nobundler_fifo" = "Baseline"),
-        values=c("copa_sfq" = "solid", "nobundler_fifo" = "twodash")
+        limit=c("copa_sfq", "copa_fifo", "nobundler_fifo"),
+        labels=c("copa_sfq" = "Bundler - SFQ", "copa_fifo" = "Bundler - FIFO", "nobundler_fifo" = "Baseline"),
+        values=c("copa_sfq" = "dotted", "copa_fifo" = "solid", "nobundler_fifo" = "twodash")
     ) +
     ylab("CDF") +
     theme_minimal() +
@@ -27,6 +27,6 @@ ggplot(df, aes(x=Duration, linetype=Alg)) +
         legend.text=element_text(size=12)
     )
 @
-    \caption{\name achieves $61$\% lower FCTs.}
-    \label{fig:eval:best}
+    \caption{With FIFO scheduling, the benefits of \name are lost: FCTs become 18\% worse.}
+    \label{fig:eval:fifo}
 \end{figure}

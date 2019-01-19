@@ -22,6 +22,7 @@ $(KNITRTARGETS): $(KNITRFILES)
 
 clean:
 	/bin/rm -f $(PDFS) $(KNITRTARGETS) *.dvi *.aux *.ps *~ *.log *.out *.lot *.lof *.toc *.blg *.bbl url.sty
+	/bin/rm -rf figure/
 
 evince:
 	pdflatex -shell-escape $(TARGETS).tex
