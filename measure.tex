@@ -55,10 +55,8 @@ this strategy is very brittle; even a single lost packet would de-synchronize th
 More generally, any strategy that requires synchronization of the \inbox and
 \outbox introduces a slew of other problems.
 The key idea of our methodology is that we can \emph{avoid} the synchronization problem by determining 
-the boundary of an epoch \emph{using only information contained in the packet} rather than the current state at the middleboxes.   
-This requires finding a field in the packet headers that changes with every packet and is
-uniquely identifying at least among all packets currently in flight.
-For TCP, this could be the sequence number, or more generally for IP, this could be the IP ID value.
+the boundary of an epoch \emph{using only information contained in the packet} rather than the current state at the middleboxes.
+We use the hash of the flow 5-tuple along with the IP ID field.
 
 More specifically, we propose the following: a packet $p$ is a boundary packet if the hash 
 of the unique field in the header modulo the epoch size $N$ is equal to 0:
