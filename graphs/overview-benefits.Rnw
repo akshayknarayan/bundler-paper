@@ -2,7 +2,7 @@
     \centering
     <<echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
 library(ggplot2)
-df <- read.csv("84Mbps-bk-flows.out", sep=" ")
+df <- read.csv("84Mbps-bk-flows.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
 bw <- 12e6
 df$ofct <- (df$Size / bw) + 0.05
