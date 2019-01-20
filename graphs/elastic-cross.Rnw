@@ -1,0 +1,29 @@
+\begin{figure}
+    \centering
+    <<robust:cr-elastic,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
+library(ggplot2)
+df <- read.csv("cr-elastic.data", sep=" ")
+df$Duration <- df$Duration.usec. / 1e6
+
+ggplot(df, aes(x=Duration, linetype=Alg)) +
+    stat_ecdf() +
+    scale_x_log10(
+        limits=c(0.05, 5),
+        breaks=c(0.05, 0.1, 0.15, 0.2, 0.25, 0.5, 0.75, 1, 2, 5, 10),
+        name="Duration (sec)") +
+    scale_linetype_manual(
+        limit=c("copa_sfq", "nimbus_sfq", "bbr_sfq", "nobundler_fifo"),
+        labels=c("copa_sfq" = "Bundler (Copa) ", "nimbus_sfq" = "Bundler (Nimbus) ", "bbr_sfq" = "Bundler (BBR) ", "nobundler_fifo" = "Baseline"),
+        values=c("copa_sfq" = "solid", "nimbus_sfq" = "longdash", "bbr_sfq" = "dotted", "nobundler_fifo" = "twodash")
+    ) +
+    ylab("CDF") +
+    theme_minimal() +
+    theme(
+        legend.position="top",
+        legend.title=element_blank(),
+        legend.text=element_text(size=12)
+    )
+@
+    \caption{Elastic cross traffic.}
+    \label{fig:robust:cr-elastic}
+\end{figure}
