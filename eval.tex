@@ -12,13 +12,12 @@ We evaluate the following aspects of our design:
 
 We evaluate our implementation of \name (discussed in \S\ref{s:impl}) using network emulation via mahimahi~\cite{mahimahi}.
 There are three machines in our setup: one machine is a traffic generator, another is configured as a middlebox, and a third is the receiver.
-We run an empirical traffic generator, in which a many-threaded client generates requests from a given request size CDF and sends them to one of $200$ server processes on the traffic generator.
+We run an empirical traffic generator, in which a many-threaded client generates requests from a given empirical request size CDF and sends them to one of $200$ server processes on the traffic generator.
 Each server then responds to the client with the requested amount of data.
+We then measure the flow completion time of each client request.
 Note that it is important to use many server processes so that the effect of head-of-line blocking on the client requests is limited.
 Indeed, all the CDFs presented in this section have a ``knee'' where the effects of head-of-line blocking become apparent.
-We then measure the flow completion time of each client request.
 
-We first run \name with no cross traffic.
 On a $96$Mbps link, we generate $84$Mbps of offered request load from a simple CDF with a heavy-tailed mix of short and long requests: 90\% of the requests are less than $5$KB, and 100\% of the requests are less than $1$MB. 
 Each CDF shown in this section is comprised of $100,000$ requests sampled from this distribution, across $10$ runs each with a different random seed.
 In addition, there is a persistently backlogged connection inside the traffic aggregate.
