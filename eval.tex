@@ -18,6 +18,10 @@ We then measure the flow completion time of each client request.
 Note that it is important to use many server processes so that the effect of head-of-line blocking on the client requests is limited.
 Indeed, all the CDFs presented in this section have a ``knee'' where the effects of head-of-line blocking become apparent.
 
+We first run \name with no cross traffic.
+This scenario highlights the benefits to be gained by managing any \emph{self-inflicted} overhead in the FCT caused by FIFO scheduling. 
+We explore the effects of externally inflicted bottleneck link conflicts in \S\ref{s:robust}.
+
 On a $96$Mbps link, we generate $84$Mbps of offered request load from a simple CDF with a heavy-tailed mix of short and long requests: 90\% of the requests are less than $5$KB, and 100\% of the requests are less than $1$MB. 
 Each CDF shown in this section is comprised of $100,000$ requests sampled from this distribution, across $10$ runs each with a different random seed.
 In addition, there is a persistently backlogged connection inside the traffic aggregate.
