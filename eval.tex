@@ -3,7 +3,7 @@
 We evaluate the following aspects of our design:
 \begin{enumerate}
     \item To what extent can scheduling policies in \name improve performance?
-    \item Is \name able to shift the bottleneck enough to enforce scheduling policies?
+    \item Is \name able to shift the bottleneck enough to enforce scheduling policies? We discuss this in \S\ref{s:robust}.
 \end{enumerate}
 
 \subsection{Flow Completion Time}\label{s:eval:fct}
@@ -15,6 +15,7 @@ There are three machines in our setup: one machine is a traffic generator, anoth
 We run an empirical traffic generator, in which a many-threaded client generates requests from a given request size CDF and sends them to one of $200$ server processes on the traffic generator.
 Each server then responds to the client with the requested amount of data.
 Note that it is important to use many server processes so that the effect of head-of-line blocking on the client requests is limited.
+Indeed, all the CDFs presented in this section have a ``knee'' where the effects of head-of-line blocking become apparent.
 We then measure the flow completion time of each client request.
 
 We first run \name with no cross traffic.
@@ -63,7 +64,7 @@ The result is in Figure~\ref{fig:eval:proxy}.
 
 Surprisingly, terminating TCP connections does not help the short flows (longer flows indeed see an improvement). 
 To see why, we refer back to Figure~\ref{fig:eval:fifo} --- absent scheduling, \name can cause performance degradation because it induces higher overall queueing delays.
-Rapid window growth from all active connections causes rapid queue growth at the \inbox. The resulting increased effect end-to-end delays cancel out the gains of scheduling.
+In another instantiation of the same effect, rapid window growth from all active connections causes rapid queue growth at the \inbox. The resulting increased effect end-to-end delays cancel out the gains of scheduling.
 
 \subsection{Rate Stability}\label{s:eval:ratestable}
 
