@@ -1,10 +1,10 @@
 \section{Introduction}\label{s:intro}
-Most Internet paths today employ first-in, first-out (\emph{FIFO}) scheduling \radhika{}. 
+Most Internet paths today employ first-in, first-out (\emph{FIFO}) scheduling \radhika{I think they might also do some coarse-grained priorities. Let's not make this our first sentence, unless we are absolutely sure.}. 
 However, traffic could benefit from different scheduling algorithms.
-The bottleneck link, where congestion occurs and therefore where scheduling is the most useful, is often at the edge of a network, whether an individual device or an autonomous system~\cite{inferring-interdomain-congestion}. 
+The bottleneck link, where congestion occurs and therefore where scheduling is the most useful, is often at the edge of a network, whether an individual device or an autonomous system~\cite{inferring-interdomain-congestion} \radhika{the last part of this sentence not super clear to me.}. 
 As a result, deploying scheduling algorithms on one's own routers is of limited utility; often, the congestion occurs in a router outside of one's control.
 Unfortunately, networks have proven difficult to evolve; although router vendors have, over the years, implemented other scheduling algorithms (such as fair queueing~\cite{fair-queueing}), operators often do not enable these features.
-Thus, the emergence of programmable switching~\cite{p4} is not a panacea; while it might now be simpler to implement scheduling policy, it remains difficult to see deployment.
+Thus, the emergence of programmable switching~\cite{p4} is not a panacea; while it might now be simpler to implement scheduling policy, it remains difficult to see deployment \radhika{P4 does not ease deployment of scheduling algorithms.}.
 Meanwhile, in privately operated wide-area networks, operators have used scheduling in the core to reap significant gains~\cite{b4, bwe, swan}. 
 Clearly, the use of scheduling policy is beneficial.
 
@@ -19,10 +19,12 @@ In each of these scenarios the sender has enough information to unilaterally cho
 
 While it may be easier to \emph{express} scheduling policy near the edge, it is not immediately obvious how to \emph{implement} it. 
 Traffic from a domain is naturally comprised of numerous individual connections;
-each connection independently probes for bandwidth, detects congestion on its path, and reacts accordingly.
+each connection independently probes for bandwidth, detects congestion on its path, and reacts accordingly \radhika{this sentence seems a bit out-of-blue. a connector to previous sentence needed.}.
+
+\radhika{need a brief overview of bundler architecture (maybe the middlebox paragraph that appears later), before diving into technical challenges below.}
 
 We address this challenge in two steps. 
-First, we treat the traffic from multiple component connections as a \emph{single aggregate}, \ie as a router would view them. We decide an combined sending rate for the aggregate. Then, inside the aggregate, we enforce a scheduling policy among the component flows. 
+First, we treat the traffic from multiple component connections as a \emph{single aggregate}, \ie as a router would view them \radhika{what does the last part of the sentence mean?}. We decide a combined sending rate for the aggregate. Then, inside the aggregate, we enforce a scheduling policy among the component flows. 
 In other words, we decouple the aggregate rate decision from the scheduling policy.
 This approach, which we call {\em aggregate traffic control}, therefore has two technical challenges:
 \begin{enumerate}
@@ -63,3 +65,22 @@ The rest of this paper is organized as follows:
         \3 end-to-end principle
 \end{outline}
 }
+
+
+\radhika{Alternate intro: mostly just changed the flow of certain points above /*}
+
+%lots of scheduling algorithms proposed. scheduling used in private wans. seems clearly beneficial.
+The existence of a vast literature on scheduling and queue management algorithms~\cite{diffserv, fair-queueing, sfq, pie, CoDel, sfqCoDel, fifoplus, virtualClocks, csfq, drr, red, ecn} clearly indicates the benefits of deploying such policies within the network. Unfortunately, public Internet has proven difficult to evolve. Although router vendors have, over the years, implemented certain scheduling and queue management algorithms (such as fair queueing~\cite{fair-queueing}\radhika{might be better to cite deficit round robin. need to couble check}), operators often do not enable these features. 
+%On the other hand, even simple policies, such as priority scheduling across a small number of traffic classes, deployed within privately operated wide-area networks, have been shown to provide significant gains in performance~\cite{b4, swan, bwe} \radhika{can we also show some results with priority scheduling in eval?}.  
+%, and the deployment of simple scheduling policies in privately ~\cite{b4, bwe, swan} clearly indicates the benefits of 
+
+
+not deployed by isps. why. ups/pifo may not help.
+
+individual customers can choose, but can't enforce scheduling at edge. makes most sense to do it an congested routers, out of their control.
+
+
+
+
+
+\radhika{*/}
