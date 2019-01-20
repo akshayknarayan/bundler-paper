@@ -19,17 +19,19 @@ We then measure the flow completion time of each client request.
 
 We first run \name with no cross traffic.
 On a $96$Mbps link, we generate $84$Mbps of offered request load from a simple CDF with a heavy-tailed mix of short and long requests: 90\% of the requests are less than $5$KB, and 100\% of the requests are less than $1$MB. 
+Each CDF shown in this section is comprised of $100,000$ requests sampled from this distribution, across $10$ runs each with a different random seed.
 In addition, there is a persistently backlogged connection inside the traffic aggregate.
-We use a Copa~\cite{copa} congestion controller at the \inbox to manage the bottleneck queue, and the stochastic fair queueing~\cite{sfq} scheduling policy.
+We use a Copa~\cite{copa} congestion controller at the \inbox to manage the bottleneck queue, and the stochastic fair queueing~\cite{sfq} scheduling policy. 
 The results are in Figure~\ref{fig:eval:best}.
 With \name, the median flow completion time (FCT) decreases from $147$ms using FIFO scheduling at the bottleneck link (the baseline configuration) to $58$ms with \name: 61\% lower.
 
-Where do these benefits come from? We devote the remainder of this section to exploring this question.
+Where do these benefits come from? We devote the remainder of \S\ref{s:eval:fct} to exploring this question.
 
-\paragrapha{Necessity of scheduling} It is important to note that \name is not necessarily a means of achieving low end-to-end delays, as promised by recent efforts in congestion control~\cite{copa, nimbus}. 
+\paragrapha{Necessity of scheduling} It is important to note that \name is not necessarily a means of achieving low end-to-end delays, as promised by recent efforts in congestion control~\cite{copa, nimbus}, despite its use of modern congestion control algorithms. 
 To see why this is the case, recall that \name does not modify the end-hosts: they continue to run the default Cubic congestion controller, which will probe for bandwidth until it observes loss.
 Indeed, the packets end-host Cubic sends beyond those the link can transmit must queue somewhere in the network or be lost. Without \name, they queue at the bottleneck link.
 With \name, they instead queue at the \inbox.
+With adequate scheduling, this extra induced queueing will affect packets from the long flows rather than short flows.
 
 \input{fifo-not-enough}
 
@@ -44,7 +46,31 @@ In this scenario, it is important to control delays. Nimbus and BBR both maintai
 
 \input{congestion-control}
 
-\paragrapha{Offered load} Naturally, if a link is less congested, scheduling the packets that traverse it will have less benefit. Accordingly, as we reduce the offered load in this experiment, we expect the gains from scheduling to diminish. The result is in Figure~\ref{fig:eval:offeredload}.
+\paragrapha{Offered load} Naturally, if a link is less congested, scheduling the packets that traverse it will have less benefit. Accordingly, as we reduce the offered load in this experiment, we expect the gains from scheduling to diminish. The result is in Figure~\ref{fig:eval:offeredload}. We reduce the offered load by removing persistently backlogged connections from the workload and generating individual requests at 50\%, 75\% and 87.5\% of the bottleneck link bandwidth. 
+At 87.5\% load, even without the load offered by a persistenly backlogged connection, \name improves FCTs by \an{amount}. 
+As the offered load decreases to 50\%, the benefit provided by \name decreases as well -- to \an{amount} at the 75th percentile.
+
+\input{varying-offered-load}
+
+\paragrapha{Terminating TCP Connections} An alternate implementation choice for a \name would use a TCP proxy to terminate connections at the \inbox.
+We consider the best-case outcome of terminating TCP connections --- the effective RTT observed by the end-to-end congestion controller would decrease (since the proxy would acknowledge its segments much faster than the original receiver would), and it would grow its window rapidly.
+A proxy-based design would then apply scheduling policy to component traffic (recall that we use SFQ).
+We emulate this best-case scenario by increasing the end-hosts' initial congestion window from the default $10$ to $1000$ segments.
+Now, even the largest $1$MB ($\approx700$ packet) flows in this scenario can immediately transmit all their segments to the \inbox.
+The result is in Figure~\ref{fig:eval:proxy}.
+
+\input{with-proxy}
+
+Surprisingly, terminating TCP connections does not help the short flows (longer flows indeed see an improvement). 
+To see why, we refer back to Figure~\ref{fig:eval:fifo} --- absent scheduling, \name can cause performance degradation because it induces higher overall queueing delays.
+Rapid window growth from all active connections causes rapid queue growth at the \inbox. The resulting increased effect end-to-end delays cancel out the gains of scheduling.
+
+\subsection{Rate Stability}\label{s:eval:ratestable}
+
+\begin{outline}
+    \1 \name can improve the rate stability of component traffic
+    \1 One such class of traffic is video streaming
+\end{outline}
 
 \cut{
 \begin{outline}[enumerate]
