@@ -27,18 +27,24 @@ It maintains the congestion control state of each bundle, but does not maintain 
 We implement the \outbox using \texttt{libpcap} in $188$ lines of Rust. It listens for packets on the interface, checks for epoch packets, and sends the reports to the \inbox. It must maintain per-bundle counters (described in \S\ref{s:impl:discovery}).
 
 \subsection{\name Event Loop}\label{s:impl:loop}
-Figure~\ref{fig:bundler} overviews the operation of our \name. \an{add number labels}
+Figure~\ref{fig:bundler} overviews the operation of our \name implementation.
 
-In step (1), the qdisc observes an epoch boundary packet. It sends a netlink message to the \inbox process in user-space.
-In step (2), the outbox observes the same epoch boundary packet. It sends a UDP message to the \inbox.
-The \inbox process listens for messages from the qdisc and from the outbox.
-When it receives a message from the qdisc, it records a send-side epoch. When it receives a message from the \outbox, it records a receive-side epoch and calculates path measurements as described in~\S\ref{s:measurement}.
-The \inbox process updates these measurements and occasionally (every $10$ms) invokes the congestion controller's datapath program via \texttt{libccp}.
+(1) Packets arriving at the inbox are sent to the qdisc. Those that match a bundle are put into the proper queue, 
+otherwise they are forwarded immediately. (2) The qdisc observes one of the packest matches the epoch boundary
+condition. (3) It sends a netlink message to the \inbox process running in user-space, which records the packet
+in its epoch data structure, then forwards the packet along. (4) The \outbox observes the same epoch boundary
+packet. (5) It sends an out-of-band UDP message to the \inbox containing the hash of the packet and its current state. 
+(6) The \inbox receives the UDP message, and uses it to calculate the epochs and measurements as described 
+in \S\ref{s:measurement}.
 
-In step (3), If the congestion control algorithm, via CCP, updates the rate or congestion window, the \inbox communicates this to the qdisc using \texttt{libnl}.
-Since the qdisc only supports rate enforcement, the \inbox computes $\text{\emph{effective rate}} = \frac{\text{CWND}}{\text{RTT}}$.
-It then sets the rate of the qdisc to the minimum of the explicitly set rate and this effective rate.
-Upon receiving new RTT samples, the \inbox updates the effective rate, and re-sets the qdisc rate if appropriate.
+(7) Asynchronously, the \inbox invokes the congestion control algorithm every $10$ms via \texttt{libccp},
+giving it a chance to observe any new measurements and change its behavior. (8) If it decides to update
+the bundle rate or congestion window, the \inbox communicates this to the qdisc
+using \texttt{libnl}. Since the qdisc only supports rate enforcement, if the algorithm
+also uses a congestion window, the \inbox computes $\text{\emph{effective rate}} = \frac{\text{CWND}}{\text{RTT}}$
+and sets the rate of the qdisc to the minimum of the explicit rate and this effective rate.
+Upon receiving new RTT samples, the \inbox updates the effective rate, and updates the qdisc rate
+if appropriate.
 
 \subsection{Bundle Initialization}\label{s:impl:discovery}
 
