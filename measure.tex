@@ -28,14 +28,14 @@ Specifically, we propose the following: a packet $p$ is an epoch boundary packet
 of some subset of its header (see below) modulo the epoch size $N$ is equal to 0, that is:
 $$B(p,N) \coloneqq H(p)\ \text{mod}\ N == 0$$
 Thus, an epoch boundary packet will occur (in expectation) once every $N$ packets.
+For $H$, we use the Fowler/Noll/Vo (FNV) hash function~\cite{fnv-hash}, a non-cryptographic fast hash function with a low collision rate. 
 
 \paragrapha{Choosing header subset} The header subset we use must remain constant as the packet traverses the network from the \inbox to the \outbox; otherwise, they would not be able to agree on epoch boundaries. This rules out simple approaches such as hashing the entire packet header, since the TTL field will decrement between the inbox and outbox.
 Even the 5-tuple of the packet may change, since the outbox may be behind a NAT.
-Use TCP sequence numbers is tempting, but retransmissions may confuse RTT measurements.
+Using TCP sequence numbers is tempting, but retransmissions may confuse RTT measurements.
 
 We use the IP ID field, which will change every packet. This is an imperfect solution, as modern NATs may rewrite the IP ID field~\cite{ipid}.
 Ultimately, the appropriate field to use will depend on the specific deployment of \name.
-For $H$, we use the widely used Fowler/Noll/Vo (FNV) hash function~\cite{fnv-hash} is a non-cryptographic fast hash function with a low collision rate. In our experiments, 
 
 \subsection{Computing Measurements}
 \label{s:measure:compute}
