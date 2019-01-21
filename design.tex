@@ -99,7 +99,9 @@ However, recent algorithms observe~\cite{bbr, sprout, remy, nimbus} that it is o
 
 In addition, there is not a single meaningful ``round-trip time'' in this scenario, as each flow in a given bundle may experience different sources of latency after traversing the shared bottleneck, and thus experience different end-to-end RTTs. 
 
-To address all of these challenges, \name consists of a \emph{pair} of middleboxes, both on the network path: one before the bottleneck, and one after, which we refer to as the \textit{\inbox} and \textit{\outbox}, respectively. This allows for a direct calculation of the receive rate at the \outbox and a well-defined RTT: the RTT between the two middleboxes as opposed to the source and destination. As long as the bottleneck exists between the middleboxes, these measurements can sufficiently capture the important network conditions. However, if it is not, then \name will not be able to build queues and control the traffic. Thus, middlebox placement is important. The \inboxx and \outbox should be placed as close to the edge near the sources and destinations as possible in order to capture as many potential bottlenecks as possible.
+To address all of these challenges, \name consists of a \emph{pair} of middleboxes, both on the network path: one before the bottleneck, and one after, which we refer to as the \textit{\inbox} and \textit{\outbox}, respectively. 
+This allows for a direct calculation of the receive rate at the \outbox and a well-defined RTT: the RTT between the two middleboxes as opposed to the source and destination. As long as the bottleneck exists between the middleboxes, these measurements can sufficiently capture the important network conditions. 
+However, if it is not, then \name will not be able to build queues and control the traffic. Thus, middlebox placement is important. The \inbox and \outbox should be placed as close to the edge near the sources and destinations as possible in order to capture as many potential bottlenecks as possible.
 
 \cut{
 We imagine an infrastructure, as depicted in Figure~\ref{fig:overview}, where each 
