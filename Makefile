@@ -15,13 +15,15 @@ all: $(PDFS)
 	pdflatex -shell-escape -shell-escape $*.tex
 	pdflatex -shell-escape -shell-escape $*.tex
 
+.SECONDARY: $(KNITRTARGETS)
+
 %.tex: graphs/%.Rnw
 	$(info $?)
 	Rscript -e "library(knitr); knit('$?')"
 
 clean:
 	/bin/rm -f $(PDFS) $(KNITRTARGETS) *.dvi *.aux *.ps *~ *.log *.out *.lot *.lof *.toc *.blg *.bbl url.sty
-	/bin/rm -rf figure/
+	/bin/rm -rf cache
 
 evince:
 	pdflatex -shell-escape $(TARGETS).tex
@@ -43,4 +45,3 @@ home: osx
 
 check:
 	pdflatex -shell-escape $(TARGETS).tex | grep -i -e "undefined" -e "multiply"
-
