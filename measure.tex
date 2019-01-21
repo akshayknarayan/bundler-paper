@@ -112,6 +112,7 @@ The same argument applies to the loss of feedback messages.
 The key here is that the \inbox actually calculates both the send and receive epoch based on information
 from the \outbox rather than the \outbox deciding what consitutes an epoch on its own. 
 
+\cut{
 \subsection{Fault Tolerance}\label{s:impl:ft}
 \an{perhaps redundant, moved from \S\ref{s:impl}}
 \begin{outline}
@@ -122,7 +123,7 @@ from the \outbox rather than the \outbox deciding what consitutes an epoch on it
 \1 If the inbox crashes, the operator can remove it from the service chain, and performance will be no worse than it is today.
 \1 If the outbox crashes, after a timeout period, the inbox will disable aggregation on the path and performance will be no worse than it is today.
 \end{outline}
-
+}
 
 \subsection{Choosing The Epoch Size}
 \label{s:measure:epoch}
@@ -150,6 +151,8 @@ if the inbox is marking every 256 packets
 and the \outbox is marking every 512 packets, 
 the inbox is just marking a super set of the \outbox packets, 
 so it is effectively equivalent to them both marking every 512 packets.
+
+\fc{Add explanation of windows}.
     
 \subsection{Microbenchmarks}
 \label{s:measure:microbench}
@@ -157,12 +160,10 @@ so it is effectively equivalent to them both marking every 512 packets.
 
     How well do our estimates match the actual signals? In Figure X, we sample a two minute segment from 
     one experiment in our evaluation section and plot the \inbox's estimated values 
-    of the RTT and receieve rate compared to the actual RTT and the rate of packets leaving 
-    the bottleneck router over time. We find, \fc{...}. The absolute difference between the values
-    across time is 
+    of the RTT and receive rate compared to the queuing delay at the bottleneck router and the rate of packets leaving the bottleneck router over time. 
+    We find, \fc{...}. The absolute difference between the values across time is \fc{...} 
 
-    More generally, we compute the total absolute difference beween the estimated and actual values over the
-    course of all experiments in our evaluation, and plot the distributution in Figure Y.
+    More generally, we compute the total absolute difference between the estimated and actual values over the course of all experiments in our evaluation, and plot the distribution in Figure Y.
     
 \subsection{Limitations}
 \subsubsection{Re-Ordering}
