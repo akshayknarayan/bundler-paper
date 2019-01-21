@@ -1,72 +1,41 @@
 \section{Measurement Strategy}\label{s:measurement}
-\cut{
-\begin{outline}
-\1 Packet marking for hands-off measurement
-    \2 Congestion control protocols require accurate measurements for their decisions to be meaningful. How can an inbox and outbox collaborate to measure network conditions along their path?
-    \2 Congestion control protocols need only a small, common set of measurements~\cite{ccp-hotnets} to function. We observe that these can be reconstructed with three core measurements: the sending rate at the in-box, the receiving rate at the out-box, and the round-trip time between the two gateways.
-    \2 Unfortunately, to be most useful, the sending and receiving rates should be calculated over the same set of packets. Otherwise \an{why}.
-        \3 Otherwise instantaneous measurements can't be used and everything has to be ewma'd?
-    \2 We use packet flagging to synchronize these measurement epochs between the sender and the receiver.
-    \2 Packet flagging is a technique where the inbox and outbox agree on some desired epoch length in packets.
-    \2 Then, the inbox takes the hash of some field in the packet header (\eg TCP sequence number or IP ID).   
-        \3 A suitable field should change with every packet (\ie, is not static for the lifetime of the connection).
-        \3 On every packet p, given a desired epoch duration d, the inbox computes x = H(p) mod d where H is some hash function (which need not be cryptographically secure)
-    \2 Epoch-based measurements
-        \3 The inbox checks if x == 0. If it is, the inbox marks the start of a new epoch. It records the current time, and the cumulative number of bytes sent since some previous super-epoch.
-        \3 Similarly, the outbox computes x = H(p) mod d on every packet. On a packet marking the start of a new epoch, the outbox sends an out-of-band packet to the inbox containing the hash of the epoch-marked packet, its current time, and the cumulative number of received bytes sent since the super-epoch.
-        \3 When the inbox receives an out-of-band feedback message, it looks up that hash. If the packet which ended the previous epoch was sent at time $s_1$ and received at $r_1$, and the packet ending the current epoch was sent at time $s_2$ and received at $r_2$, the inbox can calculate:
-            \4 rtt = current time - $s_2$
-            \4 bytes in send epoch = bytes sent at s2 - bytes sent at s1
-            \4 bytes in recv epoch = bytes sent at r2 - bytes sent at r1
-            \4 send epoch duration = r2 - r1
-            \4 received rate = bytes in recv epoch / recv epoch duration
-        \3 Epoch durations are in expectation, since they depend on hash values.
-    \2 The inbox now has relevant measurements, and can compute estimates of higher-level measurement primitives.
-        \3 \eg loss rate = send rate - recv rate
-\1 Suitable congestion control algorithms
-    \2 Since \name cannot track low-level metrics used by traditional congestion control algorithms such as the number of inflight packets, implementations of window-based algorithms may not be suitable for use.
-    \2 Fortunately there are rate-based algorithms available~\cite{bbr, nimbus}.
-    \2 The inbox acts as a datapath for CCP~\cite{ccp}, and we use CCP implementations of BBR and Nimbus without modification.
-\end{outline}
-\fi
-}
 
-In this section we describe how the \inbox and \outbox can coordinate to compute accurate and robust
-measurements of the network conditions necessary for congestion control.
+In this section we describe how the \inbox and \outbox coordinate to compute accurate and robust
+measurements of the network conditions necessary as inputs to congestion control algorithms.
 
-Prior work has shown that congestion control algorithms typically need only a small, common set of measurements~\cite{ccp-hotnets} to function. 
+Congestion control algorithms need only a small, common set of measurements~\cite{ccp-hotnets}. 
 In particular, rate-based algorithms need only three measurements: 
 the sending rate, receiving rate, and path round-trip time.
-A significant complication is that send and receive rates, to be accurate, must be calculated over the same set of packets~\cite{packettrain}.
-This requirement drives the design of our methodology.
+A significant complication is that for accurate measurements on RTT time-scales, we must calculate send and receive rates over the same set of packets~\cite{packettrain}.
+This requirement drives the design of our measurement methodology.
 
-\subsection{Determining Boundary Packets}
+\subsection{Determining Epoch Boundary Packets}
 \label{s:measure:marking}
 Consider the stream of packets $P_B$ from all flows in a bundle $B$ in the order they leave the \inbox after scheduling.
 The \inbox and \outbox need to know how to divide this stream into sets 
-of packets---which we call \emph{epochs}---over which they can calculate measurements.
+of packets --- which we call \emph{epochs} --- over which they can calculate measurements.
 For now, we make the simplifying assumption that packets arrive at the \outbox in the same order they 
-left the \inbox (we address re-ordering in Section~\ref{s:measure:limitation:reorder}).
-This simplifies the problem into deciding on the boundary packet at which one epoch should
-end and the next should begin. 
+left the \inbox (we address re-ordering in Section~\ref{s:measure:limitation:reorder}). \an{note about re-ordering is a little distracting and doesn't help explain approach}
+This simplifies the problem into deciding, for all given packets in $P_B$, whether it is an epoch boundary packet at which the current epoch should end and the next should begin. 
 Suppose for now that we wish to have a fixed epoch size of $N$ packets.
-A straw-man approach would be to mark the boundary between epochs every $N$ packets. However,
-this strategy is very brittle; even a single lost packet would de-synchronize the boxes' views of the epochs. 
-More generally, any strategy that requires synchronization of the \inbox and
-\outbox introduces a slew of other problems.
-The key idea of our methodology is that we can \emph{avoid} the synchronization problem by determining 
-the boundary of an epoch \emph{using only information contained in the packet} rather than the current state at the middleboxes.
-We use the hash of the flow 5-tuple along with the IP ID field.
+A naive approach would be to mark the boundary between epochs every $N$ packets. 
+However, this strategy is brittle; a single lost packet would de-synchronize the boxes' views of the epochs. 
+More generally, any strategy that requires packet-level synchronization of the \inbox and
+\outbox is untenable because any coordination would race the packets themselves.
 
-More specifically, we propose the following: a packet $p$ is a boundary packet if the hash 
-of the unique field in the header modulo the epoch size $N$ is equal to 0:
-$$B(p,N) \coloneqq (H(p.field)\ \text{mod}\ N) == 0$$
-We use this function because unique fields such as the TCP sequence number will typically advance
-in fixed increments \fc{...}
-This function has the nice property that we can expect, on average, it will find a boundary 
-packet roughly every $N$ packets, regardless of how the unique value changes.
-However, this is just one possible function. Any function that can be calculated by the middleboxes
-independently and can scale epoch sizes based on a desired epoch size will work here. 
+The key idea of our methodology is that we can avoid such a synchronization problem by determining the boundary of an epoch using only information contained in the packet.
+Specifically, we propose the following: a packet $p$ is an epoch boundary packet if the hash 
+of some subset of its header (see below) modulo the epoch size $N$ is equal to 0, that is:
+$$B(p,N) \coloneqq H(p)\ \text{mod}\ N == 0$$
+Thus, an epoch boundary packet will occur (in expectation) once every $N$ packets.
+
+\paragrapha{Choosing header subset} The header subset we use must remain constant as the packet traverses the network from the \inbox to the \outbox; otherwise, they would not be able to agree on epoch boundaries. This rules out simple approaches such as hashing the entire packet header, since the TTL field will decrement between the inbox and outbox.
+Even the 5-tuple of the packet may change, since the outbox may be behind a NAT.
+Use TCP sequence numbers is tempting, but retransmissions may confuse RTT measurements.
+
+We use the IP ID field, which will change every packet. This is an imperfect solution, as modern NATs may rewrite the IP ID field~\cite{ipid}.
+Ultimately, the appropriate field to use will depend on the specific deployment of \name.
+For $H$, we use the widely used Fowler/Noll/Vo (FNV) hash function~\cite{fnv-hash} is a non-cryptographic fast hash function with a low collision rate. In our experiments, 
 
 \subsection{Computing Measurements}
 \label{s:measure:compute}
@@ -142,6 +111,17 @@ As a result, the epoch is longer than intended, but no measurements are lost or 
 The same argument applies to the loss of feedback messages. 
 The key here is that the \inbox actually calculates both the send and receive epoch based on information
 from the \outbox rather than the \outbox deciding what consitutes an epoch on its own. 
+
+\subsection{Fault Tolerance}\label{s:impl:ft}
+\an{perhaps redundant, moved from \S\ref{s:impl}}
+\begin{outline}
+\1 If outbox feedback is lost, the next outbox feedback that is successfully received at the inbox will determine the end of the measurement epoch.
+    \2 The measurements will still be accurate, but they will end up being taken over a longer period than intended.
+\1 The inbox dynamically sets the epoch duration to be (rate * rtt) rounded down to the nearest power of two. It then communicates the epoch duration to the outbox.
+    \2 If this communication is lost, since the epoch duration is set to be a power of two, the inbox and outbox will still agree on a set of epoch packets.
+\1 If the inbox crashes, the operator can remove it from the service chain, and performance will be no worse than it is today.
+\1 If the outbox crashes, after a timeout period, the inbox will disable aggregation on the path and performance will be no worse than it is today.
+\end{outline}
 
 
 \subsection{Choosing The Epoch Size}

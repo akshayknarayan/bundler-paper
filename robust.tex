@@ -5,7 +5,7 @@ We now ask whether \name can effectively shift the bottleneck under a variety of
 \subsection{Cross Traffic}\label{s:robust:cross}
 
 The characteristics of other traffic --- not part of the traffic aggregate \name controls --- on the link can force \name's congestion controller to yield queue size to remain competitive in the bottleneck link.
-\an{Should we say this? :}Note that under more challenging network conditions --- oversubscription, etc --- the role an importance of \name' congestion controller is more important. We anticipate that future work in congestion control may yield better results.
+\an{Should we say this? :}Note that under more challenging network conditions --- over-subscription, etc --- the role an importance of \name' congestion controller is more important. As we discuss in \S\ref{s:discussion}, we anticipate that future work in congestion control may yield better results.
 
 \input{inelastic-cross}
 \paragrapha{Inelastic Cross Traffic} We first consider the case of \emph{inelastic} cross traffic; that is, traffic that does not respond to queue-size fluctuations.
@@ -22,13 +22,16 @@ The congestion controller must push packets into the bottleneck queue to compete
 As a result, we expect performance to be no better than the baseline.
 We indeed see this in Figure~\ref{fig:robust:cr-elastic}.
 
-It is important to note that traditional loss-based congestion controllers (\ie Cubic~\cite{cubic}, NewReno~\cite{reno}) are poor choices for \name. 
+It is important to note that traditional loss-based congestion controllers (\ie Cubic~\cite{cubic}, NewReno~\cite{newreno}) are poor choices for \name. 
 This is because they double-penalize component traffic for losses: first, in the reaction of the end-to-end congestion controller to the loss, and second in the reaction of the controller at \name.
 Therefore, for algorithms which observe loss (Nimbus and Copa), we configure them to ignore it; the end-to-end reaction to loss will modulate the offered load to be the fair share of the bottleneck.
 
 In this experiment, Copa, primarily a delay-based algorithm, cannot adequately detect the presence of competing elastic traffic and ``mode-switch'' to its competitive mode. When we modify Copa to use Nimbus's elasticity detector (Figure~\ref{fig:robust:cr-elastic:b}), its performance matches the baseline.
 
+\paragrapha{Elastic Flows within competing Bundles} \an{show that if elastic traffic is inside bundles, all bundles can benefit}
+
 \subsection{Path Characteristics}\label{s:robust:path}
+\an{should these go in ``microbenchmarks'' in \S\ref{s:measurement}?}
 \begin{outline}
 \1 Different RTTs
 \1 Different bandwidths
