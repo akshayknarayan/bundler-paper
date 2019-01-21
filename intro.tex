@@ -1,7 +1,7 @@
 \section{Introduction}\label{s:intro}
 
 
-\radhika{Alternate intro: mostly just changed the flow of certain points, removed some that might be better suited in related work, and made some more concrete/specific. /*}
+%\radhika{Alternate intro: mostly just changed the flow of certain points, removed some that might be better suited in related work, and made some more concrete/specific. /*}
 
 %lots of scheduling algorithms proposed. scheduling used in private wans. seems clearly beneficial.
 The vast literature on scheduling and queue management algorithms~\cite{diffserv, fair-queueing, sfq, pie, CoDel, fifoplus, virtualClocks, csfq, drr, red, ecn} clearly indicates the performance benefits of deploying such schemes within the network. However, the public Internet has proven difficult to evolve accordingly; although router vendors have, over the years, implemented certain schemes (such as fair queueing~\cite{fair-queueing}\radhika{might be better to cite deficit round robin. need to double check}), they are often not enabled by the network operators. 
@@ -17,11 +17,11 @@ In each of these scenarios the sender has enough information to unilaterally cho
 
 So while network operators do not have enough visibility into the traffic to choose the appropriate policy, the customers do not have enough control over the bottleneck links to enforce their desired policies. This paper attempts to resolve this conundrum by simply \emph{moving the bottleneck to the customer's edge}, such that appropriate scheduling and queue management policies can be effectively enforced.
 
-The natural question that arises is, how can the bottleneck be moved? We observe that the component flows of the traffic from a given sender's domain and destined for the same downstream domain, as in the examples mentioned earlier, would share common bottleneck within the network. Aggregating these component flows at the sender's egress, and controlling the outgoing rate of this aggregate to match its share at the bottleneck link, would \emph{move} the queues from the bottleneck in the network to the sender's egress itself, thus effectively shifting the bottleneck. 
+The natural question that arises is, how can the bottleneck be moved? We observe that the component flows of the traffic from a given sender's domain and destined for the same downstream domain, as in the examples mentioned earlier, would share common bottleneck within the network. Aggregating these component flows at the sender's egress, and controlling the outgoing rate of this aggregate to match its share at the bottleneck link, would \emph{move} the queues from the bottleneck in the network to the sender's egress itself, thus effectively shifting the bottleneck \radhika{need to simplify this sentence}. 
 
 We further note that middleboxes are now prevalent in the Internet architecture~\cite{aplomb}. They are often deployed at the egress and ingress of an enterprise network or a domain, to ensure traffic transits them for intrusion detection, packet inspection, filtering etc. They therefore provide an effective vantage point for manipulating flows. 
 
-We therefore propose a new type of middlebox, called a \name, that (i) performs traffic aggregation and rate control at the egress of a customer's edge to shift the bottleneck to itself, and (ii) does effective scheduling and queue management to meet the customer's requirements (such as adhering to a desired delay target, prioritizing flows based on their size, application type, or deadline, enforcing fair queuing for a more stable rate allocation and so on).
+We therefore propose a new type of middlebox, called a \name, that (i) performs traffic aggregation and rate control at the egress of a customer's edge to shift the bottleneck to itself, and (ii) enforces scheduling and queue management policies as per the customer's requirements (such as adhering to a desired delay target, prioritizing flows based on their size, application type, or deadline, enforcing fair queuing for a more stable rate allocation and so on).
 
 % We make the following key contributions:
 % \begin{enumerate}
