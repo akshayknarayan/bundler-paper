@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-    <<eval:fifo,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
+    <<eval:fifo,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
 library(ggplot2)
 df <- read.csv("84Mbps-bk-flows.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6

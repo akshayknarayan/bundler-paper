@@ -1,0 +1,37 @@
+\begin{figure}
+    \centering
+    <<robust:twobundler,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
+library(ggplot2)
+df <- read.csv("twobundler.data", sep=" ")
+df$Duration <- df$Duration.usec. / 1e6
+df$Bundle <- as.factor(df$BundleId)
+df <- df[df$Alg == "copa_sfq" | df$Alg == "nobundler_fifo",]
+
+facets <- c(
+    "0" = "Bundle 1",
+    "1" = "Bundle 2"
+)
+
+ggplot(df, aes(x=Duration, linetype=Alg)) +
+    stat_ecdf() +
+    scale_x_continuous(
+        limits=c(0, 0.3),
+        name="Duration (sec)"
+    ) +
+    scale_linetype_manual(
+        limit=c("copa_sfq", "nobundler_fifo"),
+        labels=c("copa_sfq" = "Bundler ", "nobundler_fifo" = "Baseline"),
+        values=c("copa_sfq" = "solid","nobundler_fifo" = "twodash")
+    ) +
+    facet_grid(~Bundle, labeller = as_labeller(facets)) +
+    ylab("CDF") +
+    theme_minimal() +
+    theme(
+        legend.position="top",
+        legend.title=element_blank(),
+        legend.text=element_text(size=12)
+    )
+@
+    \caption{Competing traffic bundles. Each bundle observes improved median FCT compared to its performance in the baseline scenario.}
+    \label{fig:robust:twobundler}
+\end{figure}

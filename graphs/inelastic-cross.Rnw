@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-    <<robust:cr-inelastic,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
+    <<robust:cr-inelastic,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
 library(ggplot2)
 df <- read.csv("cr-inelastic.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6

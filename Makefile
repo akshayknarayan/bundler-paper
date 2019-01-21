@@ -9,16 +9,15 @@ PDFS = $(addsuffix .pdf,$(TARGETS))
 
 all: $(PDFS)
 
-$(KNITRTARGETS): $(KNITRFILES)
-	$(info $(KNITRFILES))
-	$(info $(KNITRTARGETS))
-	Rscript -e "library(knitr); knit('./graphs/$*.Rnw')"
-
 %.pdf: %.tex $(TEXFILES) $(KNITRTARGETS)
 	pdflatex -shell-escape -shell-escape $*.tex
 	bibtex $*
 	pdflatex -shell-escape -shell-escape $*.tex
 	pdflatex -shell-escape -shell-escape $*.tex
+
+%.tex: graphs/%.Rnw
+	$(info $?)
+	Rscript -e "library(knitr); knit('$?')"
 
 clean:
 	/bin/rm -f $(PDFS) $(KNITRTARGETS) *.dvi *.aux *.ps *~ *.log *.out *.lot *.lof *.toc *.blg *.bbl url.sty

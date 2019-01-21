@@ -1,7 +1,7 @@
 \begin{figure}
     \centering
     \begin{subfigure}[b]{0.5\textwidth}
-    <<robust:cr-elastic:a,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
+    <<robust:cr-elastic:a,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
 library(ggplot2)
 df <- read.csv("cr-elastic.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
@@ -28,7 +28,7 @@ ggplot(df, aes(x=Duration, linetype=Alg)) +
     \caption{Congestion controllers from \S\ref{s:eval}.}\label{fig:robust:cr-elastic:a}
     \end{subfigure}
     \begin{subfigure}[b]{0.5\textwidth}
-    <<robust:cr-elastic:b,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
+    <<robust:cr-elastic:b,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
 library(ggplot2)
 df <- read.csv("cr-elastic.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
