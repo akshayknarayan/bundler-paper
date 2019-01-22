@@ -1,0 +1,31 @@
+\begin{figure}
+    \centering
+    <<robust:caida,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
+library(ggplot2)
+df <- read.csv("caidacdf.data", sep=" ")
+df$Duration <- df$Duration.usec. / 1e6
+bw <- 12e6
+df$ofct <- (df$Size / bw) + 0.05
+df$NormFct <- df$Duration / df$ofct
+
+ggplot(df, aes(x=Duration, linetype=Alg)) +
+    stat_ecdf() +
+    scale_x_continuous(
+        limits=c(0, 1),
+        name="Duration (sec)") +
+    scale_linetype_manual(
+        limit=c("copa_sfq", "nobundler_fifo"),
+        labels=c("copa_sfq" = "Bundler", "nobundler_fifo" = "Baseline"),
+        values=c("copa_sfq" = "solid", "nobundler_fifo" = "twodash")
+    ) +
+    ylab("CDF") +
+    theme_minimal() +
+    theme(
+        legend.position=c(0.85, 0.3),
+        legend.title=element_blank(),
+        legend.text=element_text(size=12)
+    )
+@
+    \caption{\name achieves 33\% lower FCT when its component traffic is drawn from a real-world~\cite{caida-dataset} workload.}
+    \label{fig:robust:caidacdf}
+\end{figure}
