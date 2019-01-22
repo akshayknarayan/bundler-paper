@@ -3,6 +3,10 @@
 %\headheight 0pt
 %\textheight 9.25in
 \settopmatter{printacmref=false}
+% Copyright
+\renewcommand\footnotetextcopyrightpermission[1]{} % removes footnote with conference info
+\setcopyright{none}
+\settopmatter{printacmref=false, printccs=false, printfolios=true}
 
 % remove the annoying header on each page
 \fancyhead{}
@@ -16,7 +20,8 @@
 \newcommand{\inbox}{in-box\xspace}
 \newcommand{\outbox}{out-box\xspace}
 \begin{document}
-\title{Taking Control of Your Traffic By Living on the Edge \an{better title}}
+\title{Taking Control of Your Traffic By Living on the Edge}
+\author{Paper XXX, \pageref{p:end} pages}
 
 \begin{sloppypar}
 \include{abstract}
@@ -30,7 +35,7 @@
 \input{robust}
 \input{discussion}
 \input{conclusion}
-
+\label{p:end}
 \bibliographystyle{abbrv}
 \bibliography{ref}
 \end{sloppypar}

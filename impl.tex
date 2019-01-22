@@ -24,6 +24,11 @@ It uses \texttt{libnl} to communicate with the qdisc, and \texttt{libccp}~\cite{
 We use existing implementations of congestion control algorithms on CCP without modification\footnote{We discovered and patched a minor bug in the CCP Copa~\cite{copa} implementation.}; since CCP algorithms are already designed to receive network feedback asynchronously, they are a natural choice for our epoch-based measurement architecture.
 It maintains the congestion control state of each bundle, but does not maintain (or observe) per-flow state.
 
+It is important to note that traditional loss-based congestion controllers (\ie Cubic~\cite{cubic}, NewReno~\cite{newreno}) are poor choices for \name. 
+\an{move to earlier, maybe design}
+This is because they double-penalize component traffic for losses: first, in the reaction of the end-to-end congestion controller to the loss, and second in the reaction of the controller at \name.
+Therefore, for algorithms which observe loss (Nimbus and Copa), we configure them to ignore it; the end-to-end reaction to loss will modulate the offered load to be the fair share of the bottleneck.
+
 We implement the \outbox using \texttt{libpcap} in $188$ lines of Rust. It listens for packets on the interface, checks for epoch packets, and sends the reports to the \inbox. It must maintain per-bundle counters (described in \S\ref{s:impl:discovery}).
 
 \subsection{\name Event Loop}\label{s:impl:loop}
@@ -49,7 +54,7 @@ if appropriate.
 \subsection{Bundle Initialization}\label{s:impl:discovery}
 
 One practical concern in a \name deployment is how the \inbox and \outbox discover each others' presence. Of course, it is always possible to statically configure an \inbox and \outbox; however, this may be impractical as they reside in different networks.
-Rather, we propose a bootstrapping mechanism wherein aggregates are formed naturally.
+Rather, we propose a bootstrapping mechanism wherein \name forms aggregates in response to observed packets.
 This mechanism classifies packets traversing the \inbox and \outbox as either non-bundled (should be transmitted immediately and not paced in the qdisc) or bundled in a given qdisc. Different bundles may have different rates; recent work~\cite{carousel, eifel} has shown it is possible to implement such multi-rate, multi-scheduler datapaths efficiently.
 
 The \inbox first assumes that all packets which traverse it are not bundled.

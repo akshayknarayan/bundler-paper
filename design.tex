@@ -13,7 +13,8 @@
 \end{figure}
 
 A \name must have the following properties:
-\cut{ % these items could be considered implementation details
+\cut{ 
+% these items could be considered implementation details
     \item It measures congestion control information from the network path.
     \item It enforces a pacing rate determined by a congestion control algorithm. The congestion control algorithm takes as input measurements from the network path, and returns an aggregate rate at which \name should send its component traffic.
 }
@@ -26,14 +27,14 @@ A \name must have the following properties:
 \subsection{Shifting the Queues}\label{s:design:shifting}
 
 The key insight of \name is that shifting the queues from the bottleneck to the edge enables scheduling for the aggregate.
-Note that \name can only shift (and therefore can only schedule) that component of the bottleneck queue which is self-inflicted; that is, it can only control its own traffic.
+Note that \name can only shift (and therefore can only schedule) the component of the bottleneck queue which is self-inflicted; that is, it can only control its own traffic.
 \name must therefore decide what fraction of the bottleneck queue it is willing to occupy.
 We make a simple, but powerful, observation: end-host congestion control algorithms perform exactly this calculation!
 If we run a congestion control algorithm at the \name, it will decide on a fair sending rate for the aggregate as it competes with non-aggregate traffic from other domains.
 Component flows will then queue at the \name as their packets are sent at this rate.
 Figure~\ref{fig:design:shift-bottleneck} illustrates this method: 
 in Figure~\ref{fig:design:shift-bottleneck:before}, packets from the end-hosts queue in a FIFO queue in the network. The FIFO queue at the edge is unoccupied.
-In contrast, the \name implementation (described in \S\ref{s:impl}), in Figure~\ref{fig:design:shift-bottleneck:after} maintains low queueing delays at the bottleneck queue by estimating and sending at the bottleneck rate. 
+In contrast, the \name implementation in Figure~\ref{fig:design:shift-bottleneck:after} (described in \S\ref{s:impl}) maintains low queueing delays at the bottleneck queue by estimating and sending at the bottleneck rate. 
 Since component flows, running traditional congestion control algorithms, will probe for bandwidth until they experience loss, they build queues at the \name instead of at the bottleneck.
 Since the \name now controls the queues corresponding to the traffic aggregate, it can schedule the packets of component flows.
 
@@ -91,17 +92,27 @@ must
 }
 
 \subsection{Two-sided Measurement}\label{s:design:twosided}
-\fc{todo: trim and clean up}
-In order to perform congestion control, \name needs to collect and maintain measurements about the current state of the network.
-Traditionally, end-host congestion control has been tightly integrated with end-host packet transmission logic. Therefore, algorithms have been built on those measurements that are readily available on end-hosts, such as the number of in-order packets acknowledged by the receiver, the number of duplicate acknowledgements (as a proxy for loss), the rate at which they send, and the round-trip time.
+To perform congestion control, \name must collect and maintain measurements about the current state of the network.
+Traditionally, end-host congestion control has been tightly integrated with end-host packet transmission logic. 
+Therefore, algorithms have been built on those measurements that are readily available on end-hosts, \eg the number of in-order packets acknowledged by the receiver.
 
-However, recent algorithms observe~\cite{bbr, sprout, remy, nimbus} that it is often useful to incorporate the receiver's view of a connection's rate as well. These algorithms estimate the receive rate at the sender using the timing between received acknowledgements, but tracking acknowledgements requires maintaining per-connection state, which is contrary to our design goal of scalability, and depends upon path symmetry, which will not hold across all flows in a bundle. Further, sender-side measurements of the bottleneck rate have long been known to have limited accuracy compared to the those taken at the receiver~\cite{packet-dynamics, path-properties}.
+From the vantage point of a \name, however, there are three problems with this traditional approach.
 
-In addition, there is not a single meaningful ``round-trip time'' in this scenario, as each flow in a given bundle may experience different sources of latency after traversing the shared bottleneck, and thus experience different end-to-end RTTs. 
+\paragrapha{Scalability} To track measurements in the same manner as an end-host, \name would need to maintain per-flow state: remembering when it sent each packet, and matching these records with the stream of incoming packet acknowledgements. 
+This violates requirement (3): it requires stateful operations at high line rates.
 
-To address all of these challenges, \name consists of a \emph{pair} of middleboxes, both on the network path: one before the bottleneck, and one after, which we refer to as the \textit{\inbox} and \textit{\outbox}, respectively. 
-This allows for a direct calculation of the receive rate at the \outbox and a well-defined RTT: the RTT between the two middleboxes as opposed to the source and destination. As long as the bottleneck exists between the middleboxes, these measurements can sufficiently capture the important network conditions. 
-However, if it is not, then \name will not be able to build queues and control the traffic. Thus, middlebox placement is important. The \inbox and \outbox should be placed as close to the edge near the sources and destinations as possible in order to capture as many potential bottlenecks as possible.
+\paragrapha{Measurement semantics} Finally, with a bundle of connections, there may not be a single meaningful end-to-end ``round-trip time'' in this scenario, as each component flow may experience different sources of latency after traversing the shared bottleneck, and thus experience different end-to-end RTTs. 
+Rather, we want to measure the RTT between the middlebox we have shifted the bottleneck to and a fixed point (per-bundle) on the opposite site of the bottleneck.
+\an{Further, sender-side measurements of the bottleneck rate have long been known to have limited accuracy~\cite{packet-dynamics, path-properties}.}
+
+\paragrapha{Reliance on acknowledgements} Internet paths can be asymmetric and component traffic may be UDP-based; as a result, \name may not observe packet acknowledgements. Therefore, relying on packet acknowledgements to gather path information is a brittle approach.
+%
+\smallskip
+
+To address these challenges, \name consists of a \emph{pair} of middleboxes, both on the network path: one before the bottleneck, and one after, which we refer to as the \textit{\inbox} and \textit{\outbox}, respectively. 
+This allows for a direct calculation of the receive rate at the \outbox and a well-defined RTT: the RTT between the two middleboxes as opposed to the source and destination. 
+As long as the bottleneck exists between the middleboxes, these measurements can sufficiently capture the important network conditions. 
+However, if it is not, then \name will not be able to build queues and control the traffic. Thus, middlebox placement is important. The \inbox and \outbox should be placed as close to the edge near the sources and destinations as possible in order to capture the bottleneck between them.
 
 \cut{
 We imagine an infrastructure, as depicted in Figure~\ref{fig:overview}, where each 
@@ -109,61 +120,25 @@ entity (a datacenter, campus, etc.) runs an \inbox and \outbox at the edge of it
 }
 
 This design also allows us to sidestep the problem of determining which flows share the same bottleneck.
-Assuming the bottleneck exists between the two middleboxes, if packets for two different flows are traversing both the same \inbox and \outbox on their way from source to destination, then they must also share the same bottleneck.
-
-\name classifies flows into bundles based on the specific \inbox-\outbox pair they traverse. Each \inbox may carry flows destined for multiple \outbox{}s and vice-versa. At the \inbox, each bundle is given its own queue and is treated separately. 
-
-\cut{
-\begin{outline}
-\1 Traditionally, end-host congestion control has been tightly integrated with end-host packet transmission logic.
-    \1 Therefore, it traditionally uses a \emph{one-sided} mechanism for measuring congestion control primitives.
-    \2 Therefore, it has relied on those measurements that are readily available on end-hosts, \ie the number of in-order packets accounted for by the receipt of an acknowledgement from the receiver.
-    \2 Hosts can easily measure the rate at which they send, and the round-trip time.
-    \2 However, recent proposals observe~\cite{bbr, sprout, remy, nimbus} that it is often useful to account for the receiver's view of a connection's rate.
-        \3 These proposals estimate the received rate at the sender using the timing between received acknowledgements.
-        \3 Sender-side only measurements of the bottleneck rate have long been known to have limited accuracy; receiver-side measurements are more accurate~\cite{packet-dynamics, path-properties}.
-\1 However, we want a scalable design that does not maintain per-connection state. 
-    \2 Tracking acknowledgements requires maintaining this state.
-    \2 It also requires path symmetry.
-\1 In contrast, we propose a \emph{two-sided} mechanism for measuring network path properties.
-    \2 We do this using middleboxes.
-    \2 We refer to the middlebox near the sender(s) the \emph{\inbox}, and the middlebox near the receiver(s) the \emph{\outbox}.
-    \2 The \inbox is responsible for performing congestion control (and enforcing congestion control decisions) and gathering sender-side measurements.
-    \2 The \outbox is responsible for performing measurements on traffic destined for receivers that flows through it.
-    \2 One consideration is how to ensure that traffic between the senders and receivers indeed flows through the in-box and out-box, with the prevalence of SDN, something like way-point routing~\cite{waypoint-routing, flowtags} can be used. 
-    \2 Also network verification~\cite{veriflow, anteater, reachability} to ensure that traffic indeed traverses in- and out- boxes.
-\end{outline}
-}
-
+Assuming the bottleneck exists between the two middleboxes, if packets for two different flows are traversing both the same \inbox and \outbox on their way from source to destination, then they must also share the same bottleneck. 
+We take advantage of this property in our approach to dynamic bundle identification, described in~\S\ref{s:impl:discovery}.
+%
 \subsection{Out-of-band Coordination}\label{s:design:oob}
-\fc{lock}
-    \cut{
-\begin{outline}
-\1 A primary consideration for a \name is whether the two gateways should communicate their congestion control measurements \emph{in-band}, by encapsulating packets with \eg a custom UDP header.
-\1 Indeed, past approaches to network-assisted congestion control have relied either on encapsulation or custom congestion headers~\cite{xcp, rcp} (probably can cite some cellular thing here).
-\1 encapsulation has two drawbacks:
-    \2 fault tolerance: if the in-box and out-box fail, as middleboxes often do~\cite{aplomb}, encapsulated traffic flows would also fail. We want to avoid this fate-sharing.
-    \2 performance: although modern software switches can achieve high line rates~\cite{netbricks, bess}, they cannot match the performance of hardware. \an{can we say this? could an in-band approach still work with a hardware implementation of the in-box?} 
-    \2 load balancing: commonly-deployed ECMP load balancing relies on the 5-tuple of the connection. Encapsulating packets changes the 5-tuple. 
-        \3 A naive implementation of encapsulation would simply pick one UDP port, but this would lose all the benefits of load balancing. 
-        \3 Instead an implementation would have to carefully set the udp src and dest ports to ensure both that ECMP load balancers in the network still performed correctly, and that the distribution of paths traversed by the encapsulated flows matched those that the unmodified traffic would have traversed without encapsulation.
-\1 Therefore, instead, we select an out-of-band approach. In this approach, flows from the senders traverse the network exactly as they otherwise would have. This is nice in terms of the end-to-end principle.
-\1 We explain in \S\ref{s:measurement} our measurement methodology
-\end{outline}
-}
-
-Each \inbox and \outbox must communicate in order to share measurements and coordinate actions. 
-This communication can either be in-band, which would involve encapsulating packets
-at the \inbox with a custom header and then decapsulating them at the \outbox, or out-of-band,
-which would not touch any of the actual traffic and send entirely separate messages.
+Each paired \inbox and \outbox must communicate in order to share measurements and coordinate actions. 
+This communication could either be in-band, \ie would encapsulate packets
+at the \inbox with a custom header and then decapsulate them at the \outbox, or out-of-band,
+which would not modify the packets of component flows.
 While past approaches to network-assisted congestion control have used an in-band approach, in this scenario it would add three implementation complications without any clear benefit:
 
+\paragrapha{Fault tolerance} Encapsulation would require the \inbox and \outbox to work together. 
+If a decapsulating outbox were to fail, as middleboxes often do~\cite{aplomb}, encapsulated flows would also fail.
+Rather, with an out-of-band feedback approach and a ``fail-open'' deployment model, both the \inbox and \outbox could fail with no adverse effects to component traffic (other than the loss of \name's benefits). We discuss our approach to fault tolerance in the out-of-band model in~\S\ref{s:measure:loss}.
 
-\textbf{Poor fault tolerance and fate sharing}. Encapsulation requires both the \inbox and \outbox working together. If either were to fail,
-as middleboxes often do~\cite{aplomb}, encapsulated flows would also fail. \fc{Can we actually claim this?}
+\paragrapha{Performance overhead} Encapsulation requires rewriting each packet at both the \inbox and \outbox. 
+This adds overhead both in terms of the CPU cycles necessary to modify the packet and in terms of the extra data sent on the wire, and therefore limits scalability compared to an out-of-band approach. 
 
-\textbf{Performance overhead}. Encapsulation requires rewriting each packet at both the \inbox and \outbox. This adds overhead both in terms of the CPU cycles necessary to modify the packet and in terms of the extra data sent on the wire. This limits scalability compared to an out-of-band approach that passively observes and paces packets, which could be implemented in hardware. While modern software switches capable of rewriting packets can achieve high line rates~\cite{netbricks, bess}, they cannot match the performance of hardware. \an{can we say this? could an in-band approach still work with a hardware implementation of the in-box?} 
+\paragrapha{ECMP} Equal-cost multi-path routing (ECMP) load balances flows across different paths based on their 5-tuple. 
+A naive implementation of encapsulation that chose a single 5-tuple for the decapsulator would force flows onto a single path that would have otherwise benefited from load balancing. 
+To regain ECMP's benefits, an encapsulating \name would need to carefully set the source and destination ports such that the distribution of paths traversed by the encapsulated flows matches those that the unmodified traffic would have traversed without encapsulation. 
 
-\textbf{Conflict with ECMP}. Commonly-deployed equal-cost multipath routing (ECMP) load balances flows across different paths based on their 5-tuple. A naive implementation of encapsulation that chose a single port for the decapsulator would force flows onto a single path that would have otherwise been load balanced. In order to not interfere with ECMP, \name would need to carefully set the source and destination ports such that the distribution of paths traversed by the encapsulated flows matches those that the unmodified traffic would have traversed without encapsulation. 
-
-Therefore, we select an out-of-band approach. Flows from the senders traverse the network exactly as the otherwise would have.
+Therefore, we select an out-of-band approach. Flows from the senders traverse the network exactly as they otherwise would have.

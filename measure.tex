@@ -96,34 +96,24 @@ of the current epoch. It now has all of the information necessary to calculate o
 %(Note $bytes\_rcvd\_in\_epoch$ can also be interpreted as the number of bytes
 %acknowledged for that epoch, which is a common signal used by many conestion
 %control algorithms.)
-Finally, it clears all marked packets preceeding \ptwo\ leaving \ptwo\
+Finally, it clears all marked packets preceding \ptwo\ leaving \ptwo\
 to be the start of the next epoch.
 
-
-\subsection{What About Lost Packets?}
+\subsection{Fault Tolerance}
 \label{s:measure:loss}
-This method is robust to the loss of boundary packets between the \inbox and \outbox.
+\paragrapha{Packet loss} This method is robust to the loss of boundary packets between the \inbox and \outbox.
 Suppose the \inbox sees boundary packets $p_1, p_2, p_3$, but $p_2$ is lost after passing through
 the \inbox so the \inbox only receives feedback for $p_1$ and $p_3$. Upon receiving $p_1$, 
 the \inbox will truncate its data structure up until $p_1$. Upon receiving $p_3$, the \inbox 
 looks up the oldest remaining boundary packet, $p_1$, and considers that the beginning of the epoch.
-As a result, the epoch is longer than intended, but no measurements are lost or corrupted. 
+As a result, the epoch is longer than expected, but no measurements are lost or corrupted. 
 The same argument applies to the loss of feedback messages. 
-The key here is that the \inbox actually calculates both the send and receive epoch based on information
-from the \outbox rather than the \outbox deciding what consitutes an epoch on its own. 
+Importantly, \inbox calculates both the send and receive epoch based on information
+from the \outbox rather than attempting to reach consensus on individual epoch boundaries with the \outbox. 
 
-\cut{
-\subsection{Fault Tolerance}\label{s:impl:ft}
-\an{perhaps redundant, moved from \S\ref{s:impl}}
-\begin{outline}
-\1 If outbox feedback is lost, the next outbox feedback that is successfully received at the inbox will determine the end of the measurement epoch.
-    \2 The measurements will still be accurate, but they will end up being taken over a longer period than intended.
-\1 The inbox dynamically sets the epoch duration to be (rate * rtt) rounded down to the nearest power of two. It then communicates the epoch duration to the outbox.
-    \2 If this communication is lost, since the epoch duration is set to be a power of two, the inbox and outbox will still agree on a set of epoch packets.
-\1 If the inbox crashes, the operator can remove it from the service chain, and performance will be no worse than it is today.
-\1 If the outbox crashes, after a timeout period, the inbox will disable aggregation on the path and performance will be no worse than it is today.
-\end{outline}
-}
+\paragrapha{Crashes \an{need better heading}} Existing work~\cite{ftmb} has studied how to design stateful middleboxes to be fault-tolerant with acceptable performance overheads. 
+However, state-persistence is largely unnecessary for \name.
+\name only stores network conditions, which it can re-learn within a few RTTs, and bundle membership flow tables, which it can re-discover as we describe in~\S\ref{s:impl:discovery}. 
 
 \subsection{Choosing The Epoch Size}
 \label{s:measure:epoch}

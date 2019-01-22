@@ -6,63 +6,124 @@ We evaluate the following aspects of our design:
     \item Is \name able to shift the bottleneck enough to enforce scheduling policies? We discuss this in \S\ref{s:robust}.
 \end{enumerate}
 
-\subsection{Flow Completion Time}\label{s:eval:fct}
 
+
+\radhika{Another way to structure the the rest of this section: /*}
+\begin{itemize}
+    \item Subsection: ``Understanding \name's performance benefits''. 
+    \begin{itemize}
+        \item (This will cover most of what you have under ``Flow Completion Time'')
+        \item Experiment setup (what you currently have)
+        \item Result: (Figure~\ref{fig:eval:best})
+        \item Explaining why
+        \begin{itemize}
+            \item Effective bottleneck shifting: a graph that shows queuing delay at mahimahi without bundler, and graphs that show the queuing delay at mahimahi and inbox when using bundler. \an{(this is figure~\ref{fig:design:shift-bottleneck}, should we repeat it?)}
+            \item Scheduling is necessary: comparison with FIFO -- what you have now
+        \end{itemize}
+        \item Comparison with ideal case: mahimahi link does sfq. Show we are not too bad (is it possible to get this result?). \an{will try, but it may not be possible to run sfq in mahimahi}
+    \end{itemize}
+    \item Subsection: ``Using \name to enforce different policies''.
+    
+    \begin{itemize}
+        \item We use same set-up as before, but different scheduling and queue management polcies at the \name to meet different requirements. 
+        \item Fairness / Short Flow FCT: Helps short flows achieve a smaller FCT by reducing the queuing delay that they see. Results already shown in previous subsection. 
+        \item Smaller Queuing Delay: Helps keep queuing delay small. Present another FCT graph like Figure~\ref{fig:eval:best}, but with FQ-CoDel or PI. Also present a graph which shows the CDF of per-packet delays (if possible). Also, if possible (and if space), a comparison with properly configured and badly configured AQM scheme in the mahimahi link.
+        \item Rate Stability
+        \item anything else? 
+    \end{itemize}
+    \item Subsection: Robustness analysis
+    \begin{itemize}
+        \item We vary different aspects of the experiment setup detailed earlier to see how they impact our key results. We use SFQ as the scheduling policy in the bundler, but similar trends would hold for other policies (?). 
+        \item Impact of congestion control (what you have now) [might also be fine if it goes in the previous subsection]
+        \item Impact of offered load (what you have now)
+        \item Impact of path characteristics
+        \item Alternative design choices (TCP Proxy)
+        \item Impact of cross traffic
+        \begin{itemize}
+            \item Cross traffic in it's own bundle
+            \item Cross traffic not using bundle
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+\radhika{*/}
+
+
+\subsection{Flow Completion Time}\label{s:eval:fct}
+\radhika{another title for this section, or some preceding explanation on what each section is about}
 
 \input{overview-benefits}
 
-\radhika{Experiment Setup:}
-We evaluate our implementation of \name (discussed in \S\ref{s:impl}) using network emulation via mahimahi~\cite{mahimahi}. \radhika{one-two lines explaining mahimahi? (can't expect reviewers to know about it / read the reference)}
-There are three machines in our setup: one machine is a traffic generator, another is configured as a middlebox, and a third is the receiver \radhika{what about the out-box?}.
-We run an empirical traffic generator, in which a many-threaded client \radhika{on the receiver machine?} generates requests from a given empirical request size CDF \radhika{cite source?} and sends them to one of $200$ server processes on the traffic generator.
-Each server then responds to the client with the requested amount of data.
-We then measure the flow completion time of each client request.
-Note that it is important to use many server processes so that the effect of head-of-line blocking on the client requests is limited.
+\paragrapha{Experiment Setup}
+We evaluate our implementation of \name (discussed in \S\ref{s:impl}) using network emulation via mahimahi~\cite{mahimahi}.
+\cut{\radhika{one-two lines explaining mahimahi? (can't expect reviewers to know about it / read the reference)} \an{should be fine to just say ``network emulator''?}}
+There are three machines in our setup: one machine is a traffic generator, another is configured as a middlebox and runs an \inbox, and a third is the receiver. 
+The out-box runs on the same machine as the receiver.
+We run an empirical traffic generator, in which a many-threaded client on the receiver machine  generates requests from a given empirical request size CDF (described below) and sends them to one of $200$ server processes on the traffic generator.
+Each server then responds to the client with the requested amount of data, and
+we measure the flow completion time of each client request.
+We use multiple server processes to emulate multiple machines behind the \name at the customer's edge that serve different client requests.
+%
+\cut{Note that it is important to use many server processes so that the effect of head-of-line blocking on the client requests is limited.
 Indeed, all the CDFs presented in this section have a ``knee'' where the effects of head-of-line blocking become apparent.
-\radhika{is this HoL blocking issue just an artifact of how we run our expts? i.e. in reality, one would expect have multiple machines hosting different servers (and therefore different connections), right? If so, might be better to write it as ``We use multiple server processes to emulate multiple machines behind the \name at the customer's edge that serve different client requests.'' Then when the graphs are presented, explain the `knee' as an artifact of our expts caused due to some HoL blocking.}
+}
+\radhika{when the graphs are presented, explain the `knee' as an artifact of our expts caused due to some HoL blocking. Btw, are you sure that's why you have the knee?}
 
-We first run \name with no cross traffic.
-This scenario highlights the benefits to be gained by managing any \emph{self-inflicted} overhead in the FCT caused by FIFO scheduling. 
-We explore the effects of externally inflicted bottleneck link conflicts in \S\ref{s:robust}. 
+We first present results for a simplified scenario without any cross-traffic, i.e. all traffic traversing through the network is generated by the same customer and is, therefore, part of the same bundle. 
+This scenario highlights the benefits of using \name when the congestion on the bottleneck link in the network is self-inflicted by a single customer. We later explore the effects of externally inflicted congestion, caused by other cross-traffic in \S\ref{s:robust}.
 
-\radhika{Alternative for paragraph above: We first present results for a simplified scenario without any cross-traffic, i.e. all traffic traversing through the network is generated by the same customer and is, therefore, part of the same bundle. This scenario highlights the benefits of using \name when the congestion on the bottleneck link in the network is self-inflicted by a single customer. We later explore the effects of externally inflicted congestion, caused by other cross-traffic in \S\ref{s:robust}.} 
-
-On a $96$Mbps link, we generate $84$Mbps of offered request load from a simple \radhika{cut simple?} CDF with a heavy-tailed mix of short and long requests: 90\% of the requests are less than $5$KB, and 100\% of the requests are less than $1$MB. 
+On a $96$Mbps link, we generate $84$Mbps of offered request load from a CDF with a heavy-tailed mix of short and long requests: 90\% of the requests are less than $5$KB, and 100\% of the requests are less than $1$MB. 
 Each CDF shown in this section is comprised of $100,000$ requests sampled from this distribution, across $10$ runs each with a different random seed.
-In addition, there is a persistently backlogged connection inside the traffic aggregate \radhika{that models ...?}.
+In addition, there is a persistently backlogged connection inside the traffic aggregate that models a background large data transfer which would normally fill the bottleneck queue.
+
+\paragrapha{Basic Results} 
+Figure~\ref{fig:eval:best} presents the results with the above experiment setup.
 We use a Copa~\cite{copa} congestion controller at the \inbox to manage the bottleneck queue, and the stochastic fair queueing~\cite{sfq} scheduling policy. 
-The results are in Figure~\ref{fig:eval:best}.
+We study the effects of different congestion control algorithms and different queuing policies in \S\ref{s:robust}.
 With \name, the median flow completion time (FCT) decreases from $147$ms using FIFO scheduling at the bottleneck link (the baseline configuration) to $58$ms with \name: 61\% lower.
 
-Where do these benefits come from? We devote the remainder of \S\ref{s:eval:fct} to exploring this question.
+\vspace{10pt}
+\noindent Where do these benefits come from? We devote the remainder of \S\ref{s:eval:fct} \radhika{this section} to exploring this question.
 
-\paragrapha{Necessity of scheduling} It is important to note that \name is not necessarily a means of achieving low end-to-end delays, as promised by recent efforts in congestion control~\cite{copa, nimbus}, despite its use of modern congestion control algorithms. 
+\paragrapha{Necessity of scheduling} It is important to note that \name by itself is not necessarily a means of achieving low end-to-end delays, as promised by recent efforts in congestion control~\cite{copa, nimbus}, despite its use of these modern congestion control algorithms. 
 To see why this is the case, recall that \name does not modify the end-hosts: they continue to run the default Cubic congestion controller, which will probe for bandwidth until it observes loss.
-Indeed, the packets end-host Cubic sends beyond those the link can transmit must queue somewhere in the network or be lost. Without \name, they queue at the bottleneck link.
+Indeed, the packets end-host Cubic sends beyond those the link can transmit must queue somewhere in the network or be lost. Without \name, they get queued up at the bottleneck link.
 With \name, they instead queue at the \inbox.
-With adequate scheduling, this extra induced queueing will affect packets from the long flows rather than short flows.
+So, solely using a more sophisticated congestion control algorithm at the \name is unlikely to be the cause of significant reductions in the flow completion time.
 
 \input{fifo-not-enough}
 
-We can see this by measuring the relative performance of using FIFO scheduling at the \name compared to the SFQ scheduling in Figure~\ref{fig:eval:best}.
+We can see this by measuring the relative performance of using FIFO scheduling at the \name instead of the SFQ scheduling in Figure~\ref{fig:eval:best}.
 The results are in Figure~\ref{fig:eval:fifo}. 
-Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a median FCT of $173$ms, it is $18$\% higher than the baseline.
+Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a median FCT of $173$ms, it is $18$\% higher than the baseline. 
+
+\radhika{this is not unsurprising to me. explain using a line or two? is that what the last line of above paragraph was trying to explain? lets discuss explanation in person?}
+
+\radhika{Is it possible to do an experiment on what the results look like if sfq is enabled with mahimahi link?}
+
+\radhika{seems like the rest of this section can go under robustness?}
 
 \paragrapha{Impact of congestion control} How does our choice of congestion control impact our results? 
 It is important to choose a congestion control algorithm carefully based on the known or inferred characteristics of the bottleneck link. 
 In Figure~\ref{fig:eval:cc} we show three congestion control protocols: BBR~\cite{bbr}, Nimbus~\cite{nimbus}, and Copa~\cite{copa}.
-In this scenario, it is important to control delays. Nimbus and BBR both maintain slightly higher queueing delays at the bottleneck link, and thus they achieve higher median FCTs \an{numbers}.
+In this scenario, it is important to control delays in the bottleneck queue, since it is FIFO scheduled and therefore queued packets from short requests must wait behind those from longer requests. Nimbus and BBR both maintain slightly higher queueing delays at the bottleneck link, and thus they achieve higher median FCTs \an{numbers}. 
+Nimbus, which is slightly more aggressive than Copa, induces a higher queue build up at the bottleneck, and a smaller queue build up at the \name, when compared to Copa. It therefore results in a higher median FCT than Copa, though still providing significant benefits over the baseline. BBR, however is even more aggressive and cannot maintain sufficient queuing at the \name to provide enough benefits.
+
+\radhika{Also, no way to further improve BBR?}
+
+\radhika{might be interesting to have another line that shows what happens when \name uses Cubic, and how it can break things.}
+\an{I don't think we can run a meaningful cubic experiment since the implementation looks carefully at measurements (loss, out-of-order deliveries) that we don't precisely measure}
 
 \input{congestion-control}
 
 \paragrapha{Offered load} Naturally, if a link is less congested, scheduling the packets that traverse it will have less benefit. Accordingly, as we reduce the offered load in this experiment, we expect the gains from scheduling to diminish. The result is in Figure~\ref{fig:eval:offeredload}. We reduce the offered load by removing persistently backlogged connections from the workload and generating individual requests at 50\%, 75\% and 87.5\% of the bottleneck link bandwidth. 
-At 87.5\% load, even without the load offered by a persistenly backlogged connection, \name improves FCTs by \an{amount}. 
+At 87.5\% load, even without the load offered by a persistently backlogged connection, \name improves FCTs by \an{amount}. 
 As the offered load decreases to 50\%, the benefit provided by \name decreases as well -- to \an{amount} at the 75th percentile.
 
 \input{varying-offered-load}
 
-\paragrapha{Terminating TCP Connections} An alternate implementation choice for a \name would use a TCP proxy to terminate connections at the \inbox.
-We consider the best-case outcome of terminating TCP connections --- the effective RTT observed by the end-to-end congestion controller would decrease (since the proxy would acknowledge its segments much faster than the original receiver would), and it would grow its window rapidly.
+\paragrapha{Terminating TCP Connections} An alternate implementation choice for a \name would use a TCP proxy to terminate connections at the \inbox. 
+\radhika{I assume we mention this in an earlier section? else we need a line or two about why this experiment is interesting.}
+We consider the best-case outcome of terminating TCP connections --- the effective RTT observed by the end-to-end congestion controller running at the servers would decrease (since the proxy would acknowledge its segments much faster than the original receiver would), and it would grow its window rapidly.
 A proxy-based design would then apply scheduling policy to component traffic (recall that we use SFQ).
 We emulate this best-case scenario by increasing the end-hosts' initial congestion window from the default $10$ to $1000$ segments.
 Now, even the largest $1$MB ($\approx700$ packet) flows in this scenario can immediately transmit all their segments to the \inbox.
@@ -70,9 +131,9 @@ The result is in Figure~\ref{fig:eval:proxy}.
 
 \input{with-proxy}
 
-Surprisingly, terminating TCP connections does not help the short flows (longer flows indeed see an improvement). 
+Surprisingly, terminating TCP connections does not help the short flows (longer flows indeed see an improvement as expected). 
 To see why, we refer back to Figure~\ref{fig:eval:fifo} --- absent scheduling, \name can cause performance degradation because it induces higher overall queueing delays.
-In another instantiation of the same effect, rapid window growth from all active connections causes rapid queue growth at the \inbox. The resulting increased effect end-to-end delays cancel out the gains of scheduling.
+In another instantiation of the same effect, rapid window growth from all active connections causes rapid queue growth at the \inbox. The resulting increased effect end-to-end delays and packet losses cancel out the gains of scheduling. \radhika{this might require a better explanation. let's discuss more in person.}
 
 \subsection{Rate Stability}\label{s:eval:ratestable}
 
@@ -80,31 +141,3 @@ In another instantiation of the same effect, rapid window growth from all active
     \1 \name can improve the rate stability of component traffic
     \1 One such class of traffic is video streaming
 \end{outline}
-
-\cut{
-\begin{outline}[enumerate]
-    \1 Bundler can reduce flow completion times
-        \2 Base case with no cross traffic: run empirical traffic generator in the bundle varying offered load from 30\% to 90\%
-            \3 Rough estimate of current results: 2-3x better for short flows (normalized fct, and only 10-20\% worse for long flows
-            \3 Show how close bundler is to ideal situation (bottleneck router doing FQ scheduling) without actually having to change the middle of the network
-        \2 Add inelastic background traffic
-        \2 Add elastic background traffic
-            \3 Have to enable x-tcp mode (perhaps dynamic number of flows) for bundle
-            \3 can measure number of flows by looking at the number of backlogged queues
-    \1 Microbenchmarks
-        \2 Show that the bundler architecture is capable of emulating rate-based congestion control algorithms: \textbf{PLOT} throughput and delay of Nimbus/BBR/etc with and without bundler show that they look the same and achieve the same average behavior 
-            \3 Regardless of underlying number of flows
-        \2 Show that the measurements obtained via packet sampling are robust even though epoch size is varying over time due to hashing
-        \2 Show why dynamic epoch adjustment is needed 
-            \3 If too small relative to rate, there's too much overhead, if too large relative to rate the algorithm can't make progress
-            \3 \textbf{PLOT} show BBR with large sampling rate, dies after going into probe RTT because it doesn't get any more measurements 
-            \3 Show effect of window of measurements
-                \4 important: there are no real ``magic parameters'' here: \name should take measurements in 1-rtt windows, and epochs should be as short as performance considerations allow.
-        \2 Standard fairness experiment: 3 background cubic flows not in the bundle, vary the number of flows in the bundle, show that the bundle is able to achieve the "fair" share of the link 
-    \1 Bundler allows long running flows to experience better rate stability, the rate of the bundle may fluctuate over time, but long running flows in the bundle see a stable rate while shorter flows 
-        \2 Application: could show how this benefits e.g. live video 
-    \1 Multiple bundles competing with each other?
-    
-
-\end{outline}
-}
