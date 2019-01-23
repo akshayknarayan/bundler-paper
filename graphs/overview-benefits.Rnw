@@ -14,9 +14,9 @@ ggplot(df, aes(x=Duration, linetype=Alg)) +
         limits=c(0, 1),
         name="Duration (sec)") +
     scale_linetype_manual(
-        limit=c("copa_sfq", "nobundler_fifo"),
-        labels=c("copa_sfq" = "Bundler", "nobundler_fifo" = "Baseline"),
-        values=c("copa_sfq" = "solid", "nobundler_fifo" = "twodash")
+        limit=c("copa_sfq", "nobundler_fifo", "nobundler_sfq"),
+        labels=c("copa_sfq" = "Bundler", "nobundler_fifo" = "Baseline", "nobundler_sfq" = "Optimal"),
+        values=c("copa_sfq" = "solid", "nobundler_fifo" = "twodash", "nobundler_sfq" = "dotted")
     ) +
     ylab("CDF") +
     theme_minimal() +
@@ -26,6 +26,6 @@ ggplot(df, aes(x=Duration, linetype=Alg)) +
         legend.text=element_text(size=12)
     )
 @
-    \caption{\name achieves $61$\% lower FCTs.}
+    \caption{\name achieves $33$\% lower slowdown.}
     \label{fig:eval:best}
 \end{figure}

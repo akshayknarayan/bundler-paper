@@ -78,11 +78,17 @@ In \S\ref{s:robust} we evaluate \name using a real-world request size CDF.
 Each CDF shown in this section is comprised of $100,000$ requests sampled from this distribution, across $10$ runs each with a different random seed.
 In addition, there is a persistently backlogged connection inside the traffic aggregate that models a background large data transfer which would normally fill the bottleneck queue.
 
-\paragrapha{Basic Results} 
+\paragrapha{Comparison with Optimal} 
 Figure~\ref{fig:eval:best} presents the results with the above experiment setup.
 We use a Copa~\cite{copa} congestion controller at the \inbox to manage the bottleneck queue, and the stochastic fair queueing~\cite{sfq} scheduling policy. 
 We study the effects of different congestion control algorithms and different queuing policies in \S\ref{s:robust}.
-With \name, the median flow completion time (FCT) decreases from $147$ms using FIFO scheduling at the bottleneck link (the baseline configuration) to $58$ms with \name: 61\% lower.
+With \name, the median 
+slowdown\footnote{We define the ``slowdown'' of a request as its completion time divided by what its completion time would have been in an unloaded network. A slowdown of $1$ is optimal, and higher numbers represent worse performance.} 
+decreases from $1.62$ using FIFO scheduling at the bottleneck link (we call this the baseline configuration as it represents the status quo) to $1.08$ with \name: 33\% lower.
+Furthermore, \name's performance is near to the benefits that could be achieved by deploying scheduling on the bottleneck link (labelled ``Optimal''): their median slowdown are identical at $1.08$.
+The ``optimal'' configuration is more beneficial in the tail: the $99\%$ile slowdown is $4.46$ for ``optimal'' and $9.83$ for \name. Note that the baseline achieves a $99\%$ile slowdown of $10.77$.
+
+Further, recall that this ``optimal'' configuration is not deployable in practice as we note in \S\ref{s:intro}: it forces \emph{all} customers, who may have diverging traffic characteristics, to use the same scheduling policy.
 
 \vspace{10pt}
 \noindent Where do these benefits come from? We devote the remainder of \S\ref{s:eval:fct} \radhika{this section} to exploring this question.
