@@ -2,17 +2,16 @@
     \centering
     <<eval:offeredload,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
 library(ggplot2)
-df <- read.csv("pl-flows.data", sep=" ")
+df <- read.csv("pl-caidacdf.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
-df$Load <- as.factor(df$Load)
+bw <- 12e6
+df$ofct <- (df$Size / bw) + 0.05
+df$Slowdown <- df$Duration / df$ofct
 
-ggplot(df, aes(x=Duration, linetype=Alg)) +
+ggplot(df, aes(x=Slowdown, linetype=Alg)) +
     stat_ecdf() +
-    scale_x_log10(
-        limits=c(0.05, 2),
-        breaks=c(0.05, 0.1, 0.2, 0.5, 1, 2),
-        name="Duration (sec)") +
     ylab("CDF") +
+    xlim(1, 5) + 
     facet_wrap(~Load, nrow=1, ncol=3) +
     scale_linetype_manual(
         limit=c("copa_sfq", "nobundler_fifo"),
@@ -26,6 +25,6 @@ ggplot(df, aes(x=Duration, linetype=Alg)) +
         legend.text=element_text(size=12)
     )
 @
-    \caption{\name offers diminishing returns with lower amounts of offered load.}
+    \caption{\name offers diminishing returns with lower amounts of offered load. \an{probably useful to slice this data by flow size if space}}
     \label{fig:eval:offeredload}
 \end{figure}

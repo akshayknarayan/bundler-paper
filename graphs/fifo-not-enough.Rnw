@@ -2,7 +2,7 @@
     \centering
     <<eval:fifo,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
 library(ggplot2)
-df <- read.csv("84Mbps-bk-flows.data", sep=" ")
+df <- read.csv("84Mbps-1bk-caidacdf.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
 bw <- 12e6
 df$ofct <- (df$Size / bw) + 0.05
@@ -10,9 +10,8 @@ df$NormFct <- df$Duration / df$ofct
 
 ggplot(df, aes(x=Duration, linetype=Alg)) +
     stat_ecdf() +
-    scale_x_log10(
-        limits=c(0.05, 5),
-        breaks=c(0.05, 0.1, 0.15, 0.2, 0.25, 0.5, 0.75, 1, 2, 5, 10),
+    scale_x_continuous(
+        limits=c(0, 1),
         name="Duration (sec)") +
     scale_linetype_manual(
         limit=c("copa_sfq", "copa_fifo", "nobundler_fifo"),
