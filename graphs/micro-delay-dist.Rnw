@@ -1,0 +1,58 @@
+\begin{figure}
+    \centering
+    <<micro:delay,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=2>>=
+
+    library(ggplot2)
+data <- read.csv("all_delay-diff.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric","numeric","numeric"))
+colnames(data) <- c("t", "mm", "inbox", "diff", "best")
+
+data$mm <- data$mm + 0.8
+
+p1 <- ggplot() + geom_step(data=data, aes(x=t,y=inbox), color="red")  + geom_step(data=data, aes(x=t,y=mm), color="blue")
+
+fill_gaps <- function(df) {
+    u <- unique(df$quant)
+    lvls <- as.numeric(u[c(1:(length(u)-1))])
+    res <- data.frame(df)
+    for (lvl in lvls) {
+        ind <- min(which(res$quant == lvl))
+        filler <-res[ind,]
+        filler$quant = lvl-1
+        res <- rbind(res[c(0:(ind-1)),], filler, res[c(ind:nrow(res)),])
+    }
+    return(res)
+}
+
+data$diff <- data$diff + 0.8
+data$best <- data$best + 0.8
+
+dens <- density(data$diff)
+df <- data.frame(x=dens$x, y=dens$y)
+probs <- c(0.1,0.5,0.9)
+quants <- quantile(data$diff, prob=probs)
+df$quant <- factor(findInterval(df$x, quants))
+
+xtics <- setNames(as.double(seq(-5,5,by=1)), seq(-5,5,by=1))
+all_breaks <- append(xtics, quants)
+
+df <- fill_gaps(df)
+
+p2 <- ggplot(df, aes(x,y)) + geom_line() + 
+    geom_ribbon(aes(ymin=0,ymax=y,fill=quant,alpha=0.7)) +
+    geom_vline(aes(xintercept=quants[["10%"]]), linetype="dashed") +
+    geom_vline(aes(xintercept=quants[["50%"]]), linetype="dashed") +
+    geom_vline(aes(xintercept=quants[["90%"]]), linetype="dashed") +
+    scale_x_continuous(breaks=all_breaks) + #, limits=c(-20,20)) + 
+    scale_fill_brewer(guide="none") +
+    xlab("Difference Between True and Measured RTT (ms)") + 
+    ylab("PDF") +
+    coord_cartesian(xlim=c(-5,5)) + 
+    theme_bw() +
+    theme(legend.position="none")
+p2
+@
+    \caption{Distribution of the difference between \name's smoothed estimate of the RTT and 
+    the true RTT (based on the queueing delay at the bottleneck router) at each time point across all experiments. In most cases, the difference
+    is negligble.}
+    \label{fig:micro:delay}
+\end{figure}

@@ -1,0 +1,31 @@
+\begin{figure}
+    \centering
+    <<micro:time,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=2>>=
+
+thru <- read.csv("./84-10000-nimbus-sfq-62-pl-mixed-diff.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric","numeric"))
+raw <- read.csv("./84-10000-nimbus-sfq-62-pl-mixed-epochs.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric"))
+colnames(raw) <- c("t", "send", "recv")
+raw$send <- raw$send / 125000.0
+raw$recv <- raw$recv / 125000.0
+
+p1 <- ggplot() + 
+    geom_step(data=raw, aes(x=t, y=recv, colour="raw")) + 
+    geom_step(data=thru, aes(x=V1,y=V3, colour="windowed"))  + 
+    geom_step(data=thru, aes(x=V1,y=V2, colour="true")) + 
+    theme_bw() + 
+    theme(legend.position="bottom") + 
+    #scale_color_manual(name = "", values = c(true = "blue", windowed="red", raw="green")) +
+    scale_color_brewer(name="", aesthetics=c("colour"),palette="Paired", labels=c("Measured", "Measured (Windowed)", "Bottleneck")) + 
+    scale_x_continuous(breaks=seq(0,max(thru$V1),by=1)) +
+    scale_y_continuous(breaks=seq(0,120,by=12)) +
+    xlab("Time (seconds)") + 
+    ylab("Rate (Mbps)") + 
+    coord_cartesian(xlim=c(20,25), ylim=c(0,120))
+
+p1
+@
+    \caption{\name's estimate of the receive rate compared to the actual rate leaving the bottleneck over a five second trace. 
+    \name's raw estimate of the rate hovers around the true value, but is noisy. Averaging over a window of previous epochs
+    yields a much smoother estimate that closely matches the true value.}
+    \label{fig:micro:time}
+\end{figure}
