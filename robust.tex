@@ -27,7 +27,7 @@ We can see this phenomenon in action in Figure~\ref{fig:robust:cr-inelastic}.
 Each of the congestion control algorithms we evaluate sacrifice (to varying degrees) bandwidth in reaction to the cross traffic, which hurts the FCTs of the larger requests.
 However, the scheduling policy apportions the remaining bandwidth to the short flows, so there is still an improvement in FCTs at the median.
 
-\radhika{it might be ok to just present the Copa results here.}
+\fc{Merge figure b into a, just show a single line for copa+nimbus, and add one sentence in the text why we had to do this for those that know copa has its own elasticity detector}
 
 \input{elastic-cross}
 \paragrapha{Elastic Cross Traffic} Elastic cross traffic, which fills the bottleneck link's buffer, is the worst-case scenario for \name.
@@ -38,7 +38,7 @@ We indeed see this in Figure~\ref{fig:robust:cr-elastic}.
 In this experiment, Copa, primarily a delay-based algorithm, cannot adequately detect the presence of competing elastic traffic and ``mode-switch'' to its competitive mode. When we modify Copa to use Nimbus's elasticity detector (Figure~\ref{fig:robust:cr-elastic:b}), its performance matches the baseline.
 \radhika{it might be cleaner to just present the Copa results here, i.e. just Figure~\ref{fig:robust:cr-elastic:b}.}
 
-\radhika{Also, is it possible to try what was discussed in the meeting the other day? i.e. hold traffic at the bundler for some fixed small time (10\%) of RTT and to induce some queuing? not sure if it will help though....most likely not.} \an{not sure what this is? let's discuss}
+\fc{Is there something we can do to still build a queue and thus get some benefit in the case where theres elastic traffic}
 
 \input{twobundler}
 \paragrapha{Competing Bundles} \name's improvements return once competing traffic starts using \name as well. In Figure~\ref{fig:robust:twobundler}, we show the performance of each of two bundles of traffic competing in the same bottleneck link. 

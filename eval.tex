@@ -6,7 +6,7 @@ We evaluate the following aspects of our design:
     \item Is \name able to shift the bottleneck enough to enforce scheduling policies? We discuss this in \S\ref{s:robust}.
 \end{enumerate}
 
-
+\an{add backwards pointer to figure 1}
 
 \radhika{Another way to structure the the rest of this section: /*}
 \begin{itemize}
@@ -26,9 +26,10 @@ We evaluate the following aspects of our design:
     
     \begin{itemize}
         \item We use same set-up as before, but different scheduling and queue management polcies at the \name to meet different requirements. 
-        \item Fairness / Short Flow FCT: Helps short flows achieve a smaller FCT by reducing the queuing delay that they see. Results already shown in previous subsection. 
-        \item Smaller Queuing Delay: Helps keep queuing delay small. Present another FCT graph like Figure~\ref{fig:eval:best}, but with FQ-CoDel or PI. Also present a graph which shows the CDF of per-packet delays (if possible). Also, if possible (and if space), a comparison with properly configured and badly configured AQM scheme in the mahimahi link.
-        \item Rate Stability
+        \item Improved FCTs using FQ: Helps short flows achieve a smaller FCT by reducing the queuing delay that they see. Results already shown in previous subsection. 
+        \item Smaller Queuing Delay using AQM: Helps keep queuing delay small. Present another FCT graph like Figure~\ref{fig:eval:best}, but with FQ-CoDel or PI. Also present a graph which shows the CDF of per-packet delays (if possible). Also, if possible (and if space), a comparison with properly configured and badly configured AQM scheme in the mahimahi link.
+        \item Improved Rate Stability 
+        \item Prioritizing interactive traffic
         \item anything else? 
     \end{itemize}
     \item Subsection: Robustness analysis
@@ -86,11 +87,13 @@ With \name, the median flow completion time (FCT) decreases from $147$ms using F
 \vspace{10pt}
 \noindent Where do these benefits come from? We devote the remainder of \S\ref{s:eval:fct} \radhika{this section} to exploring this question.
 
-\paragrapha{Necessity of scheduling} It is important to note that \name by itself is not necessarily a means of achieving low end-to-end delays, as promised by recent efforts in congestion control~\cite{copa, nimbus}, despite its use of these modern congestion control algorithms. 
+\paragrapha{Necessity of scheduling} It is important to note that \name by itself is not necessarily a means of achieving low end-to-end delays, as promised by recent efforts in congestion control~\cite{copa, nimbus}, despite its use of these modern congestion control algorithms. \an{forward pointer to fqcodel results}
 To see why this is the case, recall that \name does not modify the end-hosts: they continue to run the default Cubic congestion controller, which will probe for bandwidth until it observes loss.
 Indeed, the packets end-host Cubic sends beyond those the link can transmit must queue somewhere in the network or be lost. Without \name, they get queued up at the bottleneck link.
 With \name, they instead queue at the \inbox.
-So, solely using a more sophisticated congestion control algorithm at the \name is unlikely to be the cause of significant reductions in the flow completion time.
+However, the congestion controller at \inbox must also additionally maintain some standing queue at the bottleneck link to make decisions effectively.
+Therefore, we expect the overall end-to-end-delays to increase slightly.
+As a result, solely using a more sophisticated congestion control algorithm at the \name is unlikely to be the cause of significant reductions in the flow completion time.
 
 \input{fifo-not-enough}
 
@@ -98,7 +101,7 @@ We can see this by measuring the relative performance of using FIFO scheduling a
 The results are in Figure~\ref{fig:eval:fifo}. 
 Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a median FCT of $173$ms, it is $18$\% higher than the baseline. 
 
-\radhika{this is not unsurprising to me. explain using a line or two? is that what the last line of above paragraph was trying to explain? lets discuss explanation in person?}
+\radhika{need to further clean this.}
 
 \radhika{Is it possible to do an experiment on what the results look like if sfq is enabled with mahimahi link?}
 
