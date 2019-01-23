@@ -23,6 +23,7 @@ A \name must have the following properties:
     \item It must be deployable, therefore, it cannot rely on changes in end-hosts.
     \item It must be capable of deployments on the edge of a domain. Therefore, it must also scale to high link rates. As a result, it should not maintain per-connection state -- only per-aggregate state. \radhika{shorten}
 \end{enumerate}
+\radhika{The rest of this section ...}
 
 \subsection{Shifting the Queues}\label{s:design:shifting}
 
@@ -37,7 +38,7 @@ in Figure~\ref{fig:design:shift-bottleneck:before}, packets from the end-hosts q
 In contrast, the \name implementation in Figure~\ref{fig:design:shift-bottleneck:after} (described in \S\ref{s:impl}) maintains low queueing delays at the bottleneck queue by estimating and sending at the bottleneck rate. 
 Since component flows, running traditional congestion control algorithms, will probe for bandwidth until they experience loss, they build queues at the \name instead of at the bottleneck.
 Since the \name now controls the queues corresponding to the traffic aggregate, it can schedule the packets of component flows.
-
+\radhika{maybe add a line or two on choice of congestion control at \name}
 \cut{
 In this section we describe the tradeoffs in the design of a \name.
 
@@ -99,11 +100,12 @@ Therefore, algorithms have been built on those measurements that are readily ava
 From the vantage point of a \name, however, there are three problems with this traditional approach.
 
 \paragrapha{Scalability} To track measurements in the same manner as an end-host, \name would need to maintain per-flow state: remembering when it sent each packet, and matching these records with the stream of incoming packet acknowledgements. 
-This violates requirement (3): it requires stateful operations at high line rates.
+This violates requirement (3): it requires stateful operations at high line rates \radhika{any citation on why stateful difficult?}.
 
 \paragrapha{Measurement semantics} Finally, with a bundle of connections, there may not be a single meaningful end-to-end ``round-trip time'' in this scenario, as each component flow may experience different sources of latency after traversing the shared bottleneck, and thus experience different end-to-end RTTs. 
 Rather, we want to measure the RTT between the middlebox we have shifted the bottleneck to and a fixed point (per-bundle) on the opposite site of the bottleneck.
 \an{Further, sender-side measurements of the bottleneck rate have long been known to have limited accuracy~\cite{packet-dynamics, path-properties}.}
+\radhika{needs more clarity / explicitness}
 
 \paragrapha{Reliance on acknowledgements} Internet paths can be asymmetric and component traffic may be UDP-based; as a result, \name may not observe packet acknowledgements. Therefore, relying on packet acknowledgements to gather path information is a brittle approach.
 %
@@ -113,6 +115,7 @@ To address these challenges, \name consists of a \emph{pair} of middleboxes, bot
 This allows for a direct calculation of the receive rate at the \outbox and a well-defined RTT: the RTT between the two middleboxes as opposed to the source and destination. 
 As long as the bottleneck exists between the middleboxes, these measurements can sufficiently capture the important network conditions. 
 However, if it is not, then \name will not be able to build queues and control the traffic. Thus, middlebox placement is important. The \inbox and \outbox should be placed as close to the edge near the sources and destinations as possible in order to capture the bottleneck between them.
+\radhika{highlight trade-off}
 
 \cut{
 We imagine an infrastructure, as depicted in Figure~\ref{fig:overview}, where each 
@@ -122,6 +125,8 @@ entity (a datacenter, campus, etc.) runs an \inbox and \outbox at the edge of it
 This design also allows us to sidestep the problem of determining which flows share the same bottleneck.
 Assuming the bottleneck exists between the two middleboxes, if packets for two different flows are traversing both the same \inbox and \outbox on their way from source to destination, then they must also share the same bottleneck. 
 We take advantage of this property in our approach to dynamic bundle identification, described in~\S\ref{s:impl:discovery}.
+\radhika{if you discuss this, you might require more context on why you discuss this}
+
 %
 \subsection{Out-of-band Coordination}\label{s:design:oob}
 Each paired \inbox and \outbox must communicate in order to share measurements and coordinate actions. 
@@ -142,3 +147,4 @@ A naive implementation of encapsulation that chose a single 5-tuple for the deca
 To regain ECMP's benefits, an encapsulating \name would need to carefully set the source and destination ports such that the distribution of paths traversed by the encapsulated flows matches those that the unmodified traffic would have traversed without encapsulation. 
 
 Therefore, we select an out-of-band approach. Flows from the senders traverse the network exactly as they otherwise would have.
+\radhika{why is this interesting to discuss (e.g. is there a trade-off between in-band and out-band, or is the latter unanimously better? also, not all encap/decap will lead to these issues, so need to be more explicit. another way to pitch it is to say we use an out-of-band approac}
