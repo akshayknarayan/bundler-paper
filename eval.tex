@@ -112,9 +112,13 @@ Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a 
 
 \radhika{need to further clean this.}
 
-\radhika{Is it possible to do an experiment on what the results look like if sfq is enabled with mahimahi link?}
-
 \radhika{seems like the rest of this section can go under robustness?}
+
+\input{lowdelays}
+\paragrapha{Achieving Low Delays}
+\name can configure its scheduling policy to achieve low end-to-end-delays.
+In Figure~\ref{fig:eval:lowdelays}, we show that when we configure the scheduling policy at \inbox, we can change the RTTs component connections obeserve.
+Note that due to the effect discussed above, using FIFO scheduling results in higher delays than the baseline case.
 
 \paragrapha{Impact of congestion control} How does our choice of congestion control impact our results? 
 It is important to choose a congestion control algorithm carefully based on the known or inferred characteristics of the bottleneck link. 
