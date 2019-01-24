@@ -38,7 +38,19 @@ in Figure~\ref{fig:design:shift-bottleneck:before}, packets from the end-hosts q
 In contrast, the \name implementation in Figure~\ref{fig:design:shift-bottleneck:after} (described in \S\ref{s:impl}) maintains low queueing delays at the bottleneck queue by estimating and sending at the bottleneck rate. 
 Since component flows, running traditional congestion control algorithms, will probe for bandwidth until they experience loss, they build queues at the \name instead of at the bottleneck.
 Since the \name now controls the queues corresponding to the traffic aggregate, it can schedule the packets of component flows.
-\radhika{maybe add a line or two on choice of congestion control at \name}
+
+\radhika{maybe add a subsection on choice of congestion control at \name. Potential outline below.}
+
+\subsection{Choice of congestion control algorithm}
+Choice of CC is important. Must have following properties:
+\begin{itemize}
+    \item Is not loss-based. Two reasons (ii) Goal is to maintain small queuing delays in the network. (ii) Cannot double penalize. Delay-based CC most suited.
+    \item Need a mechanism to shift to a loss-based scheme when cross-traffic is elastic.
+    \item Needs to be rate-based, current implementation does not support windows (will address as future work). 
+\end{itemize}
+Based on these requirements, Copa and Nimbus are best choices.
+
+
 \cut{
 In this section we describe the tradeoffs in the design of a \name.
 
