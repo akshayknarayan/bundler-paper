@@ -5,15 +5,17 @@
     \caption{\name System Design}\label{fig:bundler}
 \end{figure*}
 
-The prevalence of middleboxes today means that there are multiple options for implementing a \name.
+The prevalence of middleboxes today means that there are multiple options for implementing a \name \radhika{cut this line?}.
 We envision a two-part design for the \inbox: a ``control-plane'' and ``data-plane'' separation.
 The data plane is responsible for packet forwarding, maintaining a count of the in-bundle bytes sent, enforcing a rate and scheduling policy on the bundle, and reporting epoch packets to the control plane.
-These operations can be implemented either in software, via modern platforms for network function virtualization~\cite{bess, click, mos, netbricks}, or in hardware via programmable switches~\cite{p4}.
+These operations can be implemented either in software, via modern platforms for network function virtualization~\cite{bess, click, mos, netbricks}, or in hardware via programmable switches~\cite{p4} \radhika{move to end, see comment at end of paragraph}.
+\radhika{add a line or two on what the control plane does.}
 The \outbox is simple and does not require a control plane; it simply must observe the packet stream, maintain a byte count, and send reports to the \inbox on observing epoch packets.
-The \outbox can, therefore, be implemented entirely in hardware if necessary.
+The \outbox can, therefore, be implemented entirely in hardware if necessary \radhika{cut}.
+\radhika{We envision the control plane to be implemented in software, while the data plane can be implemented in...(the line you had before)}
 
 \subsection{Prototype}\label{s:impl:prototype}
-To highlight the simplicity of our approach\footnote{and because we are lazy programmers}, we implement the inbox data-plane using Linux \texttt{tc}~\cite{tc}, and we limit our implementations of scheduling policy to those already widely available in the Linux kernel.
+To highlight the simplicity of our approach\footnote{and because we are lazy programmers}, \radhika{cut the part before, start from here: ``For our prototype,''} we implement the inbox data-plane using Linux \texttt{tc}~\cite{tc}, and we limit our implementations of scheduling policy to those already widely available in the Linux kernel.
 We patch the TBF queueing discipline (qdisc)~\cite{tbf} to enforce rates, and modify its ``inner\_qdisc'' to use a qdisc that enforces some scheduling policy.
 Our patch to the TBF qdisc comprises $112$ lines of C.
 The patch adds extra logging and the functionality to transmit feedback to the control plane using a netlink socket. 
@@ -30,23 +32,26 @@ Figure~\ref{fig:bundler} overviews the operation of our \name implementation.
 
 (1) Packets arriving at the inbox are sent to the qdisc. Those that match a bundle are put into the proper queue, 
 otherwise they are forwarded immediately. (2) The qdisc observes one of the packest matches the epoch boundary
-condition. (3) It sends a netlink message to the \inbox process running in user-space, which records the packet
+condition \radhika{fix}. (3) It sends a netlink message to the \inbox process running in user-space, which records the packet
 in its epoch data structure, then forwards the packet along. (4) The \outbox observes the same epoch boundary
 packet. (5) It sends an out-of-band UDP message to the \inbox containing the hash of the packet and its current state. 
 (6) The \inbox receives the UDP message, and uses it to calculate the epochs and measurements as described 
 in \S\ref{s:measurement}.
 
-(7) Asynchronously, the \inbox invokes the congestion control algorithm every $10$ms via \texttt{libccp},
+(7) Asynchronously, the \inbox invokes the congestion control algorithm every $10$ms \radhika{seems arbitrary -- should it be RTT?} via \texttt{libccp},
 giving it a chance to observe any new measurements and change its behavior. (8) If it decides to update
 the bundle rate or congestion window, the \inbox communicates this to the qdisc
 using \texttt{libnl}. Since the qdisc only supports rate enforcement, if the algorithm
 also uses a congestion window, the \inbox computes $\text{\emph{effective rate}} = \frac{\text{CWND}}{\text{RTT}}$
-and sets the rate of the qdisc to the minimum of the explicit rate and this effective rate.
+and sets the rate of the qdisc to the minimum of the explicit rate and this effective rate \radhika{are you using this for any scheme?}.
 Upon receiving new RTT samples, the \inbox updates the effective rate, and updates the qdisc rate
 if appropriate.
 
+\radhika{i liked this subsection!}
+
+
 \subsection{Congestion Control}\label{s:impl:cc}
-We use existing implementations of congestion control algorithms on CCP~\cite{ccp}; since CCP algorithms are already designed to receive network feedback asynchronously, they are a natural choice for our epoch-based measurement architecture.
+We use existing implementations of congestion control algorithms on CCP~\cite{ccp}; since CCP algorithms are already designed to receive network feedback asynchronously, they are a natural choice for our epoch-based measurement architecture. \radhika{this sentence should comer earlier, maybe when you first mention ``control-plane'' at the beginning of Sec 5, especially since 5.2 mentions CCP and libccp.}
 
 \an{move to earlier, maybe design:}
 It is important to note that traditional loss-based congestion controllers (\ie Cubic~\cite{cubic}, NewReno~\cite{newreno}) are poor choices for \name. 
@@ -63,9 +68,11 @@ When cross traffic is inelastic, the queueing delays that \name encounters will 
 In the presence of elastic cross traffic, however, congestion control algorithms \emph{must} push packets into the bottleneck queue to remain competitive~\cite{bbr, copa, nimbus}.
 As a result, we expect \name's benefits to disappear, since it must relinquish control of the queues to the bottleneck link.
 
+\radhika{if above parts are covered in Sec 3, add a backwards pointer, and start with the implementation details below.}
+
 Recent work~\cite{copa, nimbus} has considered the problem of switching between modes to take advantage of low queueing delays when it is possible to do so, yet reacting to and competing fairly with elastic cross traffic when it present.
 Unfortunately, it is not immediately clear how to determine \name's fair rate once we detect elastic cross traffic.
-The number of individual component connections which are backlogged at any given time may vary, and determining which connections should count towards \name's aggregate fair share rate would thus require per-connection state.
+The number of individual component connections which are backlogged at any given time may vary, and determining which connections should count towards \name's aggregate fair share rate would thus require per-connection state \radhika{not super clear to me}.
 
 We sidestep this issue with a simple, yet powerful, observation: rather than attempt to compete with elastic cross traffic, \name should \emph{get out of the way} of its component connections.
 The end-to-end congestion controllers responsible for \name's component connections will then naturally compete with and achieve their fair rate against elastic cross traffic.
@@ -78,7 +85,7 @@ Thus, when \name's congestion control algorithm detects that the cross traffic i
 This control rule will rapidly grow the pacing rate at the \inbox until it stabilizes at 25\% above the offered load.
 Then, using the elasticity detection mechanism described in prior work~\cite{nimbus}, \inbox can modulate the pacing rate to determine when to retake control of the queueing, and therefore the scheduling policy.
 
-\an{move the elastic cross traffic comparison results here?}
+\an{move the elastic cross traffic comparison results here?} \radhika{no, add a forward pointer}
 
 \subsection{Bundle Initialization}\label{s:impl:discovery}
 One practical concern in a \name deployment is how the \inbox and \outbox discover each others' presence. Of course, it is always possible to statically configure an \inbox and \outbox; however, this may be impractical as they reside in different networks.
@@ -97,3 +104,5 @@ The \inbox receives (and intercepts) the \outbox feedback.
 The \inbox at this time updates its flow tables to add the destination IP of the epoch boundary packet either to an existing bundle (in the case of a new flow from a previously-unseen source subnet joining a bundle) or instantiates a new bundle.
 The \inbox then sends a response containing an epoch size to use and the hash of the epoch boundary packet.
 The \outbox receives this message, initializes a byte counter for the newly discovered bundle, and remembers the \inbox IP address for future feedback.
+
+\radhika{an experiment showing scalability of bundler implementation?}

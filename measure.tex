@@ -139,7 +139,7 @@ we need to continually update the epoch size. Rather than using exactly the numb
 bytes, we round the value down to the nearest power of two so that the new epoch size is
 always a multiple of the old one and thus will be compatible. 
 
-For examaple, \fc{is an example necessary?} \radhika{I found it useful. }
+For examaple, \fc{is an example necessary?} \radhika{I found it useful, especially because I didn't understand what you mean by ``compatible'' in the line above. but i would like to discuss this further.}
 if the inbox is marking every 256 packets
 and the \outbox is marking every 512 packets, 
 the inbox is just marking a super set of the \outbox packets, 
@@ -168,6 +168,7 @@ so it is effectively equivalent to them both marking every 512 packets.
     In Figure~\ref{fig:micro:delay}, we compute the difference between our estimate of the RTT between
     the \inbox and \outbox and the actual RTT at each time stpe and plot the distribution again
     across all of the traces in our evaluation. 80\% of the time we are within 2ms of the actual RTT.
+    \radhika{discuss}
     
 \subsection{Limitations}
 \subsubsection{Re-Ordering}
@@ -181,6 +182,7 @@ packets in epoch 1 and 11 packets in epoch 2.
 Spurious re-ordering can be compensated by using an EWMA across epochs rather than the raw values
 calculated at each epoch. If there is persitent re-ordering, it may be necessary to add a constant 
 value to either the send or receive rate to compensate.
+\radhika{the explanation seems a bit hand-wavy. if we end up doing ecmp expt and the results look good, add fwd pointer to those results}
 
 \subsubsection{Suitable Algorithms}
 \label{s:measure:limitation:algs}
@@ -191,3 +193,4 @@ to compute these from the measurements we already collect in an ideal scenario, 
 break in the presence of network anomilies such as re-ordering. Thus, we leave the development
 of robust signals for window-based algorithms to fuure work. 
 Thus, \name currently operates best with rate-based algorithms such as BBR, Nimbus, or Copa~\cite{bbr,nimbus,copa}.
+\radhika{feels like this should be moved to Sec 3, but am  not entirely sure.}
