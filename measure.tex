@@ -119,6 +119,7 @@ However, state-persistence is largely unnecessary for \name.
 
 \subsection{Choosing The Epoch Size}
 \label{s:measure:epoch}
+\input{micro-epoch}
 How do we choose the number of packets that should be in each epoch?
 In 3.1, we assumed a fixed epoch size of $N$ packets.
 However, in practice, the epoch must be a function of the sending rate.
@@ -145,6 +146,7 @@ the inbox is just marking a super set of the \outbox packets,
 so it is effectively equivalent to them both marking every 512 packets.
 
 \fc{Add explanation of windows}.
+
     
 \subsection{Microbenchmarks}
 \label{s:measure:microbench}
