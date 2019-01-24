@@ -6,7 +6,7 @@ measurements of the network conditions necessary as inputs to congestion control
 Congestion control algorithms need only a small, common set of measurements~\cite{ccp-hotnets}. 
 In particular, rate-based algorithms need only three measurements: 
 the sending rate, receiving rate, and path round-trip time.
-A significant complication is that for accurate measurements on RTT time-scales, we must calculate send and receive rates over the same set of packets~\cite{packettrain}.
+A significant complication is that for accurate measurements on RTT time-scales, we must calculate send and receive rates over the same set of packets~\cite{packettrain} \radhika{one line explanation on why}.
 This requirement drives the design of our measurement methodology.
 
 \subsection{Determining Epoch Boundary Packets}
@@ -15,18 +15,19 @@ Consider the stream of packets $P_B$ from all flows in a bundle $B$ in the order
 The \inbox and \outbox need to know how to divide this stream into sets 
 of packets --- which we call \emph{epochs} --- over which they can calculate measurements.
 For now, we make the simplifying assumption that packets arrive at the \outbox in the same order they 
-left the \inbox (we address re-ordering in Section~\ref{s:measure:limitation:reorder}). \an{note about re-ordering is a little distracting and doesn't help explain approach}
+left the \inbox (we address re-ordering in Section~\ref{s:measure:limitation:reorder}). \an{note about re-ordering is a little distracting and doesn't help explain approach} \radhika{that's what footnotes are for :)}
 This simplifies the problem into deciding, for all given packets in $P_B$, whether it is an epoch boundary packet at which the current epoch should end and the next should begin. 
 Suppose for now that we wish to have a fixed epoch size of $N$ packets.
 A naive approach would be to mark the boundary between epochs every $N$ packets. 
 However, this strategy is brittle; a single lost packet would de-synchronize the boxes' views of the epochs. 
 More generally, any strategy that requires packet-level synchronization of the \inbox and
-\outbox is untenable because any coordination would race the packets themselves.
+\outbox is untenable because any coordination would race the packets themselves \radhika{i don't quite understand the last sentence}.
 
 The key idea of our methodology is that we can avoid such a synchronization problem by determining the boundary of an epoch using only information contained in the packet.
 Specifically, we propose the following: a packet $p$ is an epoch boundary packet if the hash 
 of some subset of its header (see below) modulo the epoch size $N$ is equal to 0, that is:
 $$B(p,N) \coloneqq H(p)\ \text{mod}\ N == 0$$
+\radhika{equation not super clear}
 Thus, an epoch boundary packet will occur (in expectation) once every $N$ packets.
 For $H$, we use the Fowler/Noll/Vo (FNV) hash function~\cite{fnv-hash}, a non-cryptographic fast hash function with a low collision rate. 
 
@@ -114,6 +115,7 @@ from the \outbox rather than attempting to reach consensus on individual epoch b
 \paragrapha{Crashes \an{need better heading}} Existing work~\cite{ftmb} has studied how to design stateful middleboxes to be fault-tolerant with acceptable performance overheads. 
 However, state-persistence is largely unnecessary for \name.
 \name only stores network conditions, which it can re-learn within a few RTTs, and bundle membership flow tables, which it can re-discover as we describe in~\S\ref{s:impl:discovery}. 
+\radhika{maybe move elsewhere}
 
 \subsection{Choosing The Epoch Size}
 \label{s:measure:epoch}
@@ -136,7 +138,7 @@ we need to continually update the epoch size. Rather than using exactly the numb
 bytes, we round the value down to the nearest power of two so that the new epoch size is
 always a multiple of the old one and thus will be compatible. 
 
-For examaple, \fc{is an example necessary?}
+For examaple, \fc{is an example necessary?} \radhika{I found it useful. }
 if the inbox is marking every 256 packets
 and the \outbox is marking every 512 packets, 
 the inbox is just marking a super set of the \outbox packets, 

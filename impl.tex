@@ -13,21 +13,15 @@ The \outbox is simple and does not require a control plane; it simply must obser
 The \outbox can, therefore, be implemented entirely in hardware if necessary.
 
 \subsection{Prototype}\label{s:impl:prototype}
-To highlight the simplicity of our approach\footnote{and because we are lazy programmers}, we implement the inbox dataplane using Linux \texttt{tc}~\cite{tc}, and we limit our implementations of scheduling policy to those already widely available in the Linux kernel.
+To highlight the simplicity of our approach\footnote{and because we are lazy programmers}, we implement the inbox data-plane using Linux \texttt{tc}~\cite{tc}, and we limit our implementations of scheduling policy to those already widely available in the Linux kernel.
 We patch the TBF queueing discipline (qdisc)~\cite{tbf} to enforce rates, and modify its ``inner\_qdisc'' to use a qdisc that enforces some scheduling policy.
 Our patch to the TBF qdisc comprises $112$ lines of C.
 The patch adds extra logging and the functionality to transmit feedback to the control plane using a netlink socket. 
-Additionally, it removes one line in the rate update functionality to disable re-filling the token bucket on rate changes to prevent a penalty for frequent rate updates.
+Additionally, we remove one line in the rate update to disable re-filling the token bucket on rate changes to prevent a penalty for frequent rate updates.
 
 We implement the \inbox control plane to run in user-space in $1167$ lines of Rust. 
 It uses \texttt{libnl} to communicate with the qdisc, and \texttt{libccp}~\cite{ccp} to communicate with the congestion control algorithm via Unix-domain sockets.
-We use existing implementations of congestion control algorithms on CCP without modification\footnote{We discovered and patched a minor bug in the CCP Copa~\cite{copa} implementation.}; since CCP algorithms are already designed to receive network feedback asynchronously, they are a natural choice for our epoch-based measurement architecture.
 It maintains the congestion control state of each bundle, but does not maintain (or observe) per-flow state.
-
-It is important to note that traditional loss-based congestion controllers (\ie Cubic~\cite{cubic}, NewReno~\cite{newreno}) are poor choices for \name. 
-\an{move to earlier, maybe design}
-This is because they double-penalize component traffic for losses: first, in the reaction of the end-to-end congestion controller to the loss, and second in the reaction of the controller at \name.
-Therefore, for algorithms which observe loss (Nimbus and Copa), we configure them to ignore it; the end-to-end reaction to loss will modulate the offered load to be the fair share of the bottleneck.
 
 We implement the \outbox using \texttt{libpcap} in $188$ lines of Rust. It listens for packets on the interface, checks for epoch packets, and sends the reports to the \inbox. It must maintain per-bundle counters (described in \S\ref{s:impl:discovery}).
 
@@ -51,8 +45,42 @@ and sets the rate of the qdisc to the minimum of the explicit rate and this effe
 Upon receiving new RTT samples, the \inbox updates the effective rate, and updates the qdisc rate
 if appropriate.
 
-\subsection{Bundle Initialization}\label{s:impl:discovery}
+\subsection{Congestion Control}\label{s:impl:cc}
+We use existing implementations of congestion control algorithms on CCP~\cite{ccp}; since CCP algorithms are already designed to receive network feedback asynchronously, they are a natural choice for our epoch-based measurement architecture.
 
+\an{move to earlier, maybe design:}
+It is important to note that traditional loss-based congestion controllers (\ie Cubic~\cite{cubic}, NewReno~\cite{newreno}) are poor choices for \name. 
+This is because they double-penalize component traffic for losses: first, in the reaction of the end-to-end congestion controller to the loss, and second in the reaction of the controller at \name.
+
+\an{missing connection here}
+%Therefore, for algorithms which observe loss (Nimbus and Copa), we configure them to ignore it; the end-to-end reaction to loss will modulate the offered load to be the fair share of the bottleneck.
+%
+Further, we make a useful distinction between two types of cross-traffic conditions \name will experience.
+We consider \emph{elastic} cross traffic and \emph{inelastic} cross traffic.
+Elastic cross traffic (\eg Cubic, NewReno) probes for bandwidth and fills buffers at the bottleneck; inelastic cross traffic (\eg short flows) has limited demand and does not fill buffers.
+
+When cross traffic is inelastic, the queueing delays that \name encounters will be self-inflicted. In these scenarios, scaling back and adjusting the sending rate at \inbox will cause the bottleneck to shift and the queueing delays at the bottleneck to reduce.
+In the presence of elastic cross traffic, however, congestion control algorithms \emph{must} push packets into the bottleneck queue to remain competitive~\cite{bbr, copa, nimbus}.
+As a result, we expect \name's benefits to disappear, since it must relinquish control of the queues to the bottleneck link.
+
+Recent work~\cite{copa, nimbus} has considered the problem of switching between modes to take advantage of low queueing delays when it is possible to do so, yet reacting to and competing fairly with elastic cross traffic when it present.
+Unfortunately, it is not immediately clear how to determine \name's fair rate once we detect elastic cross traffic.
+The number of individual component connections which are backlogged at any given time may vary, and determining which connections should count towards \name's aggregate fair share rate would thus require per-connection state.
+
+We sidestep this issue with a simple, yet powerful, observation: rather than attempt to compete with elastic cross traffic, \name should \emph{get out of the way} of its component connections.
+The end-to-end congestion controllers responsible for \name's component connections will then naturally compete with and achieve their fair rate against elastic cross traffic.
+
+It is important to implement this approach carefully. 
+Consider a naive implementation in which upon detecting elastic cross traffic, \name stopped pacing packets entirely.
+This approach would be unable to detect when the elastic cross traffic subsided, since it yields all control over the network queues.
+
+Thus, when \name's congestion control algorithm detects that the cross traffic is elastic, it uses a simple control rule: \texttt{rate <- observed\_receive\_rate * 1.25}. 
+This control rule will rapidly grow the pacing rate at the \inbox until it stabilizes at 25\% above the offered load.
+Then, using the elasticity detection mechanism described in prior work~\cite{nimbus}, \inbox can modulate the pacing rate to determine when to retake control of the queueing, and therefore the scheduling policy.
+
+\an{move the elastic cross traffic comparison results here?}
+
+\subsection{Bundle Initialization}\label{s:impl:discovery}
 One practical concern in a \name deployment is how the \inbox and \outbox discover each others' presence. Of course, it is always possible to statically configure an \inbox and \outbox; however, this may be impractical as they reside in different networks.
 Rather, we propose a bootstrapping mechanism wherein \name forms aggregates in response to observed packets.
 This mechanism classifies packets traversing the \inbox and \outbox as either non-bundled (should be transmitted immediately and not paced in the qdisc) or bundled in a given qdisc. Different bundles may have different rates; recent work~\cite{carousel, eifel} has shown it is possible to implement such multi-rate, multi-scheduler datapaths efficiently.

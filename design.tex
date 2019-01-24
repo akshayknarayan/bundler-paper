@@ -23,7 +23,7 @@ A \name must have the following properties:
     \item It must be deployable, therefore, it cannot rely on changes in end-hosts.
     \item It must be capable of deployments on the edge of a domain. Therefore, it must also scale to high link rates. As a result, it should not maintain per-connection state -- only per-aggregate state. \radhika{shorten}
 \end{enumerate}
-\radhika{The rest of this section ...}
+\radhika{Need a transition line: ``The rest of this section discusses .....''}
 
 \subsection{Shifting the Queues}\label{s:design:shifting}
 
@@ -147,4 +147,4 @@ A naive implementation of encapsulation that chose a single 5-tuple for the deca
 To regain ECMP's benefits, an encapsulating \name would need to carefully set the source and destination ports such that the distribution of paths traversed by the encapsulated flows matches those that the unmodified traffic would have traversed without encapsulation. 
 
 Therefore, we select an out-of-band approach. Flows from the senders traverse the network exactly as they otherwise would have.
-\radhika{why is this interesting to discuss (e.g. is there a trade-off between in-band and out-band, or is the latter unanimously better? also, not all encap/decap will lead to these issues, so need to be more explicit. another way to pitch it is to say we use an out-of-band approac}
+\radhika{not all encap/decap will lead to these issues, so need to be more explicit. also, why is this interesting to discuss (e.g. is there a trade-off between in-band and out-band, or is the latter unanimously better)?}
