@@ -2,23 +2,25 @@
 \begin{figure*}
     \centering
     \includegraphics[width=2\columnwidth]{img/bundler-diagram}
-    \caption{\name System Design}\label{fig:bundler}
+    \caption{\name System Design
+    \fc{add a separate line showing the epoch update from inbox to outbox}
+    }\label{fig:bundler}
 \end{figure*}
 
-The prevalence of middleboxes today means that there are multiple options for implementing a \name \radhika{cut this line?}.
-We envision a two-part design for the \inbox: a ``control-plane'' and ``data-plane'' separation.
-The data plane is responsible for packet forwarding, maintaining a count of the in-bundle bytes sent, enforcing a rate and scheduling policy on the bundle, and reporting epoch packets to the control plane.
+\cut{The prevalence of middleboxes today means that there are multiple options for implementing a \name \radhika{cut this line?}.}
+We envision a two-part design for the \inbox: a ``control plane'' and ``data plane'' separation.
+The data plane is responsible for packet forwarding, maintaining a count of the \cut{in-bundle} bytes sent, enforcing a rate and scheduling policy on the bundle, and reporting epoch boundary packets to the control plane.
 These operations can be implemented either in software, via modern platforms for network function virtualization~\cite{bess, click, mos, netbricks}, or in hardware via programmable switches~\cite{p4} \radhika{move to end, see comment at end of paragraph}.
-\radhika{add a line or two on what the control plane does.}
+The control plane is responsible for computing measurements by combining feedback from the data plane and \outbox, and running the congestion control logic necessary to pick the appropriate rate for each bundle.
 The \outbox is simple and does not require a control plane; it simply must observe the packet stream, maintain a byte count, and send reports to the \inbox on observing epoch packets.
 The \outbox can, therefore, be implemented entirely in hardware if necessary \radhika{cut}.
 \radhika{We envision the control plane to be implemented in software, while the data plane can be implemented in...(the line you had before)}
 
 \subsection{Prototype}\label{s:impl:prototype}
-To highlight the simplicity of our approach\footnote{and because we are lazy programmers}, \radhika{cut the part before, start from here: ``For our prototype,''} we implement the inbox data-plane using Linux \texttt{tc}~\cite{tc}, and we limit our implementations of scheduling policy to those already widely available in the Linux kernel.
+For our prototype, we implement the inbox data-plane using Linux \texttt{tc}~\cite{tc}, and we limit our implementations of scheduling policy to those already widely available in the Linux kernel.
 We patch the TBF queueing discipline (qdisc)~\cite{tbf} to enforce rates, and modify its ``inner\_qdisc'' to use a qdisc that enforces some scheduling policy.
 Our patch to the TBF qdisc comprises $112$ lines of C.
-The patch adds extra logging and the functionality to transmit feedback to the control plane using a netlink socket. 
+The patch adds the functionality to detect epoch boundary packets, transmit feedback to the control plane using a netlink socket, and adjust the internal scheduling policy. 
 Additionally, we remove one line in the rate update to disable re-filling the token bucket on rate changes to prevent a penalty for frequent rate updates.
 
 We implement the \inbox control plane to run in user-space in $1167$ lines of Rust. 
@@ -27,23 +29,25 @@ It maintains the congestion control state of each bundle, but does not maintain 
 
 We implement the \outbox using \texttt{libpcap} in $188$ lines of Rust. It listens for packets on the interface, checks for epoch packets, and sends the reports to the \inbox. It must maintain per-bundle counters (described in \S\ref{s:impl:discovery}).
 
+\radhika{an experiment showing scalability of bundler implementation?}
+
 \subsection{\name Event Loop}\label{s:impl:loop}
 Figure~\ref{fig:bundler} overviews the operation of our \name implementation.
 
-(1) Packets arriving at the inbox are sent to the qdisc. Those that match a bundle are put into the proper queue, 
-otherwise they are forwarded immediately. (2) The qdisc observes one of the packest matches the epoch boundary
-condition \radhika{fix}. (3) It sends a netlink message to the \inbox process running in user-space, which records the packet
+(1) Packets arriving at the \inbox are sent to the qdisc. Those that match a bundle are put into the proper queue, 
+otherwise they are forwarded immediately. (2) The qdisc observes a packet that matches the epoch boundary
+condition (\S\ref{s:measure:marking}). (3) It sends a netlink message to the \inbox process running in user-space, which records the packet
 in its epoch data structure, then forwards the packet along. (4) The \outbox observes the same epoch boundary
 packet. (5) It sends an out-of-band UDP message to the \inbox containing the hash of the packet and its current state. 
 (6) The \inbox receives the UDP message, and uses it to calculate the epochs and measurements as described 
 in \S\ref{s:measurement}.
 
-(7) Asynchronously, the \inbox invokes the congestion control algorithm every $10$ms \radhika{seems arbitrary -- should it be RTT?} via \texttt{libccp},
+(7) Asynchronously, the \inbox invokes the congestion control algorithm every $10$ms \fc{periodically, for our prototype we set it to be 10ms, cite ccp} via \texttt{libccp},
 giving it a chance to observe any new measurements and change its behavior. (8) If it decides to update
 the bundle rate or congestion window, the \inbox communicates this to the qdisc
 using \texttt{libnl}. Since the qdisc only supports rate enforcement, if the algorithm
 also uses a congestion window, the \inbox computes $\text{\emph{effective rate}} = \frac{\text{CWND}}{\text{RTT}}$
-and sets the rate of the qdisc to the minimum of the explicit rate and this effective rate \radhika{are you using this for any scheme?}.
+and sets the rate of the qdisc to the minimum of the explicit rate and this effective rate\fc{only bbr uses this, if we cut bbr, cut this setion too?}.
 Upon receiving new RTT samples, the \inbox updates the effective rate, and updates the qdisc rate
 if appropriate.
 
@@ -99,10 +103,9 @@ The \outbox does one of two things for each potential epoch boundary packet:
     \item If the packet is not in a known bundle, the \outbox sends a message to the source IP address of that packet.
 \end{enumerate}
 
-If there is no \inbox on the path, the packet will simply be ignored at its destination. 
 The \inbox receives (and intercepts) the \outbox feedback.  
 The \inbox at this time updates its flow tables to add the destination IP of the epoch boundary packet either to an existing bundle (in the case of a new flow from a previously-unseen source subnet joining a bundle) or instantiates a new bundle.
 The \inbox then sends a response containing an epoch size to use and the hash of the epoch boundary packet.
-The \outbox receives this message, initializes a byte counter for the newly discovered bundle, and remembers the \inbox IP address for future feedback.
+The \outbox receives this message, initializes a byte counter for the newly discovered bundle, and remembers the \inbox IP address for future feedback. If there is no \inbox on the path, the packet will simply be ignored at its destination. 
 
-\radhika{an experiment showing scalability of bundler implementation?}
+
