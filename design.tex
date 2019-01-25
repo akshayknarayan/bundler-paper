@@ -18,6 +18,7 @@ A \name must have the following properties:
     \item It measures congestion control information from the network path.
     \item It enforces a pacing rate determined by a congestion control algorithm. The congestion control algorithm takes as input measurements from the network path, and returns an aggregate rate at which \name should send its component traffic.
 }
+\fc{mabye this starts too abruptly}
 \begin{enumerate}
     \item It provides a mechanism for scheduling the packets comprising the bundle.
     \item It must be deployable, therefore, it cannot rely on changes in end-hosts.
@@ -71,12 +72,6 @@ it should at worst make the situation the same as it was before, not any worse)
 - It can directly observe the send rate, but the receive rate is known to be difficult to estimate
 and an RTT estimate doesn't make much sense
 
-Bundler
-Bundler uses two-sided measurements
-Bundler does not split connections
-Bundler is out-of-band
-
-
 In order to perform congestion control, \name needs to collect and maintain measurements about 
 the current state of the network. State-of-the-art rate-based algorithms such as BBR and Nimbus use
 the sending and receiving rates as well as an estimate of the RTT. Although \name can 
@@ -112,7 +107,7 @@ Therefore, algorithms have been built on those measurements that are readily ava
 From the vantage point of a \name, however, there are three problems with this traditional approach.
 
 \paragrapha{Scalability} To track measurements in the same manner as an end-host, \name would need to maintain per-flow state: remembering when it sent each packet, and matching these records with the stream of incoming packet acknowledgements. 
-This violates requirement (3): it requires stateful operations at high line rates \radhika{any citation on why stateful difficult?}.
+This violates requirement (3): it requires stateful operations at high line rates \radhika{any citation on why stateful difficult?}. \fc{fq is keeping per-flow state}
 
 \paragrapha{Measurement semantics} Finally, with a bundle of connections, there may not be a single meaningful end-to-end ``round-trip time'' in this scenario, as each component flow may experience different sources of latency after traversing the shared bottleneck, and thus experience different end-to-end RTTs. 
 Rather, we want to measure the RTT between the middlebox we have shifted the bottleneck to and a fixed point (per-bundle) on the opposite site of the bottleneck.
@@ -134,12 +129,14 @@ We imagine an infrastructure, as depicted in Figure~\ref{fig:overview}, where ea
 entity (a datacenter, campus, etc.) runs an \inbox and \outbox at the edge of its network. Flows passing through its \inbox are bundled based on the \outbox they will be traversing. Each bundle is treated separately and has its own queue. 
 }
 
+\cut{
 This design also allows us to sidestep the problem of determining which flows share the same bottleneck.
 Assuming the bottleneck exists between the two middleboxes, if packets for two different flows are traversing both the same \inbox and \outbox on their way from source to destination, then they must also share the same bottleneck. 
 We take advantage of this property in our approach to dynamic bundle identification, described in~\S\ref{s:impl:discovery}.
 \radhika{if you discuss this, you might require more context on why you discuss this}
+\fc{might make sense to add this to design requirements/constraints}
+}
 
-%
 \subsection{Out-of-band Coordination}\label{s:design:oob}
 Each paired \inbox and \outbox must communicate in order to share measurements and coordinate actions. 
 This communication could either be in-band, \ie would encapsulate packets
@@ -160,3 +157,4 @@ To regain ECMP's benefits, an encapsulating \name would need to carefully set th
 
 Therefore, we select an out-of-band approach. Flows from the senders traverse the network exactly as they otherwise would have.
 \radhika{not all encap/decap will lead to these issues, so need to be more explicit. also, why is this interesting to discuss (e.g. is there a trade-off between in-band and out-band, or is the latter unanimously better)?}
+\fc{we do oob for these reasons which requires solving some challenges that we discuss in the next section}

@@ -15,7 +15,7 @@ Consider the stream of packets $P_B$ from all flows in a bundle $B$ in the order
 The \inbox and \outbox need to know how to divide this stream into sets 
 of packets --- which we call \emph{epochs} --- over which they can calculate measurements.
 For now, we make the simplifying assumption that packets arrive at the \outbox in the same order they 
-left the \inbox (we address re-ordering in Section~\ref{s:measure:limitation:reorder}). \an{note about re-ordering is a little distracting and doesn't help explain approach} \radhika{that's what footnotes are for :)}
+left the \inbox\footnote{We address re-ordering in Section~\ref{s:measure:limitation:reorder}}.
 This simplifies the problem into deciding, for all given packets in $P_B$, whether it is an epoch boundary packet at which the current epoch should end and the next should begin. 
 Suppose for now that we wish to have a fixed epoch size of $N$ packets.
 A naive approach would be to mark the boundary between epochs every $N$ packets. 
@@ -36,7 +36,7 @@ Even the 5-tuple of the packet may change, since the outbox may be behind a NAT.
 Using TCP sequence numbers is tempting, but retransmissions may confuse RTT measurements.
 
 We use the IP ID field, which will change every packet. This is an imperfect solution, as modern NATs may rewrite the IP ID field~\cite{ipid}.
-Ultimately, the appropriate field to use will depend on the specific deployment of \name.
+Ultimately, the appropriate field to use will depend on the specific deployment of \name. \fc{come back to this, mention boxes are not likely to be behind NATs therefore you can do ipid+5tuple }
 
 \subsection{Computing Measurements}
 \label{s:measure:compute}
