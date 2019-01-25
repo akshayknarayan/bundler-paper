@@ -56,7 +56,11 @@ if appropriate.
 
 
 \subsection{Congestion Control}\label{s:impl:cc}
-We use existing implementations of congestion control algorithms on CCP~\cite{ccp}; since CCP algorithms are already designed to receive network feedback asynchronously, they are a natural choice for our epoch-based measurement architecture. \radhika{this sentence should comer earlier, maybe when you first mention ``control-plane'' at the beginning of Sec 5, especially since 5.2 mentions CCP and libccp.}
+We use existing implementations of congestion control algorithms on CCP~\cite{ccp}, a platform for expressing congestion control algorithms in an asynchronous format; since CCP algorithms are already designed to receive network feedback asynchronously, they are a natural choice for our epoch-based measurement architecture. \radhika{this sentence should comer earlier, maybe when you first mention ``control-plane'' at the beginning of Sec 5, especially since 5.2 mentions CCP and libccp.}
+
+\input{cc-comparison}
+Indeed, \name successfully shapes the traffic of component flows to assume the characteristics of its congestion control algorithm. 
+Figure~\ref{fig:cc:comparison} shows that for the three congestion control algorithms we evaluate, BBR~\cite{bbr}, Copa~\cite{copa}, and Nimbus~\cite{nimbus}, the throughput (in Figure~\ref{fig:cc:comparison:a}) and queueing delay (in Figure~\ref{fig:cc:comparison:b}) distributions over a one-minute experiment are similar to the same algorithm running at the end-host (\ie without \name).
 
 \an{move to earlier, maybe design:}
 It is important to note that traditional loss-based congestion controllers (\ie Cubic~\cite{cubic}, NewReno~\cite{newreno}) are poor choices for \name. 
