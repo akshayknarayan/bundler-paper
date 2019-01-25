@@ -4,27 +4,37 @@
 %\radhika{Alternate intro: mostly just changed the flow of certain points, removed some that might be better suited in related work, and made some more concrete/specific. /*}
 
 %lots of scheduling algorithms proposed. scheduling used in private wans. seems clearly beneficial.
-The vast literature on scheduling and queue management algorithms~\cite{diffserv, fair-queueing, sfq, pie, CoDel, fifoplus, virtualClocks, csfq, drr, red, ecn} clearly indicates the performance benefits of deploying such schemes within the network. However, the public Internet has proven difficult to evolve accordingly. Although router vendors have, over the years, implemented certain schemes (such as strict priorities, round-robin for fair queueing, and dynamic buffer limiting for active queue management~\cite{cisco-qos}), they are often not enabled (or used effectively) by the network operators. 
+The vast literature on scheduling and queue management algorithms~\cite{diffserv, fair-queueing, sfq, pie, CoDel, fifoplus, virtualClocks, csfq, drr, red, ecn} clearly indicates the performance benefits of deploying such schemes within the network. However, the public Internet has, at large, been unable to enjoy these benefits. 
+
+Although router vendors have, over the years, implemented certain schemes (such as strict priorities, round-robin for fair queueing, and dynamic buffer limiting for active queue management~\cite{cisco-qos}), they are often not enabled, or used effectively, by the network operators. 
 %\radhika{edit, more than not being enabled, they cannot be enforced effectively}
 %Meanwhile, in privately operated wide-area networks, operators have used simple scheduling policies in the core to reap significant gains~\cite{b4, bwe, swan}. 
-This is because the position of operators in the public Internet is a challenging one, as each of their customers may desire diverging, and often incompatible, features. For example, while enabling fair queueing in the routers would benefit short interactive flows competing with bulk transfers, it may penalize flows bundled within a single VPN tunnel by allocating them smaller than their fair share of bandwidth. %\radhika{something about not knowing how to apply policies across customers}
+This is primarily due to the challenging position of operators in the public Internet, where each of their customers may desire diverging, and often incompatible, features. For example, while enabling fair queueing in the routers would benefit short interactive flows competing with bulk transfers, it may penalize flows bundled within a single VPN tunnel by allocating them smaller than their fair share of bandwidth. 
+%Similarly, while enabling an AQM scheme might reduce the queuing delay in the absence of a BBR flow, it may severely penalize non-BBR flows that compete with BBR. (include if we find a citation). 
+%\radhika{something about not knowing how to apply policies across customers}
 %\radhika{similar issue arises with our bundler too...}.
 Thus, due to limited visibility into their customers' traffic, network operators cannot choose policies that can appease them all. 
 
-On the other hand, an individual customer can effectively choose a scheduling policy for the \emph{component flows} within its own traffic as per its own requirements. 
+An individual customer can, on the other hand, choose appropriate scheduling and AQM policies for the \emph{component flows} within its own traffic as per its own requirements. 
 %; that is, scheduling policy is easier to express at the edge. 
 Examples include traffic over the public Internet between different datacenters, between campuses of an organization, collaborating universities or companies, between large content provider (\eg Netflix) and a network with many clients (e.g., a regional ISP), large-scale data backups from an organization to an external site (\eg Dropbox), and so on. 
-In each of these scenarios the sender has enough information to unilaterally choose a scheduling policy for its component flows. However, these policies are effective only when enforced on congested bottleneck links in a flow's path that experience a queue build-up, and such links are often outside the control of the individual customers~\cite{inferring-interdomain-congestion}. 
+In each of these scenarios the sender has enough information to unilaterally choose a scheduling or queue management policy for its component flows (such as prioritizing flows based on their application types, enforcing fair queuing for a more stable rate allocation, using AQM to achieve a delay target, and so on). However, these policies are effective only when enforced on congested bottleneck links in a flow's path that experience a queue build-up, and such links are often outside the control of the individual customers~\cite{inferring-interdomain-congestion}. 
 
-So while network operators do not have enough visibility into the traffic to choose the appropriate policy, the customers may not have enough control over the queued-up links to enforce their desired policies. This paper attempts to resolve this conundrum by simply \emph{moving the queues in the network to the customer's edge}, such that appropriate scheduling and queue management policies can be effectively enforced.
+So while network operators do not have enough visibility into the traffic to choose the appropriate policy, the customers may not have enough control over the queued-up links in the network to enforce their desired policies. This paper attempts to resolve this conundrum by simply \emph{moving the queues in the network to the customer's edge}, such that appropriate scheduling and queue management policies can be effectively enforced. The natural question that arises is, how can the queues be moved? This is the primary focus of our work. 
 
-The natural question that arises is, how can the queues be moved? We observe that the component flows of the traffic from a given sender's domain and destined for the same downstream domain, as in the examples mentioned earlier, would share common bottlenecks within the network \radhika{make this softer}. Aggregating these component flows at the sender's egress, and controlling the outgoing rate of this aggregate to match its share at the bottleneck link, would \emph{move} the corresponding queues from the bottleneck in the network to the sender's egress itself \radhika{need to simplify this sentence}. 
+We begin with the observation that component flows of the traffic from a given sender's domain and destined for the same downstream domain, as in the examples mentioned earlier, are likely to share common bottlenecks within the network. By (i) aggregating such component flows into a single \emph{bundle} at the sender's egress, and (ii) controlling the outgoing rate of this bundle at the egress to match its bottleneck rate in the network, we can effectively \emph{move} the queues built by the traffic in the bundle, from within the network to the sender's egress itself. \radhika{is the last sentence too long / hard to understand? suggestions for fixing it?} 
 
-We further note that middleboxes are now prevalent in the Internet architecture~\cite{aplomb}. They are often deployed at the egress and ingress of an enterprise network or a domain, to ensure traffic transits them for intrusion detection, packet inspection, filtering etc. They therefore provide an effective vantage point for aggregating and managing traffic. 
+We further note that middleboxes are now prevalent in the Internet architecture~\cite{aplomb}. They are often deployed at the egress and ingress of an enterprise network or a domain, to ensure traffic transits them for intrusion detection, packet inspection, filtering etc. They thus provide an effective vantage point for aggregating and managing traffic. 
 
-We therefore propose a new type of middlebox, called a \name, that (i) performs traffic aggregation and rate control at the egress of a customer's edge to shift the queues for the traffic from within the network to itself, and (ii) enforces scheduling and queue management policies as per the customer's requirements (such as adhering to a desired delay target, prioritizing flows based on their size, application type, or deadline, enforcing fair queuing for a more stable rate allocation and so on). 
+We, therefore, propose a new type of middlebox, called a \name, that (1) aggregates the traffic at the customer's egress into appropriate bundles whose component flows share a common receiver domain, (2) does rate control for each bundle to shift the corresponding queues from within the network to itself, and (3) applies scheduling and queue management policies within each bundle as per the customer's requirements. 
 
-\radhika{add a few lines on \name's high level architecture.} 
+%\radhika{add a few lines on \name's high level architecture.} 
+ A \name comprises of a pair of middleboxes: a \inbox that sits at the sender's egress and a \outbox that sits at the receiver's ingress. Thus, a bundle is defined as a group of flows that traverse through the same \inbox and \outbox pair. The bulk of \name's functionality resides at the \inbox, which coordinates with the \outbox for classifying the flows into appropriate bundles, and for collecting congestion signals (such as the round-trip time, and the rate at which bundled traffic arrives at the \outbox). These signals are used by a standard congestion control algorithm that runs at the \inbox and computes the appropriate sending rate for each bundle. 
+ 
+ We introduce a novel light-weight methodology for the \inbox and \outbox coordination, which does not require any per-flow state (only requiring per-bundle state), and does not require any modifications to the packets traversing the \name boxes. Furthermore, our approach only requires introducing the \name pair at the customer's edges, and requires no changes to the individual end-hosts or to the routers in the public Internet. 
+ 
+ Notice that our goal is to only do scheduling and queue management across the traffic within the same bundle (and therefore belonging to a single customer). We do not even attempt to tackle the significantly more ambitious objective of  scheduling the traffic across different customers, which would require dealing with the potential differences in their requirements. Nonetheless, we believe that our work, in its simplicity, is a significant step towards enabling some of the benefits of scheduling and queue management for the public Internet. 
+ %\radhika{should i move it up by 2 paragraphs (i.e. right after the 3 points)?} 
 
 % We make the following key contributions:
 % \begin{enumerate}
@@ -32,13 +42,13 @@ We therefore propose a new type of middlebox, called a \name, that (i) performs 
 %     \item An evaluation of the benefits of scheduling and queue management for traffic aggregates, compared to both the status quo (FIFO) and an idealized deployment where bottleneck queues deploy the desired policy.
 % \end{enumerate}
 
-The rest of the paper dives into the details of how we design, implement and evaluate \name, and is organized as follows:
-\S\ref{s:related} discusses related work.
-\S\ref{s:design} describes the \name architecture and the various trade-offs we considered when designing it.  
-\S\ref{s:measurement} describes our novel approach for gathering measurements from the network to do rate control at the \name in order to move the bottleneck. 
-\S\ref{s:impl} describes our prototype implementation. 
-\S\ref{s:eval} evaluates the performance benefits of using a \name for scheduling and queue management.
-\radhika{re-write this to highlight strong points after the rest of the paper has been written}
+%The rest of the paper dives into the details of how we design, implement and evaluate \name, and is organized as follows:
+We begin the rest of this paper by discussing some related work in \S\ref{s:related}. We then discuss our design choices, along with the favorable operation regime for \name in \S\ref{s:design}. We detail our novel \inbox and \outbox coordination methodology for doing congestion control in \S\ref{s:measurement}, and describe our prototype implementation in \S\ref{s:impl}. 
+%\S\ref{s:design} describes the \name architecture and the various trade-offs we considered when designing it.  
+%\S\ref{s:measurement} describes our novel approach for gathering measurements from the network to do rate control at the \name in order to move the bottleneck. 
+%\S\ref{s:impl} describes our prototype implementation. 
+Finally, in \S\ref{s:eval}, we use our prototype implementation to evaluate the performance benefits of using a \name across various emulated scenarios, before concluding in \S\ref{s:concl}.
+\radhika{revise}
 
 
 %Middleboxes offer a flexible design point, since implementations spanning hardware and software represent numerous options in implementing scalable, yet flexible and sophisticated scheduling policies. 

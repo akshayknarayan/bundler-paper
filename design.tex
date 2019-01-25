@@ -12,6 +12,19 @@
     \caption{This illustrative example with a single flow shows how \name can take control of queues in the network. The bubbles show the trend in measured queueing delays at the relevant queue over time. The queue where delays build up can best make scheduling decisions, since that is where there is the most choice between packets to send.}\label{fig:design:shift-bottleneck}
 \end{figure}
 
+\an{
+Scheduling traffic within a \emph{bundle}, or a group of component flows for which some entity (the ``customer'') can unilaterally determine scheduling policy, is useful when the aggregate comprises enough offered load to congest the network. 
+In one case, the queue where this congestion occurs could reside in the same network \an{maybe ``autonomous system'' is more precise} as the customer. 
+In this case, the customer can deploy scheduling policy in its own network. Examples of this case are private WAN networks~\cite{bwe, swan}.
+
+In the other case, the congested queue resides outside the customer's control. This scenario is where \name offers benefits.
+We argue that lack of customer control over bottleneck links is prevalent; recent work has show that inter-domain congestion occurs frequently~\cite{inferring-interdomain-congestion}.
+However, this case presents a challenge: 
+
+Of course, traffic from other customers may also compete for a share of this bottleneck link. Because \name acts to enforce the policy of a single customer, it naturally can control only that customer's traffic.
+Therefore, \name's scheduling benefits will come from the \emph{self-inflicted} queueing the component flows cause.
+}
+
 A \name must have the following properties:
 \cut{ 
 % these items could be considered implementation details
@@ -20,7 +33,7 @@ A \name must have the following properties:
 }
 \fc{mabye this starts too abruptly}
 \begin{enumerate}
-    \item It provides a mechanism for scheduling the packets comprising the bundle.
+    \item It provides a mechanism for scheduling the packets comprising the aggregate.
     \item It must be deployable, therefore, it cannot rely on changes in end-hosts.
     \item It must be capable of deployments on the edge of a domain. Therefore, it must also scale to high link rates. As a result, it should not maintain per-connection state -- only per-aggregate state. \radhika{shorten}
 \end{enumerate}
@@ -158,3 +171,11 @@ To regain ECMP's benefits, an encapsulating \name would need to carefully set th
 Therefore, we select an out-of-band approach. Flows from the senders traverse the network exactly as they otherwise would have.
 \radhika{not all encap/decap will lead to these issues, so need to be more explicit. also, why is this interesting to discuss (e.g. is there a trade-off between in-band and out-band, or is the latter unanimously better)?}
 \fc{we do oob for these reasons which requires solving some challenges that we discuss in the next section}
+
+\subsection{Defence Wall}
+\radhika{placeholder title}
+
+\begin{itemize}
+    \item Favourable conditions in which bundler works.
+    \item Difference between scheduling between bundle and scheduling across bundle -- we donot explicitly deal with latter. 
+\end{itemize}
