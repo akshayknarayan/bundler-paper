@@ -150,7 +150,7 @@ We emulate this best-case scenario by increasing the end-hosts' initial congesti
 Now, even the largest $1$MB ($\approx700$ packet) flows in this scenario can immediately transmit all their segments to the \inbox.
 The result is in Figure~\ref{fig:eval:proxy}.
 
-\input{with-proxy}
+\input{proxy}
 
 Surprisingly, terminating TCP connections does not help the short flows (longer flows indeed see an improvement as expected). 
 To see why, we refer back to Figure~\ref{fig:eval:fifo} --- absent scheduling, \name can cause performance degradation because it induces higher overall queueing delays.

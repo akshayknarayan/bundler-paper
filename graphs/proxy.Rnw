@@ -1,0 +1,32 @@
+\begin{figure}
+    \centering
+    <<eval:proxy,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
+library(ggplot2)
+df <- read.csv("proxy.data", sep=" ")
+df$Duration <- df$Duration.usec. / 1e6
+bw <- 12e6
+df$ofct <- (df$Size / bw) + 0.05
+df$Slowdown <- df$Duration / df$ofct
+
+ggplot(df, aes(x=Slowdown, linetype=Alg)) +
+    stat_ecdf() +
+    scale_x_continuous(
+        limits=c(0, 10),
+        name="Slowdown") +
+    scale_linetype_manual(
+        limit=c("copa_sfq", "proxy_copa_sfq"),
+        labels=c("copa_sfq" = "Bundler", "proxy_copa_sfq" = "Proxy"),
+        values=c("copa_sfq" = "solid", "proxy_copa_sfq" = "twodash")
+    ) +
+    facet_wrap(~Category) + 
+    ylab("CDF") +
+    theme_minimal() +
+    theme(
+        legend.position=c(0.85, 0.3),
+        legend.title=element_blank(),
+        legend.text=element_text(size=12)
+    )
+@
+    \caption{A proxy-based implementation of \name could yield further benefits to the long flows.}
+    \label{fig:eval:proxy}
+\end{figure}
