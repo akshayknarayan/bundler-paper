@@ -1,60 +1,34 @@
 \begin{figure}
     \centering
-    \begin{subfigure}[b]{0.5\textwidth}
-    <<robust:cr-elastic:a,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
+    <<robust:cr-elastic,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,message=FALSE,fig.width='\\columnwidth',fig.height=3>>=
 library(ggplot2)
+library(showtext)
+font_add_google("Lato")
+showtext_auto()
 df <- read.csv("cr-elastic.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
+df$ofct <- (df$Size / 12e6) + 0.05
+df$Slowdown <- df$Duration / df$ofct
 
-ggplot(df, aes(x=Duration, linetype=Alg)) +
-    stat_ecdf() +
-    scale_x_log10(
-        limits=c(0.05, 5),
-        breaks=c(0.05, 0.1, 0.15, 0.2, 0.25, 0.5, 0.75, 1, 2, 5, 10),
-        name="Duration (sec)") +
-    scale_linetype_manual(
-        limit=c("copa_sfq", "nimbus_sfq", "bbr_sfq", "nobundler_fifo"),
-        labels=c("copa_sfq" = "Bundler (Copa) ", "nimbus_sfq" = "Bundler (Nimbus) ", "bbr_sfq" = "Bundler (BBR) ", "nobundler_fifo" = "Baseline"),
-        values=c("copa_sfq" = "solid", "nimbus_sfq" = "longdash", "bbr_sfq" = "dotted", "nobundler_fifo" = "twodash")
+df <- df[df$Alg != "copa_sfq",]
+
+ggplot(df, aes(x=factor(Cross), y=Slowdown, fill=Alg)) + 
+    geom_boxplot(outlier.shape=NA) + 
+    coord_cartesian(ylim=c(1,20)) +
+    ylab("Slowdown") +
+    xlab(NULL) +
+    scale_fill_brewer(type="qual", palette=1,
+        limit=c("nimcopa_sfq", "nimbus_sfq", "bbr_sfq", "nobundler_fifo"),
+        labels=c("nimcopa_sfq" = "Bundler (Copa) ", "nimbus_sfq" = "Bundler (Nimbus) ", "bbr_sfq" = "Bundler (BBR) ", "nobundler_fifo" = "Baseline"),
     ) +
-    ylab("CDF") +
     theme_minimal() +
     theme(
         legend.position="top",
         legend.title=element_blank(),
-        legend.text=element_text(size=12)
+        legend.text=element_text(size=16, family="Lato", face="plain"),
+        text = element_text(size=18, family="Lato", face="bold"),
     )
 @
-    \caption{Congestion controllers from \S\ref{s:eval}.}\label{fig:robust:cr-elastic:a}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.5\textwidth}
-    <<robust:cr-elastic:b,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
-library(ggplot2)
-df <- read.csv("cr-elastic.data", sep=" ")
-df$Duration <- df$Duration.usec. / 1e6
-
-ggplot(df, aes(x=Duration, linetype=Alg)) +
-    stat_ecdf() +
-    scale_x_log10(
-        limits=c(0.05, 5),
-        breaks=c(0.05, 0.1, 0.15, 0.2, 0.25, 0.5, 0.75, 1, 2, 5, 10),
-        name="Duration (sec)") +
-    scale_linetype_manual(
-        limit=c("copa_sfq", "nimcopa_sfq", "nobundler_fifo"),
-        labels=c("copa_sfq" = "Copa (Standard) ", "nimcopa_sfq" = "Copa (Nimbus) ", "nobundler_fifo" = "Baseline"),
-        values=c("copa_sfq" = "dotted", "nimcopa_sfq" = "solid", "nobundler_fifo" = "twodash")
-    ) +
-    ylab("CDF") +
-    theme_minimal() +
-    theme(
-        legend.position="top",
-        legend.title=element_blank(),
-        legend.text=element_text(size=12)
-    )
-@
-    \caption{Alternate configuration -- Copa uses Nimbus's elasticity detector.}\label{fig:robust:cr-elastic:b}
-    \end{subfigure}
-
     \caption{Elastic cross traffic. \an{data has results across 1,2,3,4 elastic cross traffic flows. need to re-plot to show this} }
     \label{fig:robust:cr-elastic}
 \end{figure}

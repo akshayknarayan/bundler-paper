@@ -1,35 +1,42 @@
 \begin{figure}
     \centering
-    <<robust:twobundler,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
+    <<robust:twobundler,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
 library(ggplot2)
+library(showtext)
+font_add_google("Lato")
+showtext_auto()
 df <- read.csv("twobundler.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
+df$ofct <- (df$Size / 12e6) + 0.05
+df$Slowdown <- df$Duration / df$ofct
 df$Bundle <- as.factor(df$BundleId)
 df <- df[df$Alg == "copa_sfq" | df$Alg == "nobundler_fifo",]
 
-facets <- c(
-    "0" = "Bundle 1",
-    "1" = "Bundle 2"
-)
-
-ggplot(df, aes(x=Duration, linetype=Alg)) +
-    stat_ecdf() +
-    scale_x_continuous(
-        limits=c(0, 0.3),
-        name="Duration (sec)"
+ggplot(df, aes(x=Bundle, y=Slowdown, fill=Alg)) +
+    geom_boxplot() +
+    scale_x_discrete(
+        limit=c("0", "1"),
+        labels=c(
+            "0" = "Bundle 1",
+            "1" = "Bundle 2"
+        ),
+        scale_name=NULL, name=NULL,
     ) +
-    scale_linetype_manual(
+    scale_fill_brewer(type="qual", palette=2,
         limit=c("copa_sfq", "nobundler_fifo"),
-        labels=c("copa_sfq" = "Bundler ", "nobundler_fifo" = "Baseline"),
-        values=c("copa_sfq" = "solid","nobundler_fifo" = "twodash")
+        labels=c(
+            "nobundler_fifo" = "Baseline",
+            "copa_sfq" = "Bundler"
+        ),
     ) +
-    facet_grid(~Bundle, labeller = as_labeller(facets)) +
-    ylab("CDF") +
+    ylab("Slowdown") +
+    coord_cartesian(ylim=c(1,5)) +
     theme_minimal() +
     theme(
         legend.position="top",
         legend.title=element_blank(),
-        legend.text=element_text(size=12)
+        text = element_text(size=18, family="Lato", face="bold"),
+        plot.title = element_text(size=18, family="Lato", face="bold", hjust = 0.5)
     )
 @
     \caption{Competing traffic bundles. Each bundle observes improved median FCT compared to its performance in the baseline scenario.}

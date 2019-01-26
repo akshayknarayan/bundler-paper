@@ -43,7 +43,7 @@ ggplot(big, aes(
         x=Alg, fill=Alg, y=Slowdown
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
-    ylab("") + ggtitle("> 10KB") +
+    ylab(NULL) + ggtitle("> 10KB") +
     scale_fill_brewer(type="qual", palette=2) +
     scale_x_discrete(
         limit=c("proxy_copa_sfq", "copa_sfq"),
