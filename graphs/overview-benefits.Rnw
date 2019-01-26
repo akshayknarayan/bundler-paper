@@ -1,31 +1,35 @@
 \begin{figure}
     \centering
-    <<eval:best,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
+    <<eval:best,fig.showtext=TRUE,cache=TRUE,echo=FALSE,message=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=4>>=
 library(ggplot2)
+library(showtext)
+font_add_google("Lato")
+showtext_auto()
 df <- read.csv("84Mbps-1bk-caidacdf.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
 bw <- 12e6
 df$ofct <- (df$Size / bw) + 0.05
 df$NormFct <- df$Duration / df$ofct
 
-ggplot(df, aes(x=Duration, linetype=Alg)) +
-    stat_ecdf() +
-    scale_x_continuous(
-        limits=c(0, 1),
-        name="Duration (sec)") +
-    scale_linetype_manual(
-        limit=c("copa_sfq", "nobundler_fifo", "nobundler_sfq"),
-        labels=c("copa_sfq" = "Bundler", "nobundler_fifo" = "Baseline", "nobundler_sfq" = "Optimal"),
-        values=c("copa_sfq" = "solid", "nobundler_fifo" = "twodash", "nobundler_sfq" = "dotted")
+ggplot(df, aes(
+        x=Alg, fill=Alg, y=NormFct
+    )) +
+    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
+    coord_cartesian(ylim=c(1, 3)) +
+    ylab("Slowdown") +
+   scale_fill_brewer(type="qual", palette=2) +
+    scale_x_discrete(
+        limit=c("nobundler_fifo", "copa_sfq", "nobundler_sfq"),
+        labels=c(
+            "nobundler_fifo" = "Baseline",
+            "copa_sfq" = "Bundler", 
+            "nobundler_sfq" = "Optimal"
+        ),
+        scale_name=NULL, name=NULL,
     ) +
-    ylab("CDF") +
-    theme_minimal() +
-    theme(
-        legend.position=c(0.85, 0.3),
-        legend.title=element_blank(),
-        legend.text=element_text(size=12)
-    )
+    theme_minimal() + 
+    theme(text = element_text(size=18, family="Lato", face="bold"))
 @
-    \caption{\name achieves $33$\% lower slowdown.}
+    \caption{\name achieves $33$\% lower median slowdown. \an{Whiskers currently show 1.25 inter-quantile range, figure out how to show 99th \%ile? Also, can barely see Bundler and Optimal...}}
     \label{fig:eval:best}
 \end{figure}

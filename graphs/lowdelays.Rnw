@@ -1,44 +1,48 @@
 \begin{figure}
     \centering
-    <<eval:lowdelays,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
+    <<eval:lowdelays,fig.showtext=TRUE,cache=TRUE,echo=FALSE,message=FALSE,warning=FALSE,,fig.width='\\columnwidth',fig.height=2>>=
 library(ggplot2)
+library(showtext)
+font_add_google("Lato")
+showtext_auto()
 df <- read.csv("lowdelays.data", sep=" ")
 df$rtt <- (df$rtt / 1e3) - 50
 
-ggplot(df, aes(x=rtt, linetype=alg)) +
+ggplot(df, aes(x=rtt, colour=alg)) +
     stat_ecdf() +
     scale_x_continuous(
-        limits=c(0, 250),
         name="Queueing Delay (ms)") +
-    scale_linetype_manual(
-        limit=c("copa_sfq", "copa_fifo", "copa_fqcodel", "nobundler_fifo"),
-        labels=c(
-            "copa_sfq" = "Bundler (SFQ)", 
-            "copa_fifo" = "Bundler (FIFO)", 
-            "copa_fqcodel" = "Bundler (FQ-CoDel)", 
-            "nobundler_fifo" = "Baseline"
-        ),
-        values=c(
-            "copa_sfq" = "dotdash", 
-            "copa_fifo" = "longdash", 
-            "copa_fqcodel" = "dotted", 
-            "nobundler_fifo" = "twodash"
-        )
-    ) +
-#   scale_colour_brewer(type="qual", palette=2,
-#       labels=c(
-#           "copa_sfq" = "Bundler (SFQ)", 
-#           "copa_fifo" = "Bundler (FIFO)", 
-#           "copa_fqcodel" = "Bundler (FQ-CoDel)", 
-#           "nobundler_fifo" = "Baseline"
-#       ),
-#   ) +
+    coord_cartesian(xlim=c(0,250)) +
+#    scale_linetype_manual(
+#        limit=c("copa_sfq", "copa_fifo", "copa_fqcodel", "nobundler_fifo"),
+#        labels=c(
+#            "copa_sfq" = "Bundler (SFQ)", 
+#            "copa_fifo" = "Bundler (FIFO)", 
+#            "copa_fqcodel" = "Bundler (FQ-CoDel)", 
+#            "nobundler_fifo" = "Baseline"
+#        ),
+#        values=c(
+#            "copa_sfq" = "dotdash", 
+#            "copa_fifo" = "longdash", 
+#            "copa_fqcodel" = "dotted", 
+#            "nobundler_fifo" = "twodash"
+#        )
+#    ) +
+   scale_colour_brewer(type="qual", palette=2,
+       labels=c(
+           "copa_sfq" = "Bundler (SFQ)", 
+           "copa_fifo" = "Bundler (FIFO)", 
+           "copa_fqcodel" = "Bundler (FQ-CoDel)", 
+           "nobundler_fifo" = "Baseline"
+       ),
+   ) +
     ylab("CDF") +
     theme_minimal() +
     theme(
-        legend.position=c(0.85, 0.3),
+        legend.position=c(0.85, 0.35),
         legend.title=element_blank(),
-        legend.text=element_text(size=12)
+        legend.text=element_text(size=14, family="Lato", face="plain"),
+        text=element_text(size=18, family="Lato", face="bold")
     )
 @
     \caption{We configure \name with the fq-codel scheduling policy to achieve low end-to-end queueing delays.}
