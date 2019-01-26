@@ -1,6 +1,14 @@
 \section{Related Work}
 \label{s:related}
 
+%With our work sitting at the intersection of highly popular topics of scheduling, congestion control and middleboxes, one can produce a large body of past work related to each topic. However, this unique intersection of topics is also what adds significant novelty to our work. 
+We identify some of the most relevant related works below. 
+
+\Para{Programmable and Universal Packet Scheduling} There has been some recent work on easing the deployment of different scheduling policies in wide-area networks. PIFO~\cite{pifo} proposes a programmable packet scheduler that can be configured by the network operators to express different scheduling policies, and, therefore, suffers from the same issue of limited visibility into the customers' traffic for choosing desired policy. UPS~\cite{ups} goes a step further and allows expressing different scheduling policies via header initializing at the edge. However, since queuing can still occurs in the middle of the network, it relies on the network operator to isolate the traffic between different customers, or on the customers to target a common global objective, both of which are difficult to realize. Furthermore, unlike \name, both of PIFO and UPS require major changes to the routers deployed within the network, which is a non-trivial undertaking.
+
+
+
+
 \begin{itemize}
     \item PIFO and UPS
     \item Rethinking networking for five computers

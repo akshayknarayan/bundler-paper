@@ -1,17 +1,4 @@
-\section{Robustness}\label{s:robust}
-
-We now ask whether \name can effectively shift the bottleneck under a variety of conditions.
-\input{caida-cdf}
-
-We evaluate the benefits of \name with a request size CDF
-drawn from an Internet core router~\cite{caida-dataset}, with the same setup otherwise described above.
-The workload remains heavy-tailed: 97.6\% of requests are 10KB or shorter, and the largest 0.002\% of requests are between $5$MB and $100$MB.
-%\begin{sparkline}{10}
-%    \spark 0 0 0.0001 0.976 0.001 0.995 0.01 0.999 1 1 /
-%\end{sparkline}https://www.overleaf.com/project/5c361d6901347979500bde2b
-In this scenario, \name achieves 33\% lower FCTs in the median compared to the baseline (Figure~\ref{fig:robust:caidacdf}). We use this realistic workload to evaluate \name for the remainder of this section.
-
-\an{what else should we say?}
+%\section{Robustness}\label{s:robust}
 
 \subsection{Cross Traffic}\label{s:robust:cross}
 
@@ -38,7 +25,7 @@ We indeed see this in Figure~\ref{fig:robust:cr-elastic}.
 In this experiment, Copa, primarily a delay-based algorithm, cannot adequately detect the presence of competing elastic traffic and ``mode-switch'' to its competitive mode. When we modify Copa to use Nimbus's elasticity detector (Figure~\ref{fig:robust:cr-elastic:b}), its performance matches the baseline.
 \radhika{it might be cleaner to just present the Copa results here, i.e. just Figure~\ref{fig:robust:cr-elastic:b}.}
 
-\fc{Is there something we can do to still build a queue and thus get some benefit in the case where theres elastic traffic}
+%\fc{Is there something we can do to still build a queue and thus get some benefit in the case where theres elastic traffic}
 
 \input{twobundler}
 \paragrapha{Competing Bundles} \name's improvements return once competing traffic starts using \name as well. In Figure~\ref{fig:robust:twobundler}, we show the performance of each of two bundles of traffic competing in the same bottleneck link. 

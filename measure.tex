@@ -120,34 +120,23 @@ However, state-persistence is largely unnecessary for \name.
 \subsection{Choosing The Epoch Size}
 \label{s:measure:epoch}
 \input{micro-epoch}
+
 How do we choose the number of packets that should be in each epoch?
-In 3.1, we assumed a fixed epoch size of $N$ packets.
-However, in practice, the epoch must be a function of the sending rate.
-If the epoch size is too small relative to the rate,
-the epochs will be easily influenced by bursts and thus the measurements will be highly variable
-and not useful.
-If the epoch size is too large relative to the rate, the congestion control algorithm will not
-receive feedback frequently enough to respond promptly to changing network conditions. 
-As shown in prior work, congestion control algorithms can behave properly even if their
-signals are only updated roughly once per RTT~\cite{ccp-hotnets}.
-Setting the epoch size equal to our estimate of the number of packets currently inflight 
-(our current sending rate multipled by our current esimate of the RTT) will yield roughly
-one epoch and thus a new set of measurements per RTT.
+In \S\ref{s:measure:marking}, we assumed a fixed epoch size of $N$ packets.
+However, in practice, the epoch must be a function of the bandwidth-delay product (BDP).
+Because epoch sizes are sampled from a uniform random variable, setting larger epoch sizes will increase the variance in the observed epoch sizes.
+If the epoch size is small relative to the rate, the raw measurements will be noisy, but we can correct for this by measuring over a sliding window.
 
-Since the rate and thus the number of inflight packets is continuously changing over time,
-we need to continually update the epoch size. Rather than using exactly the number of inflight
-bytes, we round the value down to the nearest power of two so that the new epoch size is
-always a multiple of the old one and thus will be compatible. 
+Therefore, we estimate the BDP (current sending rate multiplied by current estimate of the RTT) and set the desired epoch size to one-fourth of this value. We then calculate rates over a sliding window of four epochs; this is approximately one RTT.
 
-For examaple, \fc{is an example necessary?} \radhika{I found it useful, especially because I didn't understand what you mean by ``compatible'' in the line above. but i would like to discuss this further.}
-if the inbox is marking every 256 packets
-and the \outbox is marking every 512 packets, 
-the inbox is just marking a super set of the \outbox packets, 
-so it is effectively equivalent to them both marking every 512 packets.
+As the sending rate and RTT change, the \inbox will update the desired epoch size accordingly, and communicate this desired epoch size to the \outbox.
+This communication might be lost. 
+Therefore, when setting the desired epoch size we round down to the nearest power of two so that the \outbox's view of the epoch boundary packets is a sub- or super- set of the \inbox's:
+for example, 
+if the \inbox's desired epoch size is $64$ packets
+but the \outbox does not receive this update and still believes the desired epoch size is $128$ packets, 
+the \outbox's feedback will still match (in expectation) half the \inbox's epoch boundary packets.
 
-\fc{Add explanation of windows}.
-
-    
 \subsection{Microbenchmarks}
 \label{s:measure:microbench}
     \input{micro-time}
