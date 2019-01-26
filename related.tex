@@ -2,31 +2,34 @@
 \label{s:related}
 
 %With our work sitting at the intersection of highly popular topics of scheduling, congestion control and middleboxes, one can produce a large body of past work related to each topic. However, this unique intersection of topics is also what adds significant novelty to our work. 
-We identify some of the most relevant related works below. 
+Our work sits at the unique intersection of three popular areas: scheduling, congestion control and middleboxes. We identify the most relevant related works in each of these areas below. 
 
-\Para{Programmable and Universal Packet Scheduling} There has been some recent work on easing the deployment of different scheduling policies in wide-area networks. PIFO~\cite{pifo} proposes a programmable packet scheduler that can be configured by the network operators to express different scheduling policies, and, therefore, suffers from the same issue of limited visibility into the customers' traffic for choosing desired policy. UPS~\cite{ups} goes a step further and allows expressing different scheduling policies via header initializing at the edge. However, since queuing can still occurs in the middle of the network, it relies on the network operator to isolate the traffic between different customers, or on the customers to target a common global objective, both of which are difficult to realize. Furthermore, unlike \name, both of PIFO and UPS require major changes to the routers deployed within the network, which is a non-trivial undertaking.
+\Para{Enabling packet scheduling in wide-area networks} PIFO~\cite{pifo} proposes a programmable packet scheduler that can be configured by the network operators to express different policies. It, therefore, suffers from the same issue of limited visibility into customers' traffic for choosing desired policies. UPS~\cite{ups} goes a step further and allows expressing different scheduling policies via header initialization at the edge. However, since queuing still occurs in the middle of the network, it relies on the customers targeting a common global objective, or on the network operators isolating different customers' traffic, both of which are difficult to realize. Furthermore, both PIFO and UPS require major changes to the routers deployed today. \name, with its more tractable goals, provides a solution that is far easier to deploy. 
+
+\Para{Aggregating congestion information} A recent 
+
+\Para{L4 middleboxes}
 
 
 
-
-\begin{itemize}
-    \item PIFO and UPS
-    \item Rethinking networking for five computers
-    %\item use of priority queuing in private WANs
-    \item TCP Proxy
-    \begin{outline}
-    \1 An existing approach which could fulfill these design objectives is a TCP Proxy.
-    \2 TCP proxies are popular in cellular networks
-    \2 They are usually used to shorten the observed round-trip time of a connection, so it can quickly ramp up its sending rate.
-    \2 They do this by sending acknowledgements to the sender.  
-        \3 This means they must take responsibility for reliable delivery.
-    \2 Because TCP proxies take responsibility for reliability, they must implement full TCP stacks.
-        \3 As a result, they are difficult to implement in hardware and difficult to scale. \an{maybe mention this later, once it's more clear our design is hardware-compatible?}
-    \2 They furthermore remain limited by one-sided measurements.
-    \2 They do not allow fate-sharing:
-        \3 If a TCP proxy fails, as middleboxes often do~\cite{aplomb}, the underlying connection is broken.
-\1 We describe in \S\ref{s:measurement} how a \name can perform precise congestion control measurements without implementing a TCP proxy
-    \2 and how to perform these measurements in a fault-tolerant way that preserves fate-sharing.
-    \end{outline}
-    \item anything else?
-\end{itemize}
+% \begin{itemize}
+%     \item PIFO and UPS
+%     \item Rethinking networking for five computers
+%     %\item use of priority queuing in private WANs
+%     \item TCP Proxy
+%     \begin{outline}
+%     \1 An existing approach which could fulfill these design objectives is a TCP Proxy.
+%     \2 TCP proxies are popular in cellular networks
+%     \2 They are usually used to shorten the observed round-trip time of a connection, so it can quickly ramp up its sending rate.
+%     \2 They do this by sending acknowledgements to the sender.  
+%         \3 This means they must take responsibility for reliable delivery.
+%     \2 Because TCP proxies take responsibility for reliability, they must implement full TCP stacks.
+%         \3 As a result, they are difficult to implement in hardware and difficult to scale. \an{maybe mention this later, once it's more clear our design is hardware-compatible?}
+%     \2 They furthermore remain limited by one-sided measurements.
+%     \2 They do not allow fate-sharing:
+%         \3 If a TCP proxy fails, as middleboxes often do~\cite{aplomb}, the underlying connection is broken.
+% \1 We describe in \S\ref{s:measurement} how a \name can perform precise congestion control measurements without implementing a TCP proxy
+%     \2 and how to perform these measurements in a fault-tolerant way that preserves fate-sharing.
+%     \end{outline}
+%     \item anything else?
+% \end{itemize}
