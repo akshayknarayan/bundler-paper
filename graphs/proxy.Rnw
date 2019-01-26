@@ -1,30 +1,65 @@
 \begin{figure}
     \centering
-    <<eval:proxy,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
+    <<eval:proxy,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,message=FALSE,fig.width='\\columnwidth',fig.height=2>>=
 library(ggplot2)
+library(showtext)
+font_add_google("Lato")
+showtext_auto()
+library(patchwork)
+
 df <- read.csv("proxy.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
 bw <- 12e6
 df$ofct <- (df$Size / bw) + 0.05
 df$Slowdown <- df$Duration / df$ofct
 
-ggplot(df, aes(x=Slowdown, linetype=Alg)) +
-    stat_ecdf() +
-    scale_x_continuous(
-        limits=c(0, 10),
-        name="Slowdown") +
-    scale_linetype_manual(
-        limit=c("copa_sfq", "proxy_copa_sfq"),
-        labels=c("copa_sfq" = "Bundler", "proxy_copa_sfq" = "Proxy"),
-        values=c("copa_sfq" = "solid", "proxy_copa_sfq" = "twodash")
+big <- df[df$Category == ">10000",]
+small <- df[df$Category == "<10000",]
+
+ggplot(small, aes(
+        x=Alg, fill=Alg, y=Slowdown
+    )) +
+    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
+    ylab("Slowdown") +
+    ggtitle("< 10KB") +
+    scale_fill_brewer(type="qual", palette=2) +
+    scale_x_discrete(
+        limit=c("proxy_copa_sfq", "copa_sfq"),
+        labels=c(
+            "proxy_copa_sfq" = "Proxy",
+            "copa_sfq" = "Bundler"
+        ),
+        scale_name=NULL, name=NULL,
     ) +
-    facet_wrap(~Category) + 
-    ylab("CDF") +
-    theme_minimal() +
+    coord_cartesian(ylim=c(1,1.5)) +
+    theme_minimal() + 
     theme(
-        legend.position=c(0.85, 0.3),
+        legend.position="top",
         legend.title=element_blank(),
-        legend.text=element_text(size=12)
+        text = element_text(size=18, family="Lato", face="bold"),
+        plot.title = element_text(size=18, family="Lato", face="bold", hjust = 0.5)
+    ) +
+ggplot(big, aes(
+        x=Alg, fill=Alg, y=Slowdown
+    )) +
+    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
+    ylab("") + ggtitle("> 10KB") +
+    scale_fill_brewer(type="qual", palette=2) +
+    scale_x_discrete(
+        limit=c("proxy_copa_sfq", "copa_sfq"),
+        labels=c(
+            "proxy_copa_sfq" = "Proxy",
+            "copa_sfq" = "Bundler"
+        ),
+        scale_name=NULL, name=NULL,
+    ) +
+    coord_cartesian(ylim=c(1,5)) +
+    theme_minimal() + 
+    theme(
+        legend.position="top",
+        legend.title=element_blank(),
+        text = element_text(size=18, family="Lato", face="bold"),
+        plot.title = element_text(size=18, family="Lato", face="bold", hjust = 0.5)
     )
 @
     \caption{A proxy-based implementation of \name could yield further benefits to the long flows.}
