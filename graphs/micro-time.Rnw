@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-    <<micro:time,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=2>>=
+    <<micro:time,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=4>>=
 
 thru <- read.csv("./84-10000-nimbus-sfq-62-pl-mixed-diff.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric","numeric"))
 raw <- read.csv("./84-10000-nimbus-sfq-62-pl-mixed-epochs.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric"))
@@ -9,18 +9,20 @@ raw$send <- raw$send / 125000.0
 raw$recv <- raw$recv / 125000.0
 
 p1 <- ggplot() + 
-    geom_step(data=raw, aes(x=t, y=recv, colour="raw")) + 
-    geom_step(data=thru, aes(x=V1,y=V3, colour="windowed"))  + 
-    geom_step(data=thru, aes(x=V1,y=V2, colour="true")) + 
-    theme_bw() + 
+    geom_step(data=raw, aes(x=t, y=recv, colour="raw"),size=1) + 
+    geom_step(data=thru, aes(x=V1,y=V2, colour="true"),size=1) + 
+    geom_step(data=thru, aes(x=V1,y=V3, colour="windowed"),size=1)  + 
+    theme_minimal() + 
     theme(legend.position="bottom") + 
     #scale_color_manual(name = "", values = c(true = "blue", windowed="red", raw="green")) +
-    scale_color_brewer(name="", aesthetics=c("colour"),palette="Paired", labels=c("Measured", "Measured (Windowed)", "Bottleneck")) + 
+    #scale_color_brewer(name="", aesthetics=c("colour"),palette="Paired", labels=c("Measured", "Measured (Windowed)", "Bottleneck")) + 
+    scale_color_manual(name="",labels=c(raw="Measured", windowed="Measured (Windowed)", true="Bottleneck"), values=c(raw="#abd9e9", windowed="#2c7bb6", true="#d7191c")) +
     scale_x_continuous(breaks=seq(0,max(thru$V1),by=1)) +
-    scale_y_continuous(breaks=seq(0,120,by=12)) +
+    scale_y_continuous(breaks=seq(0,140,by=12)) +
     xlab("Time (seconds)") + 
     ylab("Rate (Mbps)") + 
-    coord_cartesian(xlim=c(20,25), ylim=c(0,120))
+    coord_cartesian(xlim=c(20,25), ylim=c(0,140)) + 
+    theme(text = element_text(size=16))
 
 p1
 @
