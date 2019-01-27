@@ -1,5 +1,14 @@
 \begin{abstract}
-We propose a new kind of middlebox, called a \name, which manages \emph{traffic aggregates}, or a group of flows with a common origin domain and destination domain. \name can allow senders of traffic aggregates to unilaterally impose scheduling policy on component flows. This works by shifting the network bottleneck from the middle of the network, where it is difficult to enforce policies, to the edge (\ie the \name), where it is easy to do so.
+
+%While multiple scheduling and queue management algorithms have been proposed in the past, very few have been implemented in today's routers and even fewer have enabled by, and used effectively, by the public network operators. 
+Public Internet has not been able to enjoy the benefits of scheduling and queue management policies, due to two primary reasons: (i) network operators are unable to choose appropriate policies due to lack of visibility into individual customer's traffic, and (ii) customer's are unable to enforce their desired policies due to lack of control over congested queue-up links in the middle of the network. To address this issue, we propose a new kind of middlebox, called a \name, which sits at a customer's edge, and bundles together the group of flows that have common origin and destination domains. \name allows the customers to unilaterally enforce scheduling and queue management policies across the flows within each bundle based on their own requirements. It does so by doing rate control for each bundle, such that the queuing induced by its traffic is \emph{moved from the middle of the network to itself.  
+
+It does 
+%This works by shifting the network bottleneck from the middle of the network, where it is difficult to enforce policies, to the edge (\ie the \name), where it is easy to do so.
 
 We propose a design of a \name which is flexible, scalable, compatible with hardware implementations, simple (we implement it in approximately $1500$ lines of code) and can yield up to a \an{double check for more recent numbers: 62\%} improvement in median flow completion time (FCT).
+
+% We propose a new kind of middlebox, called a \name, which manages \emph{traffic aggregates}, or a group of flows with a common origin domain and destination domain. \name can allow senders of traffic aggregates to unilaterally impose scheduling policy on component flows. This works by shifting the network bottleneck from the middle of the network, where it is difficult to enforce policies, to the edge (\ie the \name), where it is easy to do so.
+
+% We propose a design of a \name which is flexible, scalable, compatible with hardware implementations, simple (we implement it in approximately $1500$ lines of code) and can yield up to a \an{double check for more recent numbers: 62\%} improvement in median flow completion time (FCT).
 \end{abstract}
