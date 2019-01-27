@@ -20,7 +20,7 @@ ggplot(df, aes(x=Bundle, y=Slowdown, fill=Alg)) +
             "0" = "Bundle 1",
             "1" = "Bundle 2"
         ),
-        scale_name=NULL, name=NULL,
+        scale_name=NULL, name=NULL
     ) +
     scale_fill_brewer(type="qual", palette=2,
         limit=c("copa_sfq", "nobundler_fifo"),

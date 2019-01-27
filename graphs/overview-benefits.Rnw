@@ -5,7 +5,7 @@ library(ggplot2)
 library(showtext)
 font_add_google("Lato")
 showtext_auto()
-library(patchwork)
+#library(patchwork)
 
 df <- read.csv("84Mbps-1bk-caidacdf.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
@@ -31,7 +31,7 @@ ggplot(small, aes(
             "copa_sfq" = "Bundler", 
             "nobundler_sfq" = "Optimal"
         ),
-        scale_name=NULL, name=NULL,
+        scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,4)) +
     theme_minimal() + 
@@ -55,7 +55,7 @@ ggplot(med, aes(
             "copa_sfq" = "Bundler", 
             "nobundler_sfq" = "Optimal"
         ),
-        scale_name=NULL, name=NULL,
+        scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,5)) +
     theme_minimal() + 
@@ -78,7 +78,7 @@ ggplot(big, aes(
             "copa_sfq" = "Bundler", 
             "nobundler_sfq" = "Optimal"
         ),
-        scale_name=NULL, name=NULL,
+        scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,15)) +
     theme_minimal() + 

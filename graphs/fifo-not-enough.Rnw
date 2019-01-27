@@ -28,7 +28,7 @@ ggplot(small, aes(
             "copa_fifo" = "Bundler\n FIFO",
             "copa_sfq" = "Bundler\n SFQ"
         ),
-        scale_name=NULL, name=NULL,
+        scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,4)) +
     theme_minimal() + 
@@ -51,7 +51,7 @@ ggplot(med, aes(
             "copa_fifo" = "Bundler\n FIFO",
             "copa_sfq" = "Bundler\n SFQ"
         ),
-        scale_name=NULL, name=NULL,
+        scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,5)) +
     theme_minimal() + 
@@ -73,7 +73,7 @@ ggplot(big, aes(
             "copa_fifo" = "Bundler\n FIFO",
             "copa_sfq" = "Bundler\n SFQ"
         ),
-        scale_name=NULL, name=NULL,
+        scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,15)) +
     theme_minimal() + 

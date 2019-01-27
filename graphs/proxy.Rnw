@@ -30,7 +30,7 @@ ggplot(small, aes(
             "proxy_copa_sfq" = "Proxy",
             "copa_sfq" = "Bundler"
         ),
-        scale_name=NULL, name=NULL,
+        scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,1.25)) +
     theme_minimal() + 
@@ -53,7 +53,7 @@ ggplot(med, aes(
             "proxy_copa_sfq" = "Proxy",
             "copa_sfq" = "Bundler"
         ),
-        scale_name=NULL, name=NULL,
+        scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,5)) +
     theme_minimal() + 
@@ -75,7 +75,7 @@ ggplot(big, aes(
             "proxy_copa_sfq" = "Proxy",
             "copa_sfq" = "Bundler"
         ),
-        scale_name=NULL, name=NULL,
+        scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,15)) +
     theme_minimal() + 

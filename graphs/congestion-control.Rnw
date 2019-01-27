@@ -33,7 +33,7 @@ ggplot(small, aes(
     scale_x_discrete(
         limit=c("nimbus_sfq", "copa_sfq" , "bbr_sfq", "nobundler_fifo"),
         labels=c("copa_sfq" = "Copa", "nimbus_sfq" = "Nimbus", "nobundler_fifo" = "Baseline", "bbr_sfq" = "BBR"),
-        scale_name=NULL, name=NULL,
+        scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,4)) +
     theme_minimal() + 
@@ -60,7 +60,7 @@ ggplot(med, aes(
     scale_x_discrete(
         limit=c("nimbus_sfq", "copa_sfq" , "bbr_sfq", "nobundler_fifo"),
         labels=c("copa_sfq" = "Copa", "nimbus_sfq" = "Nimbus", "nobundler_fifo" = "Baseline", "bbr_sfq" = "BBR"),
-        scale_name=NULL, name=NULL,
+        scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,5)) +
     theme_minimal() + 
@@ -86,7 +86,7 @@ ggplot(big, aes(
     scale_x_discrete(
         limit=c("nimbus_sfq", "copa_sfq" , "bbr_sfq", "nobundler_fifo"),
         labels=c("copa_sfq" = "Copa", "nimbus_sfq" = "Nimbus", "nobundler_fifo" = "Baseline", "bbr_sfq" = "BBR"),
-        scale_name=NULL, name=NULL,
+        scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,15)) +
     theme_minimal() + 

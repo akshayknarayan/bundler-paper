@@ -13,24 +13,13 @@ ggplot(df, aes(x=rtt, colour=alg)) +
     scale_x_continuous(
         name="Queueing Delay (ms)") +
     coord_cartesian(xlim=c(0,200)) +
-#    scale_linetype_manual(
-#        limit=c("copa_sfq", "copa_fifo", "copa_fqcodel", "nobundler_fifo"),
-#        labels=c(
-#            "copa_fqcodel" = "Bundler (FQ-CoDel)", 
-#            "nobundler_fifo" = "Baseline"
-#        ),
-#        values=c(
-#            "copa_fqcodel" = "dotted", 
-#            "nobundler_fifo" = "twodash"
-#        )
-#    ) +
-   scale_colour_brewer(type="qual", palette=2,
-       limit=c("copa_fqcodel", "nobundler_fifo"),
-       labels=c(
-           "copa_fqcodel" = "Bundler (FQ-CoDel)", 
-           "nobundler_fifo" = "Baseline"
-       ),
-   ) +
+    scale_colour_brewer(type="qual", palette=2,
+        limits=c("copa_fqcodel", "nobundler_fifo"),
+        labels=c(
+            "copa_fqcodel" = "Bundler (FQ-CoDel)", 
+            "nobundler_fifo" = "Baseline"
+        )
+    ) +
     ylab("CDF") +
     theme_minimal() +
     theme(
