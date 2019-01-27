@@ -27,7 +27,7 @@ ggplot(df, aes(x=Bundle, y=Slowdown, fill=Alg)) +
         labels=c(
             "nobundler_fifo" = "Baseline",
             "copa_sfq" = "Bundler"
-        ),
+        )
     ) +
     ylab("Slowdown") +
     coord_cartesian(ylim=c(1,4)) +

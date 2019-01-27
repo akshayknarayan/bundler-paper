@@ -19,14 +19,14 @@ ggplot(df, aes(x=Cross, y=Slowdown, fill=Alg)) +
     xlab(NULL) +
     scale_fill_brewer(type="qual", palette=1,
         limit=c("nimbus_sfq", "nimcopa_sfq", "nobundler_fifo"),
-        labels=c("nimbus_sfq" = "Bundler \n Nimbus ", "nimcopa_sfq" = "Bundler \n Copa ", "nobundler_fifo" = "Baseline"),
+        labels=c("nimbus_sfq" = "Bundler \n Nimbus ", "nimcopa_sfq" = "Bundler \n Copa ", "nobundler_fifo" = "Baseline")
     ) +
     theme_minimal() +
     theme(
         legend.position="top",
         legend.title=element_blank(),
         legend.text=element_text(size=16, family="Lato", face="plain"),
-        text = element_text(size=18, family="Lato", face="bold"),
+        text = element_text(size=18, family="Lato", face="bold")
     )
 @
     \caption{Inelastic cross traffic.}

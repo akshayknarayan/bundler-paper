@@ -19,14 +19,14 @@ ggplot(df, aes(x=factor(Cross), y=Slowdown, fill=Alg)) +
     xlab(NULL) +
     scale_fill_brewer(type="qual", palette=1,
         limit=c("nimbus_sfq", "nimcopa_sfq", "nobundler_fifo"),
-        labels=c("nimcopa_sfq" = "Bundler (Copa) ", "nimbus_sfq" = "Bundler (Nimbus) ", "bbr_sfq" = "Bundler (BBR) ", "nobundler_fifo" = "Baseline"),
+        labels=c("nimcopa_sfq" = "Bundler (Copa) ", "nimbus_sfq" = "Bundler (Nimbus) ", "bbr_sfq" = "Bundler (BBR) ", "nobundler_fifo" = "Baseline")
     ) +
     theme_minimal() +
     theme(
         legend.position="top",
         legend.title=element_blank(),
         legend.text=element_text(size=16, family="Lato", face="plain"),
-        text = element_text(size=18, family="Lato", face="bold"),
+        text = element_text(size=18, family="Lato", face="bold")
     )
 @
     \caption{Elastic cross traffic. \an{explain this result??}}
