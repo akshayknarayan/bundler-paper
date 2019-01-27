@@ -31,6 +31,6 @@ ggplot(df, aes(
     theme_minimal() + 
     theme(text = element_text(size=18, family="Lato", face="bold"))
 @
-    \caption{\name offers diminishing returns with lower amounts of offered load. \an{probably useful to slice this data by flow size if space}}
+    \caption{\name offers diminishing returns with lower amounts of offered load.}
     \label{fig:eval:offeredload}
 \end{figure}

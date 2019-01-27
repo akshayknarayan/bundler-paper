@@ -10,7 +10,7 @@ df$Duration <- df$Duration.usec. / 1e6
 df$ofct <- (df$Size / 12e6) + 0.05
 df$Slowdown <- df$Duration / df$ofct
 
-df <- df[df$Alg != "copa_sfq",]
+df <- df[df$Alg != "copa_sfq" & df$Alg != "bbr_sfq",]
 
 ggplot(df, aes(x=factor(Cross), y=Slowdown, fill=Alg)) + 
     geom_boxplot(outlier.shape=NA) + 
@@ -18,7 +18,7 @@ ggplot(df, aes(x=factor(Cross), y=Slowdown, fill=Alg)) +
     ylab("Slowdown") +
     xlab(NULL) +
     scale_fill_brewer(type="qual", palette=1,
-        limit=c("nimcopa_sfq", "nimbus_sfq", "bbr_sfq", "nobundler_fifo"),
+        limit=c("nimbus_sfq", "nimcopa_sfq", "nobundler_fifo"),
         labels=c("nimcopa_sfq" = "Bundler (Copa) ", "nimbus_sfq" = "Bundler (Nimbus) ", "bbr_sfq" = "Bundler (BBR) ", "nobundler_fifo" = "Baseline"),
     ) +
     theme_minimal() +
@@ -29,6 +29,6 @@ ggplot(df, aes(x=factor(Cross), y=Slowdown, fill=Alg)) +
         text = element_text(size=18, family="Lato", face="bold"),
     )
 @
-    \caption{Elastic cross traffic. \an{data has results across 1,2,3,4 elastic cross traffic flows. need to re-plot to show this} }
+    \caption{Elastic cross traffic. \an{explain this result??}}
     \label{fig:robust:cr-elastic}
 \end{figure}

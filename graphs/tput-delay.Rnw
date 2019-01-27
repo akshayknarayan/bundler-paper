@@ -1,0 +1,61 @@
+\begin{figure}
+    \centering
+    \begin{subfigure}[b]{0.5\textwidth}
+    <<eval:tput-delay:a,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
+library(ggplot2)
+library(showtext)
+font_add_google("Lato")
+showtext_auto()
+
+df <- read.csv("tputdelay.data", sep=" ")
+
+# get the one-flow case since that is what is comparable
+df <- df[df$Scenario == "96M50ms_1flows",]
+df$Throughput <- df$Throughput / 1e6
+
+ggplot(df, aes(x=Throughput, colour=Impl)) + 
+    stat_ecdf() + 
+    ylab("CDF") + xlab(NULL) +
+    facet_wrap(~Algorithm) +
+    scale_colour_brewer(type="qual", palette=2) +
+    theme_minimal() +
+    theme(
+        legend.position=c(0.85, 0.35),
+        legend.title=element_blank(),
+        legend.text=element_text(size=14, family="Lato", face="plain"),
+        text=element_text(size=18, family="Lato", face="bold")
+    )
+@
+    \caption{Throughput (in Mbit/s) Comparison.}\label{fig:eval:tputdelay:a}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+    <<eval:tput-delay:b,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
+library(ggplot2)
+library(showtext)
+font_add_google("Lato")
+showtext_auto()
+
+df <- read.csv("tputdelay.data", sep=" ")
+
+# get the one-flow case since that is what is comparable
+df <- df[df$Scenario == "96M50ms_1flows",]
+
+ggplot(df, aes(x=Delay, colour=Impl)) + 
+    stat_ecdf() + 
+    ylab("CDF") + xlab(NULL) +
+    facet_wrap(~Algorithm) +
+    scale_colour_brewer(type="qual", palette=2) +
+    theme_minimal() +
+    theme(
+        legend.position=c(0.85, 0.35),
+        legend.title=element_blank(),
+        legend.text=element_text(size=14, family="Lato", face="plain"),
+        text=element_text(size=18, family="Lato", face="bold")
+    )
+@
+    \caption{Delay (in ms) Comparison.}\label{fig:eval:tputdelay:b}
+    \end{subfigure}
+
+    \caption{\name can shape underlying Cubic flows so they assume the characteristics of \name's congestion control algorithm.}
+    \label{fig:eval:tputdelay}
+\end{figure}

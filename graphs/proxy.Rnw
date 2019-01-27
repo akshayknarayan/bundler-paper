@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-    <<eval:proxy,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,message=FALSE,fig.width='\\columnwidth',fig.height=2>>=
+    <<eval:proxy,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,message=FALSE,fig.width='\\columnwidth',fig.height=3>>=
 library(ggplot2)
 library(showtext)
 font_add_google("Lato")
@@ -13,8 +13,9 @@ bw <- 12e6
 df$ofct <- (df$Size / bw) + 0.05
 df$Slowdown <- df$Duration / df$ofct
 
-big <- df[df$Category == ">10000",]
-small <- df[df$Category == "<10000",]
+big <- df[df$Size > 1e6,]
+med <- df[df$Size <= 1e6 & df$Size > 1e4,]
+small <- df[df$Size <= 1e4,]
 
 ggplot(small, aes(
         x=Alg, fill=Alg, y=Slowdown
@@ -31,19 +32,20 @@ ggplot(small, aes(
         ),
         scale_name=NULL, name=NULL,
     ) +
-    coord_cartesian(ylim=c(1,1.5)) +
+    coord_cartesian(ylim=c(1,1.25)) +
     theme_minimal() + 
     theme(
         legend.position="top",
         legend.title=element_blank(),
-        text = element_text(size=18, family="Lato", face="bold"),
-        plot.title = element_text(size=18, family="Lato", face="bold", hjust = 0.5)
+        text = element_text(angle=0,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     ) +
-ggplot(big, aes(
+ggplot(med, aes(
         x=Alg, fill=Alg, y=Slowdown
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
-    ylab(NULL) + ggtitle("> 10KB") +
+    ylab(NULL) +
+    ggtitle("> 10KB") +
     scale_fill_brewer(type="qual", palette=2) +
     scale_x_discrete(
         limit=c("proxy_copa_sfq", "copa_sfq"),
@@ -58,8 +60,30 @@ ggplot(big, aes(
     theme(
         legend.position="top",
         legend.title=element_blank(),
-        text = element_text(size=18, family="Lato", face="bold"),
-        plot.title = element_text(size=18, family="Lato", face="bold", hjust = 0.5)
+        text = element_text(angle=0,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
+    ) +
+ggplot(big, aes(
+        x=Alg, fill=Alg, y=Slowdown
+    )) +
+    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
+    ylab(NULL) + ggtitle("> 1MB") +
+    scale_fill_brewer(type="qual", palette=2) +
+    scale_x_discrete(
+        limit=c("proxy_copa_sfq", "copa_sfq"),
+        labels=c(
+            "proxy_copa_sfq" = "Proxy",
+            "copa_sfq" = "Bundler"
+        ),
+        scale_name=NULL, name=NULL,
+    ) +
+    coord_cartesian(ylim=c(1,15)) +
+    theme_minimal() + 
+    theme(
+        legend.position="top",
+        legend.title=element_blank(),
+        text = element_text(angle=0,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     )
 @
     \caption{A proxy-based implementation of \name could yield further benefits to the long flows.}

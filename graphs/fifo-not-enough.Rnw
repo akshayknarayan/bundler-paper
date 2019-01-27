@@ -1,31 +1,89 @@
 \begin{figure}
     \centering
-    <<eval:fifo,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
+    <<eval:fifo,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
 library(ggplot2)
+library(showtext)
+font_add_google("Lato")
+showtext_auto()
 df <- read.csv("84Mbps-1bk-caidacdf.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
 bw <- 12e6
 df$ofct <- (df$Size / bw) + 0.05
-df$NormFct <- df$Duration / df$ofct
+df$Slowdown <- df$Duration / df$ofct
 
-ggplot(df, aes(x=Duration, linetype=Alg)) +
-    stat_ecdf() +
-    scale_x_continuous(
-        limits=c(0, 1),
-        name="Duration (sec)") +
-    scale_linetype_manual(
-        limit=c("copa_sfq", "copa_fifo", "nobundler_fifo"),
-        labels=c("copa_sfq" = "Bundler - SFQ", "copa_fifo" = "Bundler - FIFO", "nobundler_fifo" = "Baseline"),
-        values=c("copa_sfq" = "solid", "copa_fifo" = "dotted", "nobundler_fifo" = "twodash")
+big <- df[df$Size > 1e6,]
+med <- df[df$Size <= 1e6 & df$Size > 1e4,]
+small <- df[df$Size <= 1e4,]
+
+ggplot(small, aes(
+        x=Alg, fill=Alg, y=Slowdown
+    )) +
+    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
+    ylab("Slowdown") +
+    ggtitle("< 10KB") +
+    scale_fill_brewer(type="qual", palette=1) +
+    scale_x_discrete(
+        limit=c("copa_sfq", "copa_fifo"),
+        labels=c(
+            "copa_fifo" = "Bundler\n FIFO",
+            "copa_sfq" = "Bundler\n SFQ"
+        ),
+        scale_name=NULL, name=NULL,
     ) +
-    ylab("CDF") +
-    theme_minimal() +
+    coord_cartesian(ylim=c(1,4)) +
+    theme_minimal() + 
     theme(
-        legend.position=c(0.85, 0.3),
+        legend.position="top",
         legend.title=element_blank(),
-        legend.text=element_text(size=12)
+        text = element_text(angle=0,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
+    ) +
+ggplot(med, aes(
+        x=Alg, fill=Alg, y=Slowdown
+    )) +
+    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
+    ylab(NULL) +
+    ggtitle("> 10KB") +
+    scale_fill_brewer(type="qual", palette=1) +
+    scale_x_discrete(
+        limit=c("copa_sfq", "copa_fifo"),
+        labels=c(
+            "copa_fifo" = "Bundler\n FIFO",
+            "copa_sfq" = "Bundler\n SFQ"
+        ),
+        scale_name=NULL, name=NULL,
+    ) +
+    coord_cartesian(ylim=c(1,5)) +
+    theme_minimal() + 
+    theme(
+        legend.position="top",
+        legend.title=element_blank(),
+        text = element_text(angle=0,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
+    ) +
+ggplot(big, aes(
+        x=Alg, fill=Alg, y=Slowdown
+    )) +
+    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
+    ylab(NULL) + ggtitle("> 1MB") +
+    scale_fill_brewer(type="qual", palette=1) +
+    scale_x_discrete(
+        limit=c("copa_sfq", "copa_fifo"),
+        labels=c(
+            "copa_fifo" = "Bundler\n FIFO",
+            "copa_sfq" = "Bundler\n SFQ"
+        ),
+        scale_name=NULL, name=NULL,
+    ) +
+    coord_cartesian(ylim=c(1,15)) +
+    theme_minimal() + 
+    theme(
+        legend.position="top",
+        legend.title=element_blank(),
+        text = element_text(angle=0,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     )
 @
-    \caption{With FIFO scheduling, the benefits of \name are lost: FCTs become 18\% worse.}
+    \caption{With FIFO scheduling, the benefits of \name are lost: FCTs are 18\% worse in the median.}
     \label{fig:eval:fifo}
 \end{figure}

@@ -1,29 +1,100 @@
 \begin{figure}
     \centering
-    <<eval:cc,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2>>=
+    <<eval:cc,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
 library(ggplot2)
+library(showtext)
+font_add_google("Lato")
+showtext_auto()
+
 df <- read.csv("84Mbps-1bk-caidacdf.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
 bw <- 12e6
 df$ofct <- (df$Size / bw) + 0.05
-df$NormFct <- df$Duration / df$ofct
+df$Slowdown <- df$Duration / df$ofct
 
-ggplot(df, aes(x=Duration, linetype=Alg)) +
-    stat_ecdf() +
-    scale_x_continuous(
-        limits=c(0, 1),
-        name="Duration (sec)") +
-    scale_linetype_manual(
-        limit=c("copa_sfq", "nimbus_sfq", "bbr_sfq", "nobundler_fifo"),
-        labels=c("copa_sfq" = "Bundler - Copa", "nimbus_sfq" = "Bundler - Nimbus", "bbr_sfq" = "Bundler - BBR", "nobundler_fifo" = "Baseline"),
-        values=c("copa_sfq" = "solid", "nimbus_sfq" = "longdash", "bbr_sfq" = "dotted", "nobundler_fifo" = "twodash")
+big <- df[df$Size > 1e6,]
+med <- df[df$Size <= 1e6 & df$Size > 1e4,]
+small <- df[df$Size <= 1e4,]
+
+ggplot(small, aes(
+        x=Alg, fill=Alg, y=Slowdown
+    )) +
+    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
+    ylab("Slowdown") +
+    ggtitle("< 10KB") +
+    scale_fill_manual(
+        values=c(
+            "copa_sfq" = "#beaed4",
+            "nimbus_sfq" = "#7fc97f",
+            "bbr_sfq" = "#ffff99",
+            "nobundler_fifo" = "#fdc086"
+        )
     ) +
-    ylab("CDF") +
-    theme_minimal() +
+    scale_x_discrete(
+        limit=c("nimbus_sfq", "copa_sfq" , "bbr_sfq", "nobundler_fifo"),
+        labels=c("copa_sfq" = "Copa", "nimbus_sfq" = "Nimbus", "nobundler_fifo" = "Baseline", "bbr_sfq" = "BBR"),
+        scale_name=NULL, name=NULL,
+    ) +
+    coord_cartesian(ylim=c(1,4)) +
+    theme_minimal() + 
     theme(
-        legend.position=c(0.85, 0.3),
+        legend.position="top",
         legend.title=element_blank(),
-        legend.text=element_text(size=12)
+        text = element_text(angle=30,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
+    ) +
+ggplot(med, aes(
+        x=Alg, fill=Alg, y=Slowdown
+    )) +
+    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
+    ylab(NULL) +
+    ggtitle("> 10KB") +
+    scale_fill_manual(
+        values=c(
+            "copa_sfq" = "#beaed4",
+            "nimbus_sfq" = "#7fc97f",
+            "bbr_sfq" = "#ffff99",
+            "nobundler_fifo" = "#fdc086"
+        )
+    ) +
+    scale_x_discrete(
+        limit=c("nimbus_sfq", "copa_sfq" , "bbr_sfq", "nobundler_fifo"),
+        labels=c("copa_sfq" = "Copa", "nimbus_sfq" = "Nimbus", "nobundler_fifo" = "Baseline", "bbr_sfq" = "BBR"),
+        scale_name=NULL, name=NULL,
+    ) +
+    coord_cartesian(ylim=c(1,5)) +
+    theme_minimal() + 
+    theme(
+        legend.position="top",
+        legend.title=element_blank(),
+        text = element_text(angle=30,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
+    ) +
+ggplot(big, aes(
+        x=Alg, fill=Alg, y=Slowdown
+    )) +
+    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
+    ylab(NULL) + ggtitle("> 1MB") +
+    scale_fill_manual(
+        values=c(
+            "copa_sfq" = "#beaed4",
+            "nimbus_sfq" = "#7fc97f",
+            "bbr_sfq" = "#ffff99",
+            "nobundler_fifo" = "#fdc086"
+        )
+    ) +
+    scale_x_discrete(
+        limit=c("nimbus_sfq", "copa_sfq" , "bbr_sfq", "nobundler_fifo"),
+        labels=c("copa_sfq" = "Copa", "nimbus_sfq" = "Nimbus", "nobundler_fifo" = "Baseline", "bbr_sfq" = "BBR"),
+        scale_name=NULL, name=NULL,
+    ) +
+    coord_cartesian(ylim=c(1,15)) +
+    theme_minimal() + 
+    theme(
+        legend.position="top",
+        legend.title=element_blank(),
+        text = element_text(angle=30,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     )
 @
     \caption{Choosing a congestion control algorithm at \name remains important, just as it is at the end-host.}

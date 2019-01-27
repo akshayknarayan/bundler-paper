@@ -57,16 +57,6 @@ Upon receiving new RTT samples, the \inbox updates the effective rate, and updat
 \subsection{Congestion Control}\label{s:impl:cc}
 We use existing implementations of congestion control algorithms on CCP~\cite{ccp}, a platform for expressing congestion control algorithms in an asynchronous format; since CCP algorithms are already designed to receive network feedback asynchronously, they are a natural choice for our epoch-based measurement architecture. \radhika{this sentence should comer earlier, maybe when you first mention ``control-plane'' at the beginning of Sec 5, especially since 5.2 mentions CCP and libccp.}
 
-\input{cc-comparison}
-Indeed, \name successfully shapes the traffic of component flows to assume the characteristics of its congestion control algorithm.
-Figure~\ref{fig:cc:comparison} shows that for the three congestion control algorithms we evaluate, BBR~\cite{bbr}, Copa~\cite{copa}, and Nimbus~\cite{nimbus}, the throughput (in Figure~\ref{fig:cc:comparison:a}) and queueing delay (in Figure~\ref{fig:cc:comparison:b}) distributions over a one-minute experiment are similar to the same algorithm running at the end-host (\ie without \name).
-
-\an{maybe cut BBR entirely}
-\an{
-BBR's delay distribution suffers because of its interaction with the end-to-end congestion control. When BBR enters its \texttt{PROBE\_RTT} mode by setting a congestion window of $4$ packets, end-host implementations simply stop transmitting.
-However, with \name the end-host implementation is Cubic; it continues probing for bandwidth until the \inbox is forced to drop packets.
-}
-
 \an{move to earlier, maybe design:}
 It is important to note that traditional loss-based congestion controllers (\ie Cubic~\cite{cubic}, NewReno~\cite{newreno}) are poor choices for \name. 
 This is because they double-penalize component traffic for losses: first, in the reaction of the end-to-end congestion controller to the loss, and second in the reaction of the controller at \name.
