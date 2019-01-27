@@ -49,7 +49,7 @@ giving it a chance to observe any new measurements and change its behavior. (8) 
 the bundle rate or congestion window, the \inbox communicates this to the qdisc
 using \texttt{libnl}. Since the qdisc only supports rate enforcement, if the algorithm
 also uses a congestion window, the \inbox computes $\text{\emph{effective rate}} = \frac{\text{CWND}}{\text{RTT}}$
-and sets the rate of the qdisc to the minimum of the explicit rate and this effective rate\fc{only bbr uses this, if we cut bbr, cut this setion too?}.
+and sets the rate of the qdisc to the minimum of the explicit rate and this effective rate.
 Upon receiving new RTT samples, the \inbox updates the effective rate, and updates the qdisc rate if appropriate.
 
 \radhika{i liked this subsection!}
