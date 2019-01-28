@@ -2,9 +2,7 @@
 \begin{figure*}
     \centering
     \includegraphics[width=2\columnwidth]{img/bundler-diagram}
-    \caption{\name System Design
-    \fc{add a separate line showing the epoch update from inbox to outbox}
-    }\label{fig:bundler}
+    \caption{\name Implementation Overview.}\label{fig:bundler}
 \end{figure*}
 
 \cut{The prevalence of middleboxes today means that there are multiple options for implementing a \name \radhika{cut this line?}.}
@@ -51,6 +49,7 @@ using \texttt{libnl}. Since the qdisc only supports rate enforcement, if the alg
 also uses a congestion window, the \inbox computes $\text{\emph{effective rate}} = \frac{\text{CWND}}{\text{RTT}}$
 and sets the rate of the qdisc to the minimum of the explicit rate and this effective rate.
 Upon receiving new RTT samples, the \inbox updates the effective rate, and updates the qdisc rate if appropriate.
+Finally (9), if the \inbox changes the desired epoch length based on new measurements, it communicates this to the \outbox, also out-of-band.
 
 \radhika{i liked this subsection!}
 
