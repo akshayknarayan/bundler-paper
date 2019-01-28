@@ -33,7 +33,7 @@ A trivial strategy for inducing queuing at the \name, to effectively schedule th
 %Since component flows, running traditional congestion control algorithms, will probe for bandwidth until they experience loss, they build queues at the \name instead of at the bottleneck.
 %Since the \name now controls the queues corresponding to the traffic aggregate, it can schedule the packets of component flows. \radhika{needs fixing!}
 
-Figure~\ref{fig:design:shift-bottleneck} illustrates this method for a single flow traversing a bottleneck link in the network.\footnote{Details of the emulated network setup which resulted in the illustrated queue length time-series has been provided in \S\ref{s:eval}.} In Figure~\ref{fig:design:shift-bottleneck:before}, packets from the endhosts are queued in the network, while the queue at the edge is unoccupied. In contrast, in Figure~\ref{fig:design:shift-bottleneck:after}, the \name deployed at the edge (and implementated as described in \S\ref{s:impl}) is able maintain very low queuing at the bottleneck by using a congestion control algorithm to compute and send at the bottleneck rate.
+Figure~\ref{fig:design:shift-bottleneck} illustrates this method for a single flow traversing a bottleneck link in the network.\footnote{Details of the emulated network setup which resulted in the illustrated queue length time-series has been provided in \S\ref{s:eval}.} Without \name, packets from the endhosts are queued in the network, while the queue at the edge is unoccupied. In contrast, a \name deployed at the edge (and implemented as described in \S\ref{s:impl}) moves the queues to itself.
 
 %In the remainder of this section, we describe our design requirement and choices for \name. 
 \radhika{transition line}

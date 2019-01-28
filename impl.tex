@@ -1,5 +1,5 @@
 \section{Implementation}\label{s:impl}
-\begin{figure*}
+\begin{figure*}[t]
     \centering
     \includegraphics[width=2\columnwidth]{img/bundler-diagram}
     \caption{\name System Design
@@ -15,22 +15,6 @@ The control plane is responsible for computing measurements by combining feedbac
 The \outbox is simple and does not require a control plane; it simply must observe the packet stream, maintain a byte count, and send reports to the \inbox on observing epoch packets.
 The \outbox can, therefore, be implemented entirely in hardware if necessary \radhika{cut}.
 \radhika{We envision the control plane to be implemented in software, while the data plane can be implemented in...(the line you had before)}
-
-\subsection{Prototype}\label{s:impl:prototype}
-For our prototype, we implement the \inbox data-plane using Linux \texttt{tc}~\cite{tc}, and we limit our implementations of scheduling policy to those already widely available in the Linux kernel.
-We patch the TBF queueing discipline (qdisc)~\cite{tbf} to detect epoch boundary packets, transmit feedback to the control plane using a netlink socket, and make the internal scheduling policy configurable.
-We express scheduling policy by changing TBF's ``inner\_qdisc'' from the default FIFO to a work-conserving, scheduling qdisc: we support SFQ~\cite{sfq} and FQ-CoDel~\cite{fq-codel}.
-Our patch to the TBF qdisc comprises $112$ lines of C.
-\an{cut?}\an{Additionally, we remove one line in the rate update to disable re-filling the token bucket on rate changes to prevent a penalty for frequent rate updates\footnote{by default, TBF instantaneously re-fills the token bucket when the set rate changes. In our implementation, the \inbox sets the rate frequently, causing rate fluctuations. We therefore disable this functionality.}.}
-
-We implement the \inbox control plane to run in user-space in $1167$ lines of Rust. 
-It uses \texttt{libnl} to communicate with the qdisc, and \texttt{libccp}~\cite{ccp} to communicate with the congestion control algorithm via Unix-domain sockets.
-It maintains the congestion control state of each bundle, but does not maintain (or observe) per-flow state.
-\radhika{no. of LoC for \inbox dataplane?} \an{first paragraph of this section?}
-
-We implement the \outbox using \texttt{libpcap} in $188$ lines of Rust. It listens for packets on the interface, checks for epoch packets, and sends the reports to the \inbox. It must maintain per-bundle counters (described in \S\ref{s:impl:discovery}).
-
-\radhika{an experiment showing scalability of bundler implementation?}
 
 \subsection{\name Event Loop}\label{s:impl:loop}
 Figure~\ref{fig:bundler} overviews the operation of our \name implementation.
@@ -52,7 +36,23 @@ also uses a congestion window, the \inbox computes $\text{\emph{effective rate}}
 and sets the rate of the qdisc to the minimum of the explicit rate and this effective rate.
 Upon receiving new RTT samples, the \inbox updates the effective rate, and updates the qdisc rate if appropriate.
 
-\radhika{i liked this subsection!}
+%\radhika{i liked this subsection!}
+
+\subsection{Prototype}\label{s:impl:prototype}
+For our prototype, we implement the \inbox data-plane using Linux \texttt{tc}~\cite{tc}, and we limit our implementations of scheduling policy to those already widely available in the Linux kernel.
+We patch the TBF queueing discipline (qdisc)~\cite{tbf} to detect epoch boundary packets, transmit feedback to the control plane using a netlink socket, and make the internal scheduling policy configurable.
+We express scheduling policy by changing TBF's ``inner\_qdisc'' from the default FIFO to a work-conserving, scheduling qdisc: we support SFQ~\cite{sfq} and FQ-CoDel~\cite{fq-codel}.
+Our patch to the TBF qdisc comprises $112$ lines of C.
+\an{cut?}\an{Additionally, we remove one line in the rate update to disable re-filling the token bucket on rate changes to prevent a penalty for frequent rate updates\footnote{by default, TBF instantaneously re-fills the token bucket when the set rate changes. In our implementation, the \inbox sets the rate frequently, causing rate fluctuations. We therefore disable this functionality.}.}
+
+We implement the \inbox control plane to run in user-space in $1167$ lines of Rust. 
+It uses \texttt{libnl} to communicate with the qdisc, and \texttt{libccp}~\cite{ccp} to communicate with the congestion control algorithm via Unix-domain sockets.
+It maintains the congestion control state of each bundle, but does not maintain (or observe) per-flow state.
+\radhika{no. of LoC for \inbox dataplane?} \an{first paragraph of this section?}
+
+We implement the \outbox using \texttt{libpcap} in $188$ lines of Rust. It listens for packets on the interface, checks for epoch packets, and sends the reports to the \inbox. It must maintain per-bundle counters (described in \S\ref{s:impl:discovery}).
+
+\radhika{an experiment showing scalability of bundler implementation?}
 
 \subsection{Congestion Control}\label{s:impl:cc}
 We use existing implementations of congestion control algorithms on CCP~\cite{ccp}, a platform for expressing congestion control algorithms in an asynchronous format; since CCP algorithms are already designed to receive network feedback asynchronously, they are a natural choice for our epoch-based measurement architecture. \radhika{this sentence should comer earlier, maybe when you first mention ``control-plane'' at the beginning of Sec 5, especially since 5.2 mentions CCP and libccp.}
