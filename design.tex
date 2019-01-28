@@ -32,23 +32,28 @@ A \name must have the following properties:
 
 %The key insight of \name is that shifting the queues induced by a traffic bundle from the bottleneck to the sender's edge enables the sender to schedule the traffic within the bundle appropriately. Notice that \name can only shift (and therefore can only schedule) the component of the bottleneck queue which is self-inflicted by the traffic in a given bundle. 
 
-A trivial strategy for inducing queuing at the \name, for effective scheduling of traffic within a bundle, is to throttle the outgoing rate of the bundle to a small value. However, this would adversely affect the performance of the bundled traffic, by reducing its share of bandwidth in the network, and potentially leaving the bottleneck links under-utilized. Instead, the rate needs to be set such that bottleneck links remain fully utilized and the bundled traffic competes fairly with the cross traffic from other domains. 
+A trivial strategy for inducing queuing at the \name, to effectively schedule the flows within a bundle, is to throttle its outgoing rate. However, if this rate is made smaller than the bundle's share of bandwidth at the bottleneck link, it can adversely affect its throughput. Instead, the rate needs to be set such that bottleneck link sees a small queue while remaining fully utilized (and such that the bundled traffic competes fairly in the presence of cross traffic). We make a simple, but powerful, observation: some existing congestion control algorithms~\cite{nimbus, copa} perform exactly this calculation. Therefore, running such an algorithm at the \name to set a bundle's rate, would reduce its self-inflicted queueing at the in-network bottleneck, and shift it to the \name instead, without impacting the bundle's aggregate throughput. 
 %In order to prevent under-utilization of the bottleneck links in the network, \name needs to occupy . 
-We make a simple, but powerful, observation: congestion control algorithms perform exactly this calculation! 
-If we run an appropriate congestion control algorithm (as discussed later in \S\ref{s:design-choices}) at the \name, it will decide on a fair sending rate for each of its bundles as they compete with traffic from other domains. 
+%We make a simple, but powerful, observation: many congestion control algorithms perform exactly this calculation! 
+%If we run an appropriate congestion control algorithm (as discussed later in \S\ref{s:design-choices}) at the \name, it will decide on a fair sending rate for each of its bundles as they compete with traffic from other domains. 
 %Component flows of the bundles will then queue at the \name as their packets are sent at this rate.
 %Since component flows, running traditional congestion control algorithms, will probe for bandwidth until they experience loss, they build queues at the \name instead of at the bottleneck.
 %Since the \name now controls the queues corresponding to the traffic aggregate, it can schedule the packets of component flows. \radhika{needs fixing!}
 
-Figure~\ref{fig:design:shift-bottleneck} illustrates this method for a single flow traversing a bottleneck link in the network: in Figure~\ref{fig:design:shift-bottleneck:before}, packets from the end-hosts are queued in the network, while the queue at the edge is unoccupied. In contrast, the \name implementation in Figure~\ref{fig:design:shift-bottleneck:after} (described in \S\ref{s:impl}) maintains low queuing delays at the bottleneck queue by estimating and sending at the bottleneck rate. 
+Figure~\ref{fig:design:shift-bottleneck} illustrates this method for a single flow traversing a bottleneck link in the network.\footnote{Details of the emulated network setup which resulted in the illustrated queue length time-series has been provided in \S\ref{s:eval}.} In Figure~\ref{fig:design:shift-bottleneck:before}, packets from the endhosts are queued in the network, while the queue at the edge is unoccupied. In contrast, in Figure~\ref{fig:design:shift-bottleneck:after}, the \name deployed at the edge (and implementated as described in \S\ref{s:impl}) is able maintain very low queuing at the bottleneck by using a congestion control algorithm to compute and send at the bottleneck rate.
 
-The rest of this section discusses our design choices for \name (\S X), and ends with a note on the regime in which \name works the best (\S X)
+%In the remainder of this section, we describe our design requirement and choices for \name. 
+\radhika{transition line}
+
+\Para{Key properties} Our design choices, guided by our key requirement of \emph{deployment and management ease}, resulted in the following properties: (i) \name requires no changes to the endhosts or the routers in the network. (ii) \name maintains only per-bundle state, and no per-connection state (unless needed by a specific scheduling algorithm), allowing it to easily scale with growing number of connections in the bundle.  (iii) \radhika{some benefit of not changing packets} (iv) The only persistent state maintained in the \name is the network condition (in the form of congestion signals) which can be naturally re-aquired, thus making it crash-resistant. 
+
+%The rest of this section discusses our design choices for \name (\S X), and ends with a note on the regime in which \name works the best (\S X)
 
 
-\subsection{Design Choices}
-\label{s:design-choices}
+% \subsection{Design Choices}
+% \label{s:design-choices}
 
-Ease of deployability main guiding factor....
+% Ease of deployability main guiding factor....
 
 %\radhika{maybe add a subsection on choice of congestion control at \name. Potential outline below.}
 
@@ -168,17 +173,17 @@ Therefore, we select an out-of-band approach. Flows from the senders traverse th
 \fc{we do oob for these reasons which requires solving some challenges that we discuss in the next section}
 \radhika{also, shrink!}
 
-\subsection{Favorable Operation Regime for \name}
+% \subsection{Favorable Operation Regime for \name}
 
 
-Scheduling traffic within a \emph{bundle}, or a group of component flows for which some entity (the ``customer'') can unilaterally determine scheduling policy, is useful when the aggregate comprises enough offered load to congest the network. 
-In one case, the queue where this congestion occurs could reside in the same domain as the customer. 
-In this case, the customer can deploy scheduling policy in its own network. Examples of this case are private WAN networks~\cite{bwe, swan}.In the other case, the congested queue resides outside the customer's control. This scenario is where \name offers benefits.
+% Scheduling traffic within a \emph{bundle}, or a group of component flows for which some entity (the ``customer'') can unilaterally determine scheduling policy, is useful when the aggregate comprises enough offered load to congest the network. 
+% In one case, the queue where this congestion occurs could reside in the same domain as the customer. 
+% In this case, the customer can deploy scheduling policy in its own network. Examples of this case are private WAN networks~\cite{bwe, swan}.In the other case, the congested queue resides outside the customer's control. This scenario is where \name offers benefits.
 
-%We argue that lack of customer control over bottleneck links is prevalent; recent work has show that inter-domain congestion occurs frequently~\cite{inferring-interdomain-congestion}.
-%However, this case presents a challenge: 
+% %We argue that lack of customer control over bottleneck links is prevalent; recent work has show that inter-domain congestion occurs frequently~\cite{inferring-interdomain-congestion}.
+% %However, this case presents a challenge: 
 
-Of course, traffic from other customers may also compete for a share of this bottleneck link. Because \name acts to enforce the policy of a single customer, it naturally can control only that customer's traffic.
-Therefore, \name's scheduling benefits will come from the \emph{self-inflicted} queueing the component flows cause.
+% Of course, traffic from other customers may also compete for a share of this bottleneck link. Because \name acts to enforce the policy of a single customer, it naturally can control only that customer's traffic.
+% Therefore, \name's scheduling benefits will come from the \emph{self-inflicted} queueing the component flows cause.
 
 
