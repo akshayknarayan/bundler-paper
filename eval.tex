@@ -122,6 +122,7 @@ Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a 
 \input{fifo-not-enough}
 
 \subsection{Different Scheduling Policies}\label{s:eval:policies}
+\fc{Mention configuring scheduling here rather than in each paragraph}
 
 \input{lowdelays}
 \paragrapha{Achieving Low Delays}
@@ -129,12 +130,22 @@ Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a 
 In Figure~\ref{fig:eval:lowdelays}, we show that when we configure the scheduling policy at \inbox, we can change the RTTs component connections observe.
 Note that due to the effect discussed above, using FIFO scheduling results in higher delays than the baseline case.
 
+\input{video-exp}
 \paragrapha{Rate Stability}\label{s:eval:ratestable}
-
+\fc{come back to this}
+In Figure~\ref{fig:eval:video}, we run a persistently backlogged flow over a 24Mbps link and then
+after 3 seconds start a client attempting to stream a 4k video from a server that supports adaptive
+bitrate selection. Without \name (a), the video stream experiences highly variable throughput and 
+takes 30 seconds to converge to a fair share of the link. In contrast, with \name (b), the video
+stream converges to its fair share within 2 seconds and is able to maintain that rate for the
+entirety of the stream. This stability provides the best scenario for the ABR algorithm to select
+the highest possible bitrate and thus maximize QoE.
+\cut{
 \begin{outline}
     \1 \name can improve the rate stability of component traffic
     \1 One such class of traffic is video streaming
 \end{outline}
+}
 
 \paragrapha{Strict Priorities}
 

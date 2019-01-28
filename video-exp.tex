@@ -1,0 +1,13 @@
+\begin{figure}
+    \label{fig:eval:video}
+    \centering
+    \begin{subfigure}[b]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{figure/nobundle-4k-video}
+        \caption{Without \name}\label{fig:eval:video:nobundle}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{figure/bundle-4k-video}
+        \caption{With \name}\label{fig:eval:video:bundle}
+    \end{subfigure}
+    \caption{Without \name, the video traffic experiences highly variable throughput, which prevents the ABR algorithm from realizing it could sustain a higher bitrate. \name helps the video flow to quickly converge to the fair rate and stay there, which allows the ABR algorithm to choose the maximum sustainable bitrate.}
+\end{figure}
