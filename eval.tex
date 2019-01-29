@@ -130,6 +130,10 @@ Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a 
 In Figure~\ref{fig:eval:lowdelays}, we show that when we configure the scheduling policy at \inbox, we can change the RTTs component connections observe.
 Note that due to the effect discussed above, using FIFO scheduling results in higher delays than the \baseline case.
 
+\input{waterfall}
+\paragrapha{Fairness}\label{s:eval:waterfall}
+In Figure~\ref{fig:eval:waterfall}, we show that \name, when configured with a fair scheduler, achieves fair and stable rates compared to the \baseline.
+
 \input{video-exp}
 \paragrapha{Rate Stability}\label{s:eval:ratestable}
 \fc{come back to this}
