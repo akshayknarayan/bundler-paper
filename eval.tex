@@ -1,7 +1,7 @@
 \section{Evaluation}\label{s:eval}
 
-We have seen in Figure~\ref{fig:design:shift-bottleneck:after} that \name can move the network queues to the \inbox to gain control over scheduling. 
-We now evaluate the following aspects of our design.
+We have seen in Figure~\ref{fig:design:shift-bottleneck} that \name can move the network queues to the \inbox to gain control over scheduling. Given that this is possible, what benefits can \name achieve, and where do they come from?
+We now evaluate these aspects of our design. Specifically:
 \begin{enumerate}
     \item Where do \name's performance benefits come from? We discuss this in the context of improving the flow completion times of \name's component flows. (\S\ref{s:eval:fct})
     \item Can \name enforce different scheduling policies? (\S\ref{s:eval:policies})
