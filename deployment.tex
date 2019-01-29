@@ -33,7 +33,7 @@ Recent observations~\cite{fivecomps} \radhika{find other cites} do indicate a po
 
 \Para{Shared bottleneck in the middle of the network} \name can move queues (and therefore gain scheduling power) only from the bottleneck links in the middle of the network, i.e. between a \pair. So the next question that arises is, would a bottleneck occur in the middle of the network, in practice? We observe that this can indeed be the case under the following scenarios:
 
-\paragraphi{Rate Limiting} Bandwidth throttling by ISPs has become a common practice~\cite{isp-throttle-1, isp-throttle-2, isp-throttle-3}. Consequently, bottlenecks may arise at the peering links of different carrier networks (shown in red in Figure~\ref{fig:deploy:arch}), and particularly at the links connecting the last-hop ISPs to the receiving domains. Such bottlenecks can result in a queue build up due the flows in a single bundle, even in the 
+\paragraphi{Rate Limiting} Bandwidth throttling by ISPs has become a common practice~\cite{isp-throttle-1, isp-throttle-2, isp-throttle-3}. Consequently, bottlenecks may arise at the peering links of different carrier networks (shown in red in Figure~\ref{fig:deploy:arch}), and particularly at the links connecting the last-hop ISPs to the receiving domains. Such bottlenecks can result in a queue build up due the flows in a single bundle (which we call self-inflicted queueing), even in the absence of any other cross-traffic. 
 
 \paragraphi{When carriers do rate limiting}
 Find citations
