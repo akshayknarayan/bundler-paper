@@ -3,7 +3,7 @@
 In this section we describe how the \inbox and \outbox coordinate to compute accurate and robust
 measurements of the network conditions necessary as inputs to congestion control algorithms.
 
-Congestion control algorithms need only a small, common set of measurements~\cite{ccp-hotnets}. 
+Congestion control algorithms need only a small, common set of measurements~\cite{ccp}. 
 In particular, rate-based algorithms need only three measurements: 
 the sending rate, receiving rate, and path round-trip time.
 A significant complication is that for accurate measurements on RTT time-scales, we must calculate send and receive rates over the same set of packets~\cite{packettrain} \radhika{one line explanation on why}.
@@ -119,9 +119,9 @@ from the \outbox rather than attempting to reach consensus on individual epoch b
 
 \subsection{Choosing The Epoch Size}
 \label{s:measure:epoch}
-\input{micro-epoch}
+%\input{micro-epoch}
 
-How do we choose the number of packets that should be in each epoch?
+How do we choose the number of packets that should e in each epoch?
 In \S\ref{s:measure:marking}, we assumed a fixed epoch size of $N$ packets.
 However, in practice, the epoch must be a function of the bandwidth-delay product (BDP).
 Because epoch sizes are sampled from a uniform random variable, setting larger epoch sizes will increase the variance in the observed epoch sizes.
