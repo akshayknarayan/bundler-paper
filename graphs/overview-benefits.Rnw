@@ -27,7 +27,7 @@ ggplot(small, aes(
     scale_x_discrete(
         limit=c("nobundler_fifo", "copa_sfq", "nobundler_sfq"),
         labels=c(
-            "nobundler_fifo" = "Baseline",
+            "nobundler_fifo" = "Status Quo",
             "copa_sfq" = "Bundler", 
             "nobundler_sfq" = "Optimal"
         ),
@@ -51,7 +51,7 @@ ggplot(med, aes(
     scale_x_discrete(
         limit=c("nobundler_fifo", "copa_sfq", "nobundler_sfq"),
         labels=c(
-            "nobundler_fifo" = "Baseline",
+            "nobundler_fifo" = "Status Quo",
             "copa_sfq" = "Bundler", 
             "nobundler_sfq" = "Optimal"
         ),
@@ -74,7 +74,7 @@ ggplot(big, aes(
     scale_x_discrete(
         limit=c("nobundler_fifo", "copa_sfq", "nobundler_sfq"),
         labels=c(
-            "nobundler_fifo" = "Baseline",
+            "nobundler_fifo" = "Status Quo",
             "copa_sfq" = "Bundler", 
             "nobundler_sfq" = "Optimal"
         ),

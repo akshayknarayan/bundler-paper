@@ -5,6 +5,7 @@ library(ggplot2)
 library(showtext)
 font_add_google("Lato")
 showtext_auto()
+library(patchwork)
 
 df <- read.csv("84Mbps-1bk-caidacdf.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
@@ -32,7 +33,7 @@ ggplot(small, aes(
     ) +
     scale_x_discrete(
         limit=c("nimbus_sfq", "copa_sfq" , "bbr_sfq", "nobundler_fifo"),
-        labels=c("copa_sfq" = "Copa", "nimbus_sfq" = "Nimbus", "nobundler_fifo" = "Baseline", "bbr_sfq" = "BBR"),
+        labels=c("copa_sfq" = "Copa", "nimbus_sfq" = "Nimbus", "nobundler_fifo" = "Status Quo", "bbr_sfq" = "BBR"),
         scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,4)) +
@@ -59,7 +60,7 @@ ggplot(med, aes(
     ) +
     scale_x_discrete(
         limit=c("nimbus_sfq", "copa_sfq" , "bbr_sfq", "nobundler_fifo"),
-        labels=c("copa_sfq" = "Copa", "nimbus_sfq" = "Nimbus", "nobundler_fifo" = "Baseline", "bbr_sfq" = "BBR"),
+        labels=c("copa_sfq" = "Copa", "nimbus_sfq" = "Nimbus", "nobundler_fifo" = "Status Quo", "bbr_sfq" = "BBR"),
         scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,5)) +
@@ -85,7 +86,7 @@ ggplot(big, aes(
     ) +
     scale_x_discrete(
         limit=c("nimbus_sfq", "copa_sfq" , "bbr_sfq", "nobundler_fifo"),
-        labels=c("copa_sfq" = "Copa", "nimbus_sfq" = "Nimbus", "nobundler_fifo" = "Baseline", "bbr_sfq" = "BBR"),
+        labels=c("copa_sfq" = "Copa", "nimbus_sfq" = "Nimbus", "nobundler_fifo" = "Status Quo", "bbr_sfq" = "BBR"),
         scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,15)) +

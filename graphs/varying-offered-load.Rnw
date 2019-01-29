@@ -22,7 +22,7 @@ ggplot(df, aes(
     scale_x_discrete(
         limit=c("nobundler_fifo", "copa_sfq"),
         labels=c(
-            "nobundler_fifo" = "Baseline",
+            "nobundler_fifo" = "Status Quo",
             "copa_sfq" = "Bundler"
         ),
         scale_name=NULL, name=NULL

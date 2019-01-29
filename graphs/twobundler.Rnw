@@ -25,7 +25,7 @@ ggplot(df, aes(x=Bundle, y=Slowdown, fill=Alg)) +
     scale_fill_brewer(type="qual", palette=2,
         limit=c("copa_sfq", "nobundler_fifo"),
         labels=c(
-            "nobundler_fifo" = "Baseline",
+            "nobundler_fifo" = "Status Quo",
             "copa_sfq" = "Bundler"
         )
     ) +

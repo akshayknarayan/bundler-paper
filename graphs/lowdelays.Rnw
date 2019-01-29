@@ -17,7 +17,7 @@ ggplot(df, aes(x=rtt, colour=alg)) +
         limits=c("copa_fqcodel", "nobundler_fifo"),
         labels=c(
             "copa_fqcodel" = "Bundler (FQ-CoDel)", 
-            "nobundler_fifo" = "Baseline"
+            "nobundler_fifo" = "Status Quo"
         )
     ) +
     ylab("CDF") +
