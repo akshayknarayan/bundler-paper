@@ -1,4 +1,4 @@
-\section{\name Overview}\label{s:design}
+\section{Design Overview}\label{s:design}
 \begin{figure*}
     \centering
     \includegraphics[width=\textwidth]{img/shift-bottleneck-combined}
@@ -25,11 +25,11 @@ A \name must have the following properties:
 
 %The key insight of \name is that shifting the queues induced by a traffic bundle from the bottleneck to the sender's edge enables the sender to schedule the traffic within the bundle appropriately. Notice that \name can only shift (and therefore can only schedule) the component of the bottleneck queue which is self-inflicted by the traffic in a given bundle. 
 
-In this section, we first describe the key idea behind \name's design, followed by discussing our specific design choices. 
+In this section, we first describe our key insight for shifting the in-network queues to the \name, followed by discussing our specific design choices. 
 
-\subsection{Key Idea}
+\subsection{Key Insight}
 
-The central idea behind \name is to make it a choke-point of a customer's traffic, such that queuing occurs at the \name where the customer can effectively enforce different scheduling policies, instead of occurring at the links in the middle of the network over which it has no control.  
+%The central idea behind \name is to make it a choke-point of a customer's traffic, such that queuing occurs at the \name where the customer can effectively enforce different scheduling policies, instead of occurring at the links in the middle of the network over which it has no control.  
 
 A trivial strategy for inducing queuing at the \name is to throttle its outgoing rate. However, if this rate is made smaller than the bundle's share of bandwidth at the bottleneck link in the network, it can adversely affect its throughput. Instead, the rate needs to be set such that bottleneck link sees a small queue while remaining fully utilized (and the bundled traffic competes fairly in the presence of cross traffic). We make a simple, but powerful, observation: existing congestion control algorithms~\cite{nimbus, copa} perform exactly this calculation. Therefore, running such an algorithm at the \inbox of the \name to set a bundle's rate, would reduce its self-inflicted queue at the bottleneck, shifting it to the \inbox instead, without impacting aggregate throughput. Note that the individual endhosts would continue running their default congestion control algorithm, as before, which would now react to the queue build up and packet drops incurred at the \inbox.
 
