@@ -30,7 +30,7 @@ Suppose the desired epoch size, i.e. the number of packets between two epoch bou
 % More generally, any strategy that requires packet-level synchronization of the \inbox and
 % \outbox is untenable because any coordination would race the packets themselves \radhika{i don't quite understand the last sentence}.
 
-Our technique side-steps these issues by determining epoch boundaries using only the contents of a packet. More specifically, a packet is sampled as a boundary for an epoch of size $N$, if the hash over a subset of its fields is a multiple of $N$. Therefore, given sufficient entropy in the hashed values, an epoch boundary will be sampled, in expectation, once every $N$ packets.
+Our technique side-steps these issues by using the contents of a packet to sample epoch boundaries. More specifically, a packet is sampled as a boundary for an epoch of size $N$, if the hash over a subset of its fields is a multiple of $N$. Therefore, given sufficient entropy in the hashed values, an epoch boundary will, in expectation, be sampled once every $N$ packets.
 
 % The key idea of our methodology is that we can avoid such a synchronization problem by determining the boundary of an epoch using only information contained in the packet.
 % Specifically, we propose the following: a packet $p$ is an epoch boundary packet if the hash 
@@ -46,7 +46,11 @@ Our technique side-steps these issues by determining epoch boundaries using only
 % For $H$, we use the Fowler/Noll/Vo (FNV) hash function~\cite{fnv-hash}, a non-cryptographic fast hash function with a low collision rate. 
 
 
-\paragrapha{Choosing header subset} The header subset we use must remain constant as the packet traverses the network from the \inbox to the \outbox; otherwise, they would not be able to agree on epoch boundaries. This rules out simple approaches such as hashing the entire packet header, since the TTL field will decrement between the inbox and outbox.
+%\paragrapha{Choosing header subset} 
+The subset of packet fields over which the hash is computed must remain constant as a packet traverses the network from the \inbox to the \outbox, to ensure that the same set of packets is sampled at the two boxes. This rules out hashing the entire packet, since its TTL field would change with every hop. Using TCP sequence numbers, combined with the five-tuple flow identifier is tempting, but the resulting inability to distinguish retransmissions from original packets would cause spurious sampling, which would throw off the RTT measurements.  
+
+
+The header subset we use must remain constant as the packet traverses the network from the \inbox to the \outbox; otherwise, they would not be able to agree on epoch boundaries. This rules out simple approaches such as hashing the entire packet header, since the TTL field will decrement between the inbox and outbox.
 Even the 5-tuple of the packet may change, since the outbox may be behind a NAT.
 Using TCP sequence numbers is tempting, but retransmissions may confuse RTT measurements.
 
