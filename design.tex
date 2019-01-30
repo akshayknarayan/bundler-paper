@@ -1,4 +1,5 @@
 \section{Design Overview}\label{s:design}
+\fc{LOCK}
 \begin{figure*}
     \centering
     \includegraphics[width=\textwidth]{img/shift-bottleneck-combined}
@@ -25,7 +26,7 @@ A \name must have the following properties:
 
 %The key insight of \name is that shifting the queues induced by a traffic bundle from the bottleneck to the sender's edge enables the sender to schedule the traffic within the bundle appropriately. Notice that \name can only shift (and therefore can only schedule) the component of the bottleneck queue which is self-inflicted by the traffic in a given bundle. 
 
-In this section, we first describe our key insight for shifting the in-network queues to the \name, followed by discussing our specific design choices. 
+In this section, we first describe our key insight for shifting the in-network queues to the \name, and then explain our specific design choices. 
 
 \subsection{Key Insight}
 

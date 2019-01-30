@@ -43,15 +43,19 @@ The congestion controller must push packets into the bottleneck queue to compete
 As a result, we expect performance to be no better than the baseline.
 We indeed see this in Figure~\ref{fig:robust:cr-elastic}.
 
-\an{In this experiment, Copa, primarily a delay-based algorithm, cannot adequately detect the presence of competing elastic traffic and ``mode-switch'' to its competitive mode. When we modify Copa to use Nimbus's elasticity detector (Figure~\ref{fig:robust:cr-elastic:b}), its performance matches the baseline.}
+\an{In this experiment, Copa, primarily a delay-based algorithm, cannot adequately detect the presence of competing elastic traffic and ``mode-switch'' to its competitive mode. 
+%When we modify Copa to use Nimbus's elasticity detector (Figure~\ref{fig:robust:cr-elastic}), its performance matches the baseline.
+}
 
 \input{twobundler}
 \paragrapha{Competing Bundles} \name's improvements return once competing traffic starts using \name as well. In Figure~\ref{fig:robust:twobundler}, we show the performance of each of two bundles of traffic competing in the same bottleneck link. 
 Despite both bundles containing persistently backlogged flows, just as in Figure~\ref{fig:robust:cr-elastic}, here \name improves the FCTs of both bundles independently.
 
+\cut{
 \subsection{Path Characteristics}\label{s:robust:path}
 \an{should these go in ``microbenchmarks'' in \S\ref{s:measurement}?} \radhika{i don't think so}
 \begin{outline}
 \1 Different RTTs
 \1 Different bandwidths
 \end{outline}
+}

@@ -1,14 +1,41 @@
 \section{Discussion}\label{s:discussion}
 
+\paragrapha{Scheduling Across Bundles} Our \name design addresses scheduling \emph{within} a bundle. In our system, scheduling \emph{across} bundles is implicit; each bundle's congestion control algorithm will converge to an aggregate rate. 
+\name therefore inherits the well-studied strengths and weaknesses of using congestion control for rate allocation. 
+Just as users choose a congestion control algorithm as a point in the tradeoff space between aggressiveness and cooperation at the endhost, network operators deploying a \name would pick a configuration appropriate for their workload.
+
+In the case where a sending domain controls multiple bundles (to different destination domains) it could apply scheduling policies across them.
+
+\paragrapha{Bundle Initialization}\label{s:impl:discovery}
+In most cases, it is practical to statically configure a \pair, or use the DNS to globally coordinate \name coverage across IP subnets.
+It may also be possible to dynamically discover bundles. 
+In such an approach, the \inbox would first assume that all packets which traverse it are not bundled.
+When the \outbox received a packet, it could send feedback back along the same path, including its IP subnet.
+The \inbox would intercept these messages and configure the new bundle appropriately.
+%Different bundles may have different rates; recent work~\cite{carousel, eifel} has shown it is possible to implement such multi-rate, multi-scheduler datapaths efficiently.
+
+%The \outbox does one of two things for each potential epoch boundary packet:
+%\begin{enumerate}
+%    \item If the packet is in a known bundle, the \outbox sends a message to the corresponding \inbox.
+%    \item If the packet is not in a known bundle, the \outbox sends a message to the source IP address of that packet.
+%\end{enumerate}
+
+%The \inbox receives (and intercepts) the \outbox feedback.  
+%The \inbox at this time updates its flow tables to add the destination IP of the epoch boundary packet either to an existing bundle (in the case of a new flow from a previously-unseen source subnet joining a bundle) or instantiates a new bundle.
+%The \inbox then sends a response containing an epoch size to use and the hash of the epoch boundary packet.
+%The \outbox receives this message, initializes a byte counter for the newly discovered bundle, and remembers the \inbox IP address for future feedback. If there is no \inbox on the path, the packet will simply be ignored at its destination. 
+
+\paragrapha{Endhost Congestion Control}
+We note in \S\ref{s:eval:cc} that \name's performance changes when the endhost congestion control algorithm changes.
+If the endhost uses an aggressive delay-based congestion controller, it will not build queues at \name.
+If \emph{all} such endhosts deploy aggressive delay-control schemes --- an unlikely scenario, as endhost congestion control is difficult to evolve~\cite{quic} --- \name may have limited ability to reorder, and thus schedule packets.
+However, we note that using delay-based congestion controllers is an expression of a desired scheduling policy: namely, low packet delays.
+\name is thus compatible with this method of enforcing endhost scheduling policy, while additionally enabling isolation of the delay-sensitive traffic (via scheduling) from other flows.
+%
+\cut{
 \begin{outline}
-\1 Initializing pairing between bundler boxes.
-    \2 can be done via static config. if sending and receiving domains owned by same entity.
-    \2 large content providers can advertise their \inbox address, to which other local {\outbox}es can connect.
-\1 Endhosts running delay-based. 
-    \2 key reason: reduced queuing delay. hard to change all endhosts. \name does it for them.
 \1 Fair rate allocation across bundles (5 vs 10 flows in resepctive bundles) \radhika{if not already discussed in eval}
 \1 dealing with non shared bottleneck \radhika{if not already discussed in eval}
 \1 when bottleneck for individual flows is behind the \outbox in receiving domain: we still get benefits from reduced queuing delay. 
-\1 New scheduling policies 
-    \2 Application-aware \radhika{??}
 \end{outline}
+}

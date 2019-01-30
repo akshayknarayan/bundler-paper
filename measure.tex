@@ -47,77 +47,112 @@ Our technique side-steps these issues by using the contents of a packet to sampl
 
 
 %\paragrapha{Choosing header subset} 
-The subset of packet fields over which the hash is computed must remain constant as a packet traverses the network from the \inbox to the \outbox, to ensure that the same set of packets is sampled at the two boxes. This rules out hashing the entire packet, since its TTL field would change with every hop. Using TCP sequence numbers, combined with the five-tuple flow identifier is tempting, but the resulting inability to distinguish retransmissions from original packets would cause spurious sampling, which would throw off the RTT measurements.  
+The combination of selected packet fields, over which the hash is computed, can vary across different deployments. However, it must satisfy the following requirements: 
+
+\paragraphn{(i)} It must be the same at both the \inbox and the \outbox.
+
+\paragraphn{(ii)} Its values must remain unchanged as a packet traverses the network from the \inbox to the \outbox (so, for example, the TTL field must be excluded).\footnote{Certain fields, that are otherwise unchanged within the network, can be changed by the NATs deployed in a customer's domain. Ensuring that the \name boxes sit outside the NAT would allow them to make use of those fields.} 
+
+\paragraphn{(iii)} It differentiates individual \emph{packets} (and not just flows), to allow sufficient entropy in the computed hash values.
+%, which is required for achieving the desired epoch size.  
+
+\paragraphn{(iv)} It also differentiates a retransmitted packet from the original one, to prevent spurious samples from disrupting the measurements (so, for example, just using TCP sequence numbers combined with a flow's five tuple is insufficient).
+
+The combination of IP ID, source port and source IP (used by our prototype implementation in \ref{s:impl}) is one possible option that satisfies all of the above requirements.  
+
+%, to ensure that the same set of packets is sampled at the two boxes. 
+%This rules out hashing the entire packet, since its TTL field would change with every hop. Using TCP sequence numbers, combined with the five-tuple flow identifier is tempting. the resulting inability to distinguish TCP retransmissions from original packets would cause spurious sampling, which would throw off the RTT measurements.
 
 
-The header subset we use must remain constant as the packet traverses the network from the \inbox to the \outbox; otherwise, they would not be able to agree on epoch boundaries. This rules out simple approaches such as hashing the entire packet header, since the TTL field will decrement between the inbox and outbox.
-Even the 5-tuple of the packet may change, since the outbox may be behind a NAT.
-Using TCP sequence numbers is tempting, but retransmissions may confuse RTT measurements.
+% The header subset we use must remain constant as the packet traverses the network from the \inbox to the \outbox; otherwise, they would not be able to agree on epoch boundaries. This rules out simple approaches such as hashing the entire packet header, since the TTL field will decrement between the inbox and outbox.
+% Even the 5-tuple of the packet may change, since the outbox may be behind a NAT.
+% Using TCP sequence numbers is tempting, but retransmissions may confuse RTT measurements.
 
-We use the IP ID field, which will change every packet. This is an imperfect solution, as modern NATs may rewrite the IP ID field~\cite{ipid}.
-Ultimately, the appropriate field to use will depend on the specific deployment of \name. \fc{come back to this, mention boxes are not likely to be behind NATs therefore you can do ipid+5tuple }
+% We use the IP ID field, which will change every packet. This is an imperfect solution, as modern NATs may rewrite the IP ID field~\cite{ipid}.
+% Ultimately, the appropriate field to use will depend on the specific deployment of \name. \fc{come back to this, mention boxes are not likely to be behind NATs therefore you can do ipid+5tuple }
 
 \subsection{Computing Measurements}
 \label{s:measure:compute}
-\newcommand{\pone}{$p_{prev}$}
-\newcommand{\hpone}{$h(p_{prev})$}
-\newcommand{\sone}{$s_{prev}$}
-\newcommand{\rone}{$r_{prev}$}
-\newcommand{\ptwo}{$p_{curr}$}
-\newcommand{\hptwo}{$h(p_{curr})$}
-\newcommand{\stwo}{$s_{curr}$}
-\newcommand{\rtwo}{$r_{curr}$}
-\newcommand{\atwo}{$a_{curr}$}
-\newcommand{\sentone}{$sent_{prev}$}
-\newcommand{\recvdone}{$rcvd_{prev}$}
-\newcommand{\senttwo}{$sent_{curr}$}
-\newcommand{\recvdtwo}{$rcvd_{curr}$}
+\newcommand{\pone}{$p_{i-1}$}
+\newcommand{\hpone}{$h(p_{i-1})$}
+\newcommand{\sone}{$s_{i-1}$}
+\newcommand{\rone}{$r_{i-1}$}
+\newcommand{\ptwo}{$p_{i}$}
+\newcommand{\hptwo}{$h(p_{i})$}
+\newcommand{\stwo}{$s_{i}$}
+\newcommand{\rtwo}{$r_{i}$}
+\newcommand{\atwo}{$a_{i}$}
+\newcommand{\sentone}{$sent_{i-1}$}
+\newcommand{\recvdone}{$rcvd_{i-1}$}
+\newcommand{\senttwo}{$sent_{i}$}
+\newcommand{\recvdtwo}{$rcvd_{i}$}
 
 
 \begin{figure}
     \centering
     \includegraphics[width=\columnwidth]{img/rate-calculation}
     \caption{Example of epoch-based measurement calculation. Time moves from top to bottom.
-    Packets from flows in a bundle
-    pass through the \inbox and \outbox middleboxes on the way to their destination. When 
-    the inbox observes a packet header matching the boundary condition, it records it. When
-    the \outbox observes such a packet, it sends an out-of-band feedback message back to
-    the \inbox, which allows it to calculate the RTT and epochs.}\label{fig:ratecalc}
+    %Packets from flows in a bundle
+    %pass through the \inbox and \outbox middleboxes on the way to their destination. 
+    The \inbox records the packets that are identified as epoch boundaries. 
+    The \outbox, up on identifying such packets, sends a feedback message back to
+    the \inbox, which allows it to calculate the RTT and epochs.
+    %When the \inbox observes a packet header matching the boundary condition, it records it. 
+    %When the \outbox observes this packet, it sends an out-of-band feedback message back to
+    %the \inbox, which allows it to calculate the RTT and epochs.
+    }\label{fig:ratecalc}
 \end{figure}
 
-Given this method of marking epochs, we can now construct the procedure for computing measurements.
+Given our technique to identify epoch boundaries, it is straight-forward to measure congestion signals, as illustrated in Figure~\ref{fig:ratecalc}.
+%Given this method of marking epochs, we can now construct the procedure for computing measurements.
+For each bundle, the \inbox tracks the total number of bytes sent since the last epoch boundary, and upon identifying an epoch boundary packet, $p_i$, it records: (i) its hash, $h(p_i)$, (ii) the time when it is sent out, $t_{\text{sent}}(p_i)$, and (iii) the number of bytes sent since the last epoch boundary, $b_{sent}(p_i)$. 
+The \outbox, on the other hand, tracks only the total number of bytes received since the last epoch boundary. Upon the arrival and identification of the same epoch boundary packet, $p_i$, it immediately sends a feedback message to the \inbox containing similar information: (i) its hash, $h(p_i)$, (ii) the time when it was received (same as the current time), $t_{recv}(p_i)$, and (iii) the number of bytes received since the last epoch boundary, $b_{recv}(p_i)$. 
+%For each bundle, the \inbox keeps track of: (i) the total number of bytes sent since the last epoch, (ii)  
+% For a given bundle, the \inbox runs the aforementioned function on each packet $p$. Each time
+% the function returns true, the \inbox updates an epoch data structure that records the packet hash,
+% which we will call \hptwo\ for the current epoch, 
+% along with the current time \stwo\ and the \emph{cumulative} number of bytes sent so far, \senttwo. This structure
+% is sorted by the time the packet was sent, \stwo, but is indexable by the packet hash.
+% The \outbox runs the same function. Each time it observes a boundary packet, 
+% it immediately sends a feedback message to the \inbox containing the same information:
+% the packet hash \hptwo, the time at which it received the packet, \rtwo, and the cumulative number of bytes
+% \emph{received} up until that point. 
+% When the \inbox receives this feedback message at time \atwo, it looks up the
+% packet hash \hptwo\ in the epoch data structure, which represents the end of the current epoch,
+% along with the earliest boundary packet still in the data structure, \hpone\ which represents the start
+% of the current epoch. It now has all of the information necessary to calculate one sample of the following:
+Upon receiving the feedback message for the epoch boundary, $p_i$, the \inbox uses its recorded state to compute the RTT and the rates at which packets are sent and received as below, and then clears the recorded state of all boundary packets preceding $p_i$.
 
-For a given bundle, the \inbox runs the aforementioned function on each packet $p$. Each time
-the function returns true, the \inbox updates an epoch data structure that records the packet hash,
-which we will call \hptwo\ for the current epoch, 
-along with the current time \stwo\ and the \emph{cumulative} number of bytes sent so far, \senttwo. This structure
-is sorted by the time the packet was sent, \stwo, but is indexable by the packet hash.
+% \begin{subequations}
+%     \begin{align}
+%         RTT &= &now - s_2 \\
+%         \cut{
+%         send\_epoch\_duration &= &s_2 - s_1\\
+%         recv\_epoch\_duration &= &r_2 - r_1\\
+%         bytes\_sent\_in\_epoch &= &bytes\_sent\ at\ s_2 &\ - \\
+%                                     &&bytes\_sent\ at\ s_1&\notag\\
+%         bytes\_rcvd\_in\_epoch &= &bytes\_rcvd\ at\ r_2 &\ - \\
+%                                 &&bytes\_rcvd\ at\ r_1\notag\\
+%         send\_rate &= &\frac{bytes\_sent\_in\_epoch}{send\_epoch\_duration}\\
+%         recv\_rate &= &\frac{bytes\_rcvd\_in\_epoch}{recv\_epoch\_duration}
+%         }
+%         send\_rate &= &\frac{bytes\_sent\ at\ s_2 - bytes\_sent\ at\ s_1}{s_2-s_1}\\
+%         recv\_rate &= &\frac{bytes\_rcvd\ at\ r_2 - bytes\_rcvd\ at\ r_1}{r_2-r_1}
+%     \end{align}
+% \end{subequations}
 
-The \outbox runs the same function. Each time it observes a boundary packet, 
-it immediately sends a feedback message to the \inbox containing the same information:
-the packet hash \hptwo, the time at which it received the packet, \rtwo, and the cumulative number of bytes
-\emph{received} up until that point. When the \inbox receives this feedback message at time \atwo, it looks up the
-packet hash \hptwo\ in the epoch data structure, which represents the end of the current epoch,
-along with the earliest boundary packet still in the data structure, \hpone\ which represents the start
-of the current epoch. It now has all of the information necessary to calculate one sample of the following:
 \begin{subequations}
     \begin{align}
-        RTT &= &now - s_2 \\
-        send\_epoch\_duration &= &s_2 - s_1\\
-        recv\_epoch\_duration &= &r_2 - r_1\\
-        bytes\_sent\_in\_epoch &= &bytes\_sent\ at\ s_2 &\ - \\
-                                    &&bytes\_sent\ at\ s_1&\notag\\
-        bytes\_rcvd\_in\_epoch &= &bytes\_rcvd\ at\ r_2 &\ - \\
-                                &&bytes\_rcvd\ at\ r_1\notag\\
-        send\_rate &= &\frac{bytes\_sent\_in\_epoch}{send\_epoch\_duration}\\
-        recv\_rate &= &\frac{bytes\_rcvd\_in\_epoch}{recv\_epoch\_duration}
+        RTT &= &now -  t_{sent}(p_i)\\
+        send\_rate &= &\frac{b_{sent}(p_i) - b_{sent}(p_{i-1})}{t_{sent}(p_i)-t_{sent}(p_{i-1})}\\
+        recv\_rate &= &\frac{b_{recv}(p_i) - b_{recv}(p_{i-1})}{t_{recv}(p_i)-t_{recv}(p_{i-1})}
     \end{align}
 \end{subequations}
 %(Note $bytes\_rcvd\_in\_epoch$ can also be interpreted as the number of bytes
 %acknowledged for that epoch, which is a common signal used by many conestion
 %control algorithms.)
-Finally, it clears all marked packets preceding \ptwo\ leaving \ptwo\
-to be the start of the next epoch.
+%\radhika{fix brackets!}
+%leaving \ptwo\ to be the start of the next epoch.
 
 \subsection{Fault Tolerance}
 \label{s:measure:loss}
