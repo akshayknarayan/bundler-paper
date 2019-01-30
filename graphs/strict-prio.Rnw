@@ -1,0 +1,37 @@
+\begin{figure}
+    \centering
+    <<robust:strict-prio,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
+library(ggplot2)
+library(showtext)
+font_add_google("Lato")
+showtext_auto()
+df <- read.csv("strictprio.data", sep=" ")
+df$Duration <- df$Duration.usec. / 1e6
+df$ofct <- (df$Size / 12e6) + 0.05
+df$Slowdown <- df$Duration / df$ofct
+df <- df[df$Alg == "copa_prio" | df$Alg == "nobundler_fifo",]
+
+ggplot(df, aes(x=Alg, y=Slowdown, fill=Alg)) +
+    geom_boxplot(outlier.shape=NA) +
+    scale_x_discrete(
+        limit=c("copa_prio", "nobundler_fifo"),
+        labels=c(
+            "copa_prio" = "Bundler (Priority)",
+            "nobundler_fifo" = "Status Quo"
+        ),
+        scale_name=NULL, name=NULL
+    ) +
+    scale_fill_brewer(type="qual", palette=2) + guides(fill=FALSE) +
+    ylab("Slowdown") +
+    coord_cartesian(ylim=c(1,4)) +
+    theme_minimal() +
+    theme(
+        legend.position="top",
+        legend.title=element_blank(),
+        text = element_text(size=18, family="Lato", face="bold"),
+        plot.title = element_text(size=18, family="Lato", face="bold", hjust = 0.5)
+    )
+@
+    \caption{Strict prioritization. Prioritizing one class of web requests reduces its FCTs significantly.}
+    \label{fig:eval:strict-prio}
+\end{figure}
