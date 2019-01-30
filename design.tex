@@ -31,7 +31,7 @@ In this section, we first describe our key insight for shifting the in-network q
 
 %The central idea behind \name is to make it a choke-point of a customer's traffic, such that queuing occurs at the \name where the customer can effectively enforce different scheduling policies, instead of occurring at the links in the middle of the network over which it has no control.  
 
-A trivial strategy for inducing queuing at the \name is to throttle its outgoing rate. However, if this rate is made smaller than the bundle's share of bandwidth at the bottleneck link in the network, it can adversely affect its throughput. Instead, the rate needs to be set such that bottleneck link sees a small queue while remaining fully utilized (and the bundled traffic competes fairly in the presence of cross traffic). We make a simple, but powerful, observation: existing congestion control algorithms~\cite{nimbus, copa} perform exactly this calculation. Therefore, running such an algorithm at the \inbox of the \name to set a bundle's rate, would reduce its self-inflicted queue at the bottleneck, shifting it to the \inbox instead, without impacting aggregate throughput. Note that the individual endhosts would continue running their default congestion control algorithm, as before, which would now react to the queue build up and packet drops incurred at the \inbox.
+A trivial strategy for inducing queuing at the \name is to throttle its outgoing rate. However, if this rate is made smaller than the bundle's share of bandwidth at the bottleneck link in the network, it can adversely affect its throughput. Instead, the rate needs to be set such that bottleneck link sees a small queue while remaining fully utilized (and the bundled traffic competes fairly in the presence of cross traffic). We make a simple, but powerful, observation: existing congestion control algorithms~\cite{nimbus, copa} perform exactly this calculation. Therefore, running such an algorithm at the \inbox of the \name to set a bundle's rate, would reduce its self-inflicted queue at the bottleneck, shifting it to the \inbox instead, without impacting aggregate throughput. Note that the individual endhosts would continue running their default congestion control algorithm~\cite{cubic, bbr}, as before, which would now react to the queue build up and packet drops incurred at the \inbox.
 
 %In order to prevent under-utilization of the bottleneck links in the network, \name needs to occupy . 
 %We make a simple, but powerful, observation: many congestion control algorithms perform exactly this calculation! 
@@ -60,7 +60,7 @@ Figure~\ref{fig:design:shift-bottleneck} illustrates this method for a single fl
 %\radhika{maybe add a subsection on choice of congestion control at \name. Potential outline below.}
 \subsection{Design Choices}
 
-Guided by our key requirement of \emph{deployment and management ease}, our design choices resulted in the following nice properties: 
+Our design choices, guided by our requirement of \emph{deployment and management ease}, resulted in the following features:
 
 \paragraphn{(i)} \name requires no changes to the endhosts or to the routers in the network, making it independently deployable. 
 
@@ -71,13 +71,13 @@ Guided by our key requirement of \emph{deployment and management ease}, our desi
 \paragraphn{(iv)} \name makes no changes to the headers of the packets traversing it, ensuring no change in compatibility with other networking components in a packet's path~\cite{mboxbadness, ipoptions, quic}.
 
 \vspace{5pt}
-\noindent We discuss our design choices in more details below. 
+\noindent We discuss specific design choices in more details below. 
 
 \Para{Choice of congestion control algorithm} 
 %The congestion control algorithm that \name runs at the \inbox must satisfy the following constraints: 
 \name's congestion control algorithm must satisfy the following requirements: 
 
-\paragraphi{(1) Congestion signal} Packet losses cannot be used as congestion signals, since that would require building up a queue at the bottleneck until a packet drop occurs, thus defeating our primary purpose. Furthermore, it would react badly with the (unmodified) endhosts that commonly deploy loss-based algorithms~\cite{cubic}, by causing the rate to be reduced twice for every packet drop. An ECN-based algorithm is also not an option with unmodified network routers. This makes the round-trip time (RTT), along with the sending and receiving rates of packets, the ideal choice.
+\paragraphi{(1) Congestion signal} Packet losses cannot be used as congestion signals, since that would require building up a queue at the bottleneck until a packet drop occurs, thus defeating our primary purpose. Furthermore, it would react badly with the (unmodified) endhosts that commonly deploy loss-based algorithms~\cite{cubic}, by causing the sending rate to be reduced twice for every packet drop. An ECN-based algorithm is also not an option with unmodified network routers. This makes the round-trip time (RTT), along with the sending and receiving rates of packets, the ideal choice.
 
 \paragraphi{(2) Detection of buffer-filling cross-traffic} It is well-known that RTT-based schemes compete poorly with buffer-filling loss-based schemes~\cite{nimbus, copa, timely}. Therefore, \name's congestion control must have a mechanism to detect the presence of a competing buffer-filling flow, and the ability to switch over to an equally aggressive algorithm, to avoid impacting throughput. 
 

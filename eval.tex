@@ -28,48 +28,6 @@ We use multiple server processes to emulate multiple machines behind the \name a
 Each CDF shown in this section is comprised of $100,000$ requests sampled from this distribution, across $10$ runs each with a different random seed.
 In addition, there is a persistently backlogged connection inside the traffic aggregate that models a background large data transfer which would normally fill the bottleneck queue.
 %
-\cut{
-\radhika{Another way to structure the the rest of this section: /*}
-\begin{itemize}
-    \item Subsection: ``Understanding \name's performance benefits''. 
-    \begin{itemize}
-        \item (This will cover most of what you have under ``Flow Completion Time'')
-        \item Experiment setup (what you currently have)
-        \item Result: (Figure~\ref{fig:eval:best})
-        \item Explaining why
-        \begin{itemize}
-            \item Effective bottleneck shifting: a graph that shows queuing delay at mahimahi without bundler, and graphs that show the queuing delay at mahimahi and inbox when using bundler. \an{(this is figure~\ref{fig:design:shift-bottleneck}, should we repeat it?)}
-            \item Scheduling is necessary: comparison with FIFO -- what you have now
-        \end{itemize}
-        \item Comparison with ideal case: mahimahi link does sfq. Show we are not too bad (is it possible to get this result?). \an{will try, but it may not be possible to run sfq in mahimahi}
-    \end{itemize}
-    \item Subsection: ``Using \name to enforce different policies''.
-    
-    \begin{itemize}
-        \item We use same set-up as before, but different scheduling and queue management polcies at the \name to meet different requirements. 
-        \item Improved FCTs using FQ: Helps short flows achieve a smaller FCT by reducing the queuing delay that they see. Results already shown in previous subsection. 
-        \item Smaller Queuing Delay using AQM: Helps keep queuing delay small. Present another FCT graph like Figure~\ref{fig:eval:best}, but with FQ-CoDel or PI. Also present a graph which shows the CDF of per-packet delays (if possible). Also, if possible (and if space), a comparison with properly configured and badly configured AQM scheme in the mahimahi link.
-        \item Improved Rate Stability 
-        \item Prioritizing interactive traffic
-        \item anything else? 
-    \end{itemize}
-    \item Subsection: Robustness analysis
-    \begin{itemize}
-        \item We vary different aspects of the experiment setup detailed earlier to see how they impact our key results. We use SFQ as the scheduling policy in the bundler, but similar trends would hold for other policies (?). 
-        \item Impact of congestion control (what you have now) [might also be fine if it goes in the previous subsection]
-        \item Impact of offered load (what you have now)
-        \item Impact of path characteristics
-        \item Alternative design choices (TCP Proxy)
-        \item Impact of cross traffic
-        \begin{itemize}
-            \item Cross traffic in it's own bundle
-            \item Cross traffic not using bundle
-        \end{itemize}
-    \end{itemize}
-\end{itemize}
-\radhika{*/}
-}
-%
 %\radhika{another title for this section, or some preceding explanation on what each section is about}
 %
 %\cut{Note that it is important to use many server processes so that the effect of head-of-line blocking on the client requests is limited.
@@ -131,9 +89,10 @@ In Figure~\ref{fig:eval:lowdelays}, we show that when we configure the schedulin
 Note that due to the effect discussed above, using FIFO scheduling results in higher delays than the \baseline case.
 
 \input{waterfall}
-\paragrapha{Fairness}\label{s:eval:waterfall}
+\paragrapha{Rate Fairness and Stability}\label{s:eval:waterfall}
 In Figure~\ref{fig:eval:waterfall}, we show that \name, when configured with a fair scheduler, achieves fair and stable rates compared to the \baseline.
 
+\cut{
 \input{video-exp}
 \paragrapha{Rate Stability}\label{s:eval:ratestable}
 \fc{come back to this}
@@ -144,11 +103,6 @@ takes 30 seconds to converge to a fair share of the link. In contrast, with \nam
 stream converges to its fair share within 2 seconds and is able to maintain that rate for the
 entirety of the stream. This stability provides the best scenario for the ABR algorithm to select
 the highest possible bitrate and thus maximize QoE.
-\cut{
-\begin{outline}
-    \1 \name can improve the rate stability of component traffic
-    \1 One such class of traffic is video streaming
-\end{outline}
 }
 
 \paragrapha{Strict Priorities}
@@ -182,3 +136,4 @@ At 87.5\% load, even without the load offered by a persistently backlogged conne
 As the offered load decreases to 50\%, the benefit provided by \name decreases as well -- to \an{amount} at the 75th percentile.
 
 \input{varying-offered-load}
+t 

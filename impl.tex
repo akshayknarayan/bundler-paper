@@ -47,9 +47,11 @@ Our patch to the TBF qdisc comprises $112$ lines of C.
 We implement the \inbox control plane to run in user-space in $1167$ lines of Rust. 
 It uses \texttt{libnl} to communicate with the qdisc, and \texttt{libccp}~\cite{ccp} to communicate with the congestion control algorithm via Unix-domain sockets.
 It maintains the congestion control state of each bundle, but does not maintain (or observe) per-flow state.
-\radhika{no. of LoC for \inbox dataplane?} \an{first paragraph of this section?}
+%\radhika{no. of LoC for \inbox dataplane?} \an{first paragraph of this section?}
 
 We implement the \outbox using \texttt{libpcap} in $188$ lines of Rust. It listens for packets on the interface, checks for epoch packets, and sends the reports to the \inbox. It must maintain per-bundle counters (described in \S\ref{s:impl:discovery}).
+
+\radhika{We use the Fowler/Noll/Vo (FNV) hash function~\cite{fnv-hash}, a non-cryptographic fast hash function with a low collision rate.}
 
 \radhika{an experiment showing scalability of bundler implementation?}
 
@@ -90,22 +92,22 @@ Then, using the elasticity detection mechanism described in prior work~\cite{nim
 
 \an{move the elastic cross traffic comparison results here?} \radhika{no, add a forward pointer}
 
-\subsection{Bundle Initialization}\label{s:impl:discovery}
+% \subsection{Bundle Initialization}\label{s:impl:discovery}
 
-One practical concern in a \name deployment is how the \inbox and \outbox discover each others' presence. Of course, it is always possible to statically configure an \inbox and \outbox; however, this may be impractical as they reside in different networks.
-Rather, we propose a bootstrapping mechanism wherein \name forms aggregates in response to observed packets.
-This mechanism classifies packets traversing the \inbox and \outbox as either non-bundled (should be transmitted immediately and not paced in the qdisc) or bundled in a given qdisc. Different bundles may have different rates; recent work~\cite{carousel, eifel} has shown it is possible to implement such multi-rate, multi-scheduler datapaths efficiently.
+% One practical concern in a \name deployment is how the \inbox and \outbox discover each others' presence. Of course, it is always possible to statically configure an \inbox and \outbox; however, this may be impractical as they reside in different networks.
+% Rather, we propose a bootstrapping mechanism wherein \name forms aggregates in response to observed packets.
+% This mechanism classifies packets traversing the \inbox and \outbox as either non-bundled (should be transmitted immediately and not paced in the qdisc) or bundled in a given qdisc. Different bundles may have different rates; recent work~\cite{carousel, eifel} has shown it is possible to implement such multi-rate, multi-scheduler datapaths efficiently.
 
-The \inbox first assumes that all packets which traverse it are not bundled.
-The \outbox does one of two things for each potential epoch boundary packet:
-\begin{enumerate}
-    \item If the packet is in a known bundle, the \outbox sends a message to the corresponding \inbox.
-    \item If the packet is not in a known bundle, the \outbox sends a message to the source IP address of that packet.
-\end{enumerate}
+% The \inbox first assumes that all packets which traverse it are not bundled.
+% The \outbox does one of two things for each potential epoch boundary packet:
+% \begin{enumerate}
+%     \item If the packet is in a known bundle, the \outbox sends a message to the corresponding \inbox.
+%     \item If the packet is not in a known bundle, the \outbox sends a message to the source IP address of that packet.
+% \end{enumerate}
 
-The \inbox receives (and intercepts) the \outbox feedback.  
-The \inbox at this time updates its flow tables to add the destination IP of the epoch boundary packet either to an existing bundle (in the case of a new flow from a previously-unseen source subnet joining a bundle) or instantiates a new bundle.
-The \inbox then sends a response containing an epoch size to use and the hash of the epoch boundary packet.
-The \outbox receives this message, initializes a byte counter for the newly discovered bundle, and remembers the \inbox IP address for future feedback. If there is no \inbox on the path, the packet will simply be ignored at its destination. 
+% The \inbox receives (and intercepts) the \outbox feedback.  
+% The \inbox at this time updates its flow tables to add the destination IP of the epoch boundary packet either to an existing bundle (in the case of a new flow from a previously-unseen source subnet joining a bundle) or instantiates a new bundle.
+% The \inbox then sends a response containing an epoch size to use and the hash of the epoch boundary packet.
+% The \outbox receives this message, initializes a byte counter for the newly discovered bundle, and remembers the \inbox IP address for future feedback. If there is no \inbox on the path, the packet will simply be ignored at its destination. 
 
 

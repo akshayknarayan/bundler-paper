@@ -1,7 +1,14 @@
 \section{Discussion}\label{s:discussion}
 
 \begin{outline}
-\1 New scheduling policies
-    \2 Application-aware
-\1 ECMP (non-shared bottleneck)
+\1 Initializing pairing between bundler boxes.
+    \2 can be done via static config. if sending and receiving domains owned by same entity.
+    \2 large content providers can advertise their \inbox address, to which other local {\outbox}es can connect.
+\1 Endhosts running delay-based. 
+    \2 key reason: reduced queuing delay. hard to change all endhosts. \name does it for them.
+\1 Fair rate allocation across bundles (5 vs 10 flows in resepctive bundles) \radhika{if not already discussed in eval}
+\1 dealing with non shared bottleneck \radhika{if not already discussed in eval}
+\1 when bottleneck for individual flows is behind the \outbox in receiving domain: we still get benefits from reduced queuing delay. 
+\1 New scheduling policies 
+    \2 Application-aware \radhika{??}
 \end{outline}

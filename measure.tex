@@ -1,35 +1,50 @@
-\section{Measurement Strategy}\label{s:measurement}
+\section{Measuring Congestion}\label{s:measurement}
 
-In this section we describe how the \inbox and \outbox coordinate to compute accurate and robust
-measurements of the network conditions necessary as inputs to congestion control algorithms.
+% In this section we describe how the \inbox and \outbox coordinate to compute accurate and robust
+% measurements of the network conditions necessary as inputs to congestion control algorithms.
 
-Congestion control algorithms need only a small, common set of measurements~\cite{ccp}. 
-In particular, rate-based algorithms need only three measurements: 
-the sending rate, receiving rate, and path round-trip time.
-A significant complication is that for accurate measurements on RTT time-scales, we must calculate send and receive rates over the same set of packets~\cite{packettrain} \radhika{one line explanation on why}.
-This requirement drives the design of our measurement methodology.
+% Congestion control algorithms need only a small, common set of measurements~\cite{ccp}. 
+% In particular, rate-based algorithms need only three measurements: 
+% the sending rate, receiving rate, and path round-trip time.
+% A significant complication is that for accurate measurements on RTT time-scales, we must calculate send and receive rates over the same set of packets~\cite{packettrain} \radhika{one line explanation on why}.
+% This requirement drives the design of our measurement methodology.
 
-\subsection{Determining Epoch Boundary Packets}
+As discussed in the previous section, \name measures network congestion signals (RTT and packet arrival rates) over the duration (or \emph{epochs}) between infrequently sampled packets (that we call \emph{epoch boundary packets}). In this section, we describe our strategy for independently sampling the same set of epoch boundary packets at the paired \name boxes, and for measuring congestion signals using them. We end with an evaluation showing the accuracy of our approach.
+
+\subsection{Determining Epoch Boundaries}
 \label{s:measure:marking}
-Consider the stream of packets $P_B$ from all flows in a bundle $B$ in the order they leave the \inbox after scheduling.
-The \inbox and \outbox need to know how to divide this stream into sets 
-of packets --- which we call \emph{epochs} --- over which they can calculate measurements.
-For now, we make the simplifying assumption that packets arrive at the \outbox in the same order they 
-left the \inbox\footnote{We address re-ordering in Section~\ref{s:measure:limitation:reorder}}.
-This simplifies the problem into deciding, for all given packets in $P_B$, whether it is an epoch boundary packet at which the current epoch should end and the next should begin. 
-Suppose for now that we wish to have a fixed epoch size of $N$ packets.
-A naive approach would be to mark the boundary between epochs every $N$ packets. 
-However, this strategy is brittle; a single lost packet would de-synchronize the boxes' views of the epochs. 
-More generally, any strategy that requires packet-level synchronization of the \inbox and
-\outbox is untenable because any coordination would race the packets themselves \radhika{i don't quite understand the last sentence}.
 
-The key idea of our methodology is that we can avoid such a synchronization problem by determining the boundary of an epoch using only information contained in the packet.
-Specifically, we propose the following: a packet $p$ is an epoch boundary packet if the hash 
-of some subset of its header (see below) modulo the epoch size $N$ is equal to 0, that is:
-$$B(p,N) \coloneqq H(p)\ \text{mod}\ N == 0$$
-\radhika{equation not super clear}
-Thus, an epoch boundary packet will occur (in expectation) once every $N$ packets.
-For $H$, we use the Fowler/Noll/Vo (FNV) hash function~\cite{fnv-hash}, a non-cryptographic fast hash function with a low collision rate. 
+%We now detail our technique for determining the epoch boundary packets at the \inbox and the \outbox, under the assumption that packets leave the \inbox and arrive at the \outbox in the same order.\footnote{We address re-ordering later in Section~\ref{s:measure:limitation:reorder}.} 
+
+Suppose the desired epoch size, i.e. the number of packets between two epoch boundary packets, is $N$. A naive strategy for determining common epoch boundaries at the \inbox and the \outbox, without making any changes to the packet headers, would be to simply sample a packet after every $N$ packets. However, any packet loss in the network would then desynchronize the sampling at the two boxes.\footnote{This can be avoided if the \outbox detects and accounts for packet losses, but that would require maintaining expensive per-flow state, which would break our design's simplicity and scalability.} Another alternative is for the \inbox to explicitly send out-of-band messages to the \outbox indicating which packets are to be sampled. However, there is no guarantee that these messages would arrive at and be processed by the \outbox before the indicated packets arrive themselves. 
+%, i.e. it is required that an epoch boundary packet be sampled after every $N$ packets at the \inbox and the \outbox.
+% Consider the stream of packets $P_B$ from all flows in a bundle $B$ in the order they leave the \inbox after scheduling.
+% The \inbox and \outbox need to know how to divide this stream into sets 
+% of packets --- which we call \emph{epochs} --- over which they can calculate measurements.
+% For now, we make the simplifying assumption that packets arrive at the \outbox in the same order they 
+% left the \inbox.
+% This simplifies the problem into deciding, for all given packets in $P_B$, whether it is an epoch boundary packet at which the current epoch should end and the next should begin. 
+% Suppose for now that we wish to have a fixed epoch size of $N$ packets.
+% A naive approach would be to mark the boundary between epochs every $N$ packets. 
+% However, this strategy is brittle; a single lost packet would de-synchronize the boxes' views of the epochs. 
+% More generally, any strategy that requires packet-level synchronization of the \inbox and
+% \outbox is untenable because any coordination would race the packets themselves \radhika{i don't quite understand the last sentence}.
+
+Our technique side-steps these issues by simply using the contents of a packet to pickin epoch boundaries More specifically, a packet is sampled as a boundary for an epoch of size $N$, if the hash over a subset of its fields is a multiple of $N$. Therefore, given sufficient entropy in the hashed values, an epoch boundary will be sampled, in expectation, once every $N$ packets.
+
+% The key idea of our methodology is that we can avoid such a synchronization problem by determining the boundary of an epoch using only information contained in the packet.
+% Specifically, we propose the following: a packet $p$ is an epoch boundary packet if the hash 
+% of some subset of its header (see below) modulo the epoch size $N$ is equal to 0, that is:
+% Specifically, we propose the following: a packet $p$ is an epoch boundary packet if the hash 
+% of some subset of its header (see below) modulo the epoch size $N$ is equal to 0, that is:
+% \begin{algorithm}
+% def is_boundary_packet(pkt, N): # N is sample size \\
+%     return ( H(pkt.header) \% N ) == 0
+% \end{algorithm}
+% \radhika{equation not super clear}
+% Thus, an epoch boundary packet will occur (in expectation) once every $N$ packets.
+% For $H$, we use the Fowler/Noll/Vo (FNV) hash function~\cite{fnv-hash}, a non-cryptographic fast hash function with a low collision rate. 
+
 
 \paragrapha{Choosing header subset} The header subset we use must remain constant as the packet traverses the network from the \inbox to the \outbox; otherwise, they would not be able to agree on epoch boundaries. This rules out simple approaches such as hashing the entire packet header, since the TTL field will decrement between the inbox and outbox.
 Even the 5-tuple of the packet may change, since the outbox may be behind a NAT.
