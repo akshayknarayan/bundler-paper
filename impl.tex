@@ -48,7 +48,7 @@ Our patches to the TBF qdisc comprise $112$ lines of C.
 \Para{\capinbox control plane} We implement it to run in user-space in $1167$ lines of Rust.
 We use CCP~\cite{ccp} to run different congestion control algorithms (described next). CCP is a platform for expressing congestion control algorithms in an asynchronous format, which makes it a natural choice for our epoch-based measurement architecture. The control plane uses \texttt{libccp}~\cite{ccp} to interface with the congestion control algorithm, and  \texttt{libnl} to communicate with the qdisc.
 
-\Para{Congestion control algorithms} We use existing implementations of congestion control algorithms on CCP~\cite{ccp}
+\Para{Congestion control algorithms} We use existing implementations of congestion control algorithms on CCP~\cite{nimbus, copa}. We extend 
 %It maintains the congestion control state of each bundle, but does not maintain (or observe) per-flow state.
 %\radhika{no. of LoC for \inbox dataplane?} \an{first paragraph of this section?}
 
@@ -84,25 +84,25 @@ Finally (9), if the \inbox changes the desired epoch length based on new measure
 
 %\radhika{an experiment showing scalability of bundler implementation?}
 
-\subsection{Congestion Control}\label{s:impl:cc}
-We use existing implementations of congestion control algorithms on CCP~\cite{ccp}, a platform for expressing congestion control algorithms in an asynchronous format; since CCP algorithms are already designed to receive network feedback asynchronously, they are a natural choice for our epoch-based measurement architecture. \radhika{this sentence should comer earlier, maybe when you first mention ``control-plane'' at the beginning of Sec 5, especially since 5.2 mentions CCP and libccp.}
+%\subsection{Congestion Control}\label{s:impl:cc}
+%We use existing implementations of congestion control algorithms on CCP~\cite{ccp}, a platform for expressing congestion control algorithms in an asynchronous format; since CCP algorithms are already designed to receive network feedback asynchronously, they are a natural choice for our epoch-based measurement architecture. \radhika{this sentence should comer earlier, maybe when you first mention ``control-plane'' at the beginning of Sec 5, especially since 5.2 mentions CCP and libccp.}
 
-\an{move to earlier, maybe design:}
-It is important to note that traditional loss-based congestion controllers (\ie Cubic~\cite{cubic}, NewReno~\cite{newreno}) are poor choices for \name. 
-This is because they double-penalize component traffic for losses: first, in the reaction of the end-to-end congestion controller to the loss, and second in the reaction of the controller at \name.
+%\an{move to earlier, maybe design:}
+%It is important to note that traditional loss-based congestion controllers (\ie Cubic~\cite{cubic}, NewReno~\cite{newreno}) are poor choices for \name. 
+%This is because they double-penalize component traffic for losses: first, in the reaction of the end-to-end congestion controller to the loss, and second in the reaction of the controller at \name.
 
-\an{missing connection here}
+%\an{missing connection here}
 %Therefore, for algorithms which observe loss (Nimbus and Copa), we configure them to ignore it; the end-to-end reaction to loss will modulate the offered load to be the fair share of the bottleneck.
 %
-Further, we make a useful distinction between two types of cross-traffic conditions \name will experience.
-We consider \emph{elastic} cross traffic and \emph{inelastic} cross traffic.
-Elastic cross traffic (\eg Cubic, NewReno) probes for bandwidth and fills buffers at the bottleneck; inelastic cross traffic (\eg short flows) has limited demand and does not fill buffers.
+%Further, we make a useful distinction between two types of cross-traffic conditions \name will experience.
+%We consider \emph{elastic} cross traffic and \emph{inelastic} cross traffic.
+%Elastic cross traffic (\eg Cubic, NewReno) probes for bandwidth and fills buffers at the bottleneck; inelastic cross traffic (\eg short flows) has limited demand and does not fill buffers.
 
-When cross traffic is inelastic, the queueing delays that \name encounters will be self-inflicted. In these scenarios, scaling back and adjusting the sending rate at \inbox will cause the bottleneck to shift and the queueing delays at the bottleneck to reduce.
-In the presence of elastic cross traffic, however, congestion control algorithms \emph{must} push packets into the bottleneck queue to remain competitive~\cite{bbr, copa, nimbus}.
-As a result, we expect \name's benefits to disappear, since it must relinquish control of the queues to the bottleneck link.
+%When cross traffic is inelastic, the queueing delays that \name encounters will be self-inflicted. In these scenarios, scaling back and adjusting the sending rate at \inbox will cause the bottleneck to shift and the queueing delays at the bottleneck to reduce.
+%In the presence of elastic cross traffic, however, congestion control algorithms \emph{must} push packets into the bottleneck queue to remain competitive~\cite{bbr, copa, nimbus}.
+%As a result, we expect \name's benefits to disappear, since it must relinquish control of the queues to the bottleneck link.
 
-\radhika{if above parts are covered in Sec 3, add a backwards pointer, and start with the implementation details below.}
+%\radhika{if above parts are covered in Sec 3, add a backwards pointer, and start with the implementation details below.}
 
 Recent work~\cite{copa, nimbus} has considered the problem of switching between modes to take advantage of low queueing delays when it is possible to do so, yet reacting to and competing fairly with elastic cross traffic when it present.
 Unfortunately, it is not immediately clear how to determine \name's fair rate once we detect elastic cross traffic.
