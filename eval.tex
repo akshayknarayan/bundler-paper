@@ -82,20 +82,18 @@ Both \name and \optimal achieve an identical median slowdown of \overviewBenefit
 Meanwhile, the \baseline achieves a $99\%$ile slowdown of \overviewBenefitsBaselineTail.
 %We next discuss the source of this higher tail FCT compared to \optimal.
 
-\paragrapha{Necessity of scheduling} It is important to note that \name by itself is not necessarily a means of achieving improved performance, 
+\paragrapha{Necessity of scheduling} It is important to note that \name by itself (i.e. without a suitable scheduling policy) is not a means of achieving improved performance. 
 %as promised by recent efforts in congestion control~\cite{copa, nimbus}, 
 despite doing aggregated congestion control across all flows in a bundle.
-
 To see why this is the case, recall that \name does not modify the end-hosts: they continue to run the default Cubic congestion controller, which will probe for bandwidth until it observes loss.
-Indeed, the packets end-host Cubic sends beyond those that the link can transmit must be queued somewhere in the network or get dropped. Without \name, they get queued up at the bottleneck link. With \name, they instead just get queued up at the \inbox. However, the congestion controller at \inbox also additionally maintains a small standing queue at the bottleneck link (which can be seen in Figure~\ref{fig:design:shift-bottleneck}) to avoid under-utilization.
-Therefore, we expect the overall end-to-end-delays to increase slightly.
-As a result, \emph{solely} using a more sophisticated congestion control algorithm at the \name is unlikely to be the cause of significant reductions in the flow completion time.
+Indeed, the packets end-host Cubic sends beyond those that the link can transmit must be queued somewhere in the network or get dropped. Without \name, they get queued up at the bottleneck link. With \name, they instead just get queued up at the \inbox. In addition, the congestion controller at \inbox also maintains a small standing queue at the bottleneck link (which can be seen in Figure~\ref{fig:design:shift-bottleneck}) to avoid under-utilization, which increases the end-to-end-delays slightly. Therefore, doing the FIFO scheduling at the \name, as is done by the \baseline, results in slightly worse performance (shown in Figure~\ref{fig:eval:fifo}).
+%As a result, \emph{solely} using a more sophisticated congestion control algorithm at the \name is unlikely to be the cause of significant reductions in the flow completion time.
 
 \input{fifo-not-enough}
-This is why the tail FCT for \name does not match \optimal's.
-We can see this by measuring the relative performance of using FIFO scheduling at the \name instead of the SFQ scheduling in Figure~\ref{fig:eval:best}.
-The results are in Figure~\ref{fig:eval:fifo}. 
-Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a median slowdown of \overviewBenefitsFifoMedian, it is \overviewBenefitsFifoWorse higher than the \baseline. 
+% This is why the tail FCT for \name does not match \optimal's.
+% We can see this by measuring the relative performance of using FIFO scheduling at the \name instead of the SFQ scheduling in Figure~\ref{fig:eval:best}.
+% The results are in Figure~\ref{fig:eval:fifo}. 
+% Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a median slowdown of \overviewBenefitsFifoMedian, it is \overviewBenefitsFifoWorse higher than the \baseline. 
 
 \subsection{Different Scheduling Policies}\label{s:eval:policies}
 Per \S\ref{s:impl}, our \name implementation can implement any scheduling discipline available in Linux. We demonstrate that \name can achieve low packet delay, strict prioritization, and rate fairness.
