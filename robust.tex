@@ -18,6 +18,7 @@ We used Cubic congestion control at the endhosts for our experiments so far. Whe
 This shows that \name is compatible with multiple endhost congestion control algorithms (we omit a figure for brevity).
 
 
+
 \paragrapha{Self-Inflicted Delays} Correct congestion control behavior is crucial to achieving low FCTs.
 In Figure~\ref{fig:eval:cc} we repeat the FCT experiments in \S\ref{s:eval:fct} and now compare three congestion control protocols to the \baseline: BBR~\cite{bbr}, Nimbus~\cite{nimbus}, and Copa~\cite{copa}.
 In this scenario, it is important to control delays in the bottleneck queue, since it is FIFO scheduled and therefore queued packets from short requests must wait behind those from longer requests. 
