@@ -179,7 +179,7 @@ In \S\ref{s:measure:marking}, we assumed a fixed epoch size of $N$ packets. Howe
 % Therefore, we estimate the BDP (current sending rate multiplied by current estimate of the RTT) and set the desired epoch size to one-fourth of this value. We then calculate rates over a sliding window of four epochs; this is approximately one RTT.
 
 
-When the \inbox updates the epoch size for a bundle, it sends an out-of-band message to the \outbox communicating the new value. 
+When the \inbox updates the epoch size for a bundle, it sends an out-of-band message to the \outbox communicating the new value. To increase the resilience of our appraic
 
 %As the sending rate and RTT change, the \inbox will update the desired epoch size accordingly, and communicate this desired epoch size to the \outbox.
 % This communication might be lost. 
