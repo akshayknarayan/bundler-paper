@@ -251,27 +251,10 @@ When the \inbox updates the epoch size $N$ for a bundle, it needs to send an out
 
 \subsection{Microbenchmarks}
 \label{s:measure:microbench}
-    \input{micro-time-thru}
-    \input{micro-time-delay}
+    \input{micro-time-delay} % actually contains the distributions
+    \input{micro-time-thru} % actually contains the time series
     We now evaluate the accuracy of our measurement technique and its robustness to various network conditions. 
-    
-    In Figure~\ref{fig:micro:time}, we look closely at a five second segment from one from one experiment in our evaluation (\S\ref{s:eval}) and compare our estimate of the receive rate and RTT to the actual values at the bottleneck router.
-    It is easy to see that during this short time segment \name is able to track the values closely over time. 
-    
-    
-    
-    
-    
-    
-    
-    In Figure~\ref{fig:micro:time}, we compare our estimate of the receive rate (``Measured'')
-    to the actual rate of packets 
-    leaving the bottleneck over a five second segment from one run in our evaluation (\fc{expand}).
-    Here we demonstrate the necessity of a window to smooth out the estimation.
 
-    In Figure~\ref{fig:micro:thru}, for both t we compute the difference between our estimate of the receive rate 
-    and the bottleneck rate at each time step and plot the distribution of this difference across
-    all of the traces in our evaluation. 80\% of the time our estimate is within 3Mbps of the 
-    actual rate.
-
+    We pick 90 traces of \name's measurements from experiments in our evaluation across a range of RTTs (20ms, 50ms, 100ms) and bottleneck rates (24Mbps, 48Mbps, 96Mbps) and compute the difference between our measured value of the RTT and receive rate at each time step compared to the values at the bottleneck router. We plot the distribution of these differences for all of the traces in Figure~\ref{fig:micro:time-delay}. 80\% of our RTT estimates are within 1.2ms of the actual value and 80\% of our receive rate estimates are within 4Mbps of the actual value. 
     
+    To visualize how these measurements impact the behavior of the signals over time we pick an experiment for which the median difference matches that of the entire distribution and plot a five second segment of our estimates compared to the actual values in Figure~\ref{fig:micro:time-thru}.

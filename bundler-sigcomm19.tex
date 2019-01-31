@@ -1,4 +1,4 @@
-\documentclass[format=sigconf,10pt,natbib=false,top=1in,bottom=0.8in,authordraft]{acmart}
+\documentclass[format=sigconf,10pt,natbib=false,top=1in,bottom=0.8in]{acmart}
 \usepackage{geometry}
 \usepackage{algorithm}
 \usepackage{algorithmic}
@@ -13,7 +13,7 @@
 
 % remove the annoying header on each page
 \fancyhead{}
-\usepackage[subtle]{savetrees}
+%\usepackage[subtle]{savetrees}
 
 \input{packages}
 %\captionsetup[figure]{belowskip=-5pt, aboveskip=5pt}
@@ -43,8 +43,10 @@
 \input{eval}
 \input{discussion}
 \input{conclusion}
+\end{sloppypar}
 \label{p:end}
+%\renewcommand{\bibfont}{\normalfont}
+%\bibliographystyle{ACM-Reference-Format}
 \bibliographystyle{abbrv}
 \bibliography{ref}
-\end{sloppypar}
 \end{document}
