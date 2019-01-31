@@ -30,7 +30,7 @@ Meanwhile, the characteristics of other traffic --- not part of the traffic aggr
 
 \input{inelastic-cross}
 \paragrapha{Inelastic Cross Traffic} We first consider the case of \emph{inelastic} cross traffic; that is, traffic that does not respond to queue-size fluctuations.
-For example, traffic primarily comprised of short web requests has the inelastic property because regardless of what \name's congestion controller (or any end-to-end congestion controller) does, the component short requests, which remain in TCP slow start for their entirety, will occupy some fraction of the bottleneck link capacity.
+For example, traffic primarily comprised of short web requests has the inelastic property: regardless of what \name's congestion controller (or, indeed, any end-to-end congestion controller) does, the component short requests, which remain in TCP slow start for their entirety, will occupy some fraction of the bottleneck link capacity.
 In this case, the congestion controller must yield bandwidth to the cross traffic, but can still maintain low delays at the bottleneck link.
 
 We can see this phenomenon in action in Figure~\ref{fig:robust:cr-inelastic}. 
