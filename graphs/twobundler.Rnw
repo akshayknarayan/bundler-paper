@@ -1,20 +1,26 @@
 \begin{figure}
     \centering
-    <<robust:twobundler,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
+<<robust:twobundler,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
 library(ggplot2)
 library(showtext)
 font_add_google("Lato")
 showtext_auto()
 
 df <- read.csv("twobundler.data", sep=" ")
+
 df$Duration <- df$Duration.usec. / 1e6
 df$ofct <- (df$Size / 12e6) + 0.05
 df$Slowdown <- df$Duration / df$ofct
-df$Bundle <- as.factor(df$BundleId)
+df$Bundle <- factor(df$BundleId)
+
 df <- df[df$Alg == "copa_sfq" | df$Alg == "nobundler_fifo",]
+df <- df[df$Load == "42Mbps" | df$Load == "56Mbps",]
+
+facetLabel <- c("42Mbps" = "1:1", "56Mbps" = "2:1")
 
 ggplot(df, aes(x=Bundle, y=Slowdown, fill=Alg)) +
     geom_boxplot(outlier.shape=NA) +
+    facet_wrap(~Load, labeller = as_labeller(facetLabel)) +
     scale_x_discrete(
         limit=c("0", "1"),
         labels=c(
@@ -40,6 +46,6 @@ ggplot(df, aes(x=Bundle, y=Slowdown, fill=Alg)) +
         plot.title = element_text(size=18, family="Lato", face="bold", hjust = 0.5)
     )
 @
-    \caption{Competing traffic bundles. Each bundle observes improved median FCT compared to its performance in the baseline scenario.}
+    \caption{Competing traffic bundles. In both cases, the aggregate offered load is 84Mbps, as in Figure~\ref{fig:eval:best}. For "1:1", we evenly split the offered load between the two Bundles; for "2:1", one bundle has twice the offered load of the other. In both cases, each bundle observes improved median FCT compared to its performance in the baseline scenario.}
     \label{fig:robust:twobundler}
 \end{figure}
