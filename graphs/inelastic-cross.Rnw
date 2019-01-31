@@ -37,6 +37,6 @@ ggplot(df, aes(x=Cross, y=Slowdown, fill=Alg)) +
         text = element_text(size=18, family="Lato", face="bold")
     )
 @
-    \caption{Inelastic cross traffic. \name and the cross traffic combined offer 84Mbps of load to the bottleneck queue. The cross traffic's offered load increases along the x-axis.}
+    \caption{Against cross traffic comprising of short lived flows. \name and the cross traffic combined offer 84Mbps of load to the bottleneck queue. The cross traffic's offered load increases along the x-axis.}
     \label{fig:robust:cr-inelastic}
 \end{figure}

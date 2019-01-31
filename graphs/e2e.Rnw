@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-<<eval:e2e,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
+<<eval:e2e,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
 library(ggplot2)
 library(showtext)
 font_add_google("Lato")
@@ -14,29 +14,82 @@ df$Slowdown <- df$Duration / df$ofct
 
 df <- df[df$Alg == "copa_sfq" | df$Alg == "nobundler_fifo",]
 
-ggplot(df, aes(x=e2e, y=Slowdown, fill=Alg)) +
-    geom_boxplot(outlier.shape=NA) +
-    scale_x_discrete(
-        limit=c("BBR", "Cubic"),
-        scale_name=NULL, name=NULL
-    ) +
-    scale_fill_brewer(type="qual", palette=2,
-        limit=c("copa_sfq", "nobundler_fifo"),
+big <- df[df$Size > 1e6,]
+med <- df[df$Size <= 1e6 & df$Size > 1e4,]
+small <- df[df$Size <= 1e4,]
+
+ggplot(small, aes(
+        x=e2e, fill=Alg, y=Slowdown
+    )) +
+    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
+    ylab("Slowdown") + xlab(NULL) + 
+    ggtitle("Small\n< 10KB") +
+    scale_fill_manual(limit=c("copa_sfq", "nobundler_fifo"),
+        values = c(
+            "copa_sfq" = "#1b9e77",
+            "nobundler_fifo" = "#d95f02"
+        ),
         labels=c(
-            "nobundler_fifo" = "Status Quo",
-            "copa_sfq" = "Bundler"
+            "copa_sfq" = "Bundler ",
+            "nobundler_fifo" = "Status Quo"
         )
     ) +
-    ylab("Slowdown") +
     coord_cartesian(ylim=c(1,5)) +
-    theme_minimal() +
+    theme_minimal() + 
+    theme(
+        legend.position="top",
+        legend.title=element_blank(),
+        text = element_text(angle=0,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
+    ) +
+ggplot(med, aes(
+        x=e2e, fill=Alg, y=Slowdown
+    )) +
+    geom_boxplot(outlier.shape=NA) +
+    ylab(NULL) + xlab(NULL) +
+    ggtitle("Medium\n10KB - 1MB") +
+    scale_fill_manual(limit=c("copa_sfq", "nobundler_fifo"),
+        values = c(
+            "copa_sfq" = "#1b9e77",
+            "nobundler_fifo" = "#d95f02"
+        ),
+        labels=c(
+            "copa_sfq" = "Bundler ",
+            "nobundler_fifo" = "Status Quo"
+        )
+    ) +
+    coord_cartesian(ylim=c(1,15)) +
+    theme_minimal() + 
     theme(
         legend.position="bottom",
         legend.title=element_blank(),
-        text = element_text(size=18, family="Lato", face="bold"),
-        plot.title = element_text(size=18, family="Lato", face="bold", hjust = 0.5)
+        text = element_text(angle=0,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
+    ) +
+ggplot(big, aes(
+        x=e2e, fill=Alg, y=Slowdown
+    )) +
+    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
+    ylab(NULL) + ggtitle("Large\n> 1MB") + xlab(NULL) + 
+    scale_fill_manual(limit=c("copa_sfq", "nobundler_fifo"),
+        values = c(
+            "copa_sfq" = "#1b9e77",
+            "nobundler_fifo" = "#d95f02"
+        ),
+        labels=c(
+            "copa_sfq" = "Bundler ",
+            "nobundler_fifo" = "Status Quo"
+        )
+    ) +
+    coord_cartesian(ylim=c(1,15)) +
+    theme_minimal() + 
+    theme(
+        legend.position="top",
+        legend.title=element_blank(),
+        text = element_text(angle=0,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     )
 @
-    \caption{}
+    \caption{\name still provides benefits when the endhosts use different congestion control algorithms.}
     \label{fig:eval:e2e}
 \end{figure}
