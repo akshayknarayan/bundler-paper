@@ -153,6 +153,7 @@ Finally, the \inbox records the information received in the feedback for $p_i$, 
 
 
 Note that our measurement technique, as described above, is robust to a boundary packet being lost between the \inbox and the \outbox. In this case, the \inbox would not get a feedback for the lost boundary packet, and it would simply compute rates for the next boundary packet over a longer epoch. 
+
 %Further note, that our discussion so far has ignored re-ordering of packets between the \inbox and \outbox, in which case, they can see different number of packets between each epoch boundary, which can interfere with the rate computations. We expect such re-ordering to be rare, although computing   
 
 
@@ -173,7 +174,7 @@ Note that our measurement technique, as described above, is robust to a boundary
 %\input{micro-epoch}
 
 % How do we choose the number of packets that should e in each epoch?
-In \S\ref{s:measure:marking}, we assumed a fixed epoch size of $N$ packets. However, in practice, epochs must be such that measurements are collected at least once per RTT~\cite{ccp}. Therefore, for each bundle, we track that minimum observed RTT ($minRTT$ at the \inbox and set the epoch size $N = (0.25 \times minRTT \times send\_rate)$, where the $send\_rate$ is computed as described above. The final rates passed to the congestion control algorithms at the \inbox are then computed over a sliding window of epochs that corresponds to one RTT. 
+In \S\ref{s:measure:marking}, we assumed a fixed epoch size of $N$ packets. However, in practice, epochs must be such that measurements are collected at least once per RTT~\cite{ccp}. Therefore, for each bundle, we track that minimum observed RTT ($minRTT$ at the \inbox and set the epoch size $N = (0.25 \times minRTT \times send\_rate)$, where the $send\_rate$ is computed as described above. The final rates passed to the congestion control algorithms at the \inbox are then computed over a sliding window of epochs that corresponds to one RTT.\footnote{Averaging over a window of multiple epochs also increases resilience to possible (though rare) re-ordering of packets between the \inbox and the \outbox, which can result in them seeing different number of packets between two epochs.} 
 %This makes epoch size a function of the bandwidth-delay product (BDP).
 % Because epoch sizes are sampled from a uniform random variable, setting larger epoch sizes will increase the variance in the observed epoch sizes.
 % If the epoch size is small relative to the rate, the raw measurements will be noisy, but we can correct for this by measuring over a sliding window.
@@ -220,8 +221,8 @@ When the \inbox updates the epoch size $N$ for a bundle, it needs to send an out
 % Importantly, \inbox calculates both the send and receive epoch based on information
 % from the \outbox rather than attempting to reach consensus on individual epoch boundaries with the \outbox. 
 
-\Para{Re-Ordering}
-\label{s:measure:limitation:reorder}
+%\Para{Re-Ordering}
+%\label{s:measure:limitation:reorder}
 
 % Earlier we ignored re-ordering of packets between the \inbox and \outbox. However, if packets
 % are re-ordered, the \inbox and \outbox will observe a different view of the same epoch.
@@ -236,27 +237,28 @@ When the \inbox updates the epoch size $N$ for a bundle, it needs to send an out
 
 
 
-\subsubsection{Suitable Algorithms}
-\label{s:measure:limitation:algs}
-The set of measurements we obtain are sufficient for most rate-based algorithms, but may not be 
-suitable for traditional window-based algorithms which require low-level metrics such as 
-the number of inflight packets or number of packets lost. Although it should be possible
-to compute these from the measurements we already collect in an ideal scenario, they would easily
-break in the presence of network anomilies such as re-ordering. Thus, we leave the development
-of robust signals for window-based algorithms to fuure work. 
-Thus, \name currently operates best with rate-based algorithms such as BBR, Nimbus, or Copa~\cite{bbr,nimbus,copa}.
-\radhika{feels like this should be moved to Sec 3, but am  not entirely sure.}
-\radhika{discuss}
+% \subsubsection{Suitable Algorithms}
+% \label{s:measure:limitation:algs}
+% The set of measurements we obtain are sufficient for most rate-based algorithms, but may not be 
+% suitable for traditional window-based algorithms which require low-level metrics such as 
+% the number of inflight packets or number of packets lost. Although it should be possible
+% to compute these from the measurements we already collect in an ideal scenario, they would easily
+% break in the presence of network anomilies such as re-ordering. Thus, we leave the development
+% of robust signals for window-based algorithms to fuure work. 
+% Thus, \name currently operates best with rate-based algorithms such as BBR, Nimbus, or Copa~\cite{bbr,nimbus,copa}.
+% \radhika{feels like this should be moved to Sec 3, but am  not entirely sure.}
+% \radhika{discuss}
 
 \subsection{Microbenchmarks}
 \label{s:measure:microbench}
     \input{micro-time}
     \input{micro-thru-dist}
     \input{micro-delay-dist}
-    In this section we explore how well our measurements match the actual network conditions. 
+    We now explore how well our measurements match the actual network conditions. 
 
-    First, we consider our estimate of the receive rate (via Equation 1g). In Figure~\ref{fig:micro:time}
-    we compare our esimate of the receive rate (``Measured'') to the actual rate of packets 
+    %First, we consider our estimate of the receive rate (Equation 1c). 
+    In Figure~\ref{fig:micro:time}, we compare our estimate of the receive rate (``Measured'')
+    to the actual rate of packets 
     leaving the bottleneck over a five second segment from one run in our evaluation (\fc{expand}).
     Here we demonstrate the necessity of a window to smooth out the estimation.
 
