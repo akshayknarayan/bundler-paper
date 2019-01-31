@@ -14,7 +14,7 @@ Given \name's ability to move the in-network queues to the \inbox (as shown earl
 
 \paragrapha{Experimental Setup}
 We evaluate our implementation of \name (discussed in \S\ref{s:impl}) using network emulation via mahimahi~\cite{mahimahi}.
-Mahimahi creates a Linux network namespace and applies the configured network condition (emulated delay or link bandwidth) to all packets that traverse it. We set the link bandwidth to 96Mbps, and the one-way delay to 25ms.  
+Mahimahi creates a Linux network namespace and applies the configured network condition (emulated delay or link bandwidth) to all packets that traverse it. 
 
 There are three $8$-core machines in our setup: one machine is a sender, another is configured as a middlebox and runs a \inbox, and a third is the receiver. The \outbox runs on the same machine as the receiver, inside the same mahimahi network namespace as the receiving application. 
 Our prototype requires that the sending application and the \inbox run on different machines, to prevent TCP small queues (TSQ) from interfering with the queuing behaviour that one would expect in a real deployment. 
@@ -28,10 +28,11 @@ Throughout our experiments, CPU utilization on the machines remained below $10$\
 
 A many-threaded client generates requests from a request size CDF drawn from an Internet core router~\cite{caida-dataset}, and assigns them to one of $200$ server processes on the traffic generator.
 The workload is heavy-tailed: 97.6\% of requests are 10KB or shorter, and the largest 0.002\% of requests are between $5$MB and $100$MB.
-Each server then sends the requested amount of data to the client   and we measure the flow completion time of each such request.
+Each server then sends the requested amount of data to the client and we measure the flow completion time of each such request. \reword{In addition, the server also generates a persistently backlogged connection to the client.}
 %We use multiple server processes to emulate multiple machines behind the \name at the customer's edge.
-Unless otherwise specified, we use the following settings. The requests result in an offered load of 84Mbps, run the C each result is comprised of $100,000$ requests sampled from this distribution, across $10$ runs each with a different random seed.
-\reword{In addition, the server also generates a persistently backlogged connection to the client.}
+
+Unless otherwise specified, we use the following settings. The link bandwidth at the mahimahi link is set to 96Mbps, and the one-way delay is set to 25ms. The requests result in an offered load of 84Mbps. The endhost runs Cubic~\cite{cubic} congestion controller, and the \inbox runs Copa~\cite{copa}. Each experiment is comprised of $100,000$ requests sampled from this distribution, across $10$ runs each with a different random seed. 
+
 %that models a background large data transfer which would normally fill the bottleneck queue.
 %
 %\radhika{another title for this section, or some preceding explanation on what each section is about}
@@ -86,9 +87,7 @@ Meanwhile, the \baseline achieves a $99\%$ile slowdown of \overviewBenefitsBasel
 despite doing aggregated congestion control across all flows in a bundle.
 
 To see why this is the case, recall that \name does not modify the end-hosts: they continue to run the default Cubic congestion controller, which will probe for bandwidth until it observes loss.
-Indeed, the packets end-host Cubic sends beyond those the link can transmit must queue somewhere in the network or be lost. Without \name, they get queued up at the bottleneck link.
-With \name, they instead queue at the \inbox.
-However, the congestion controller at \inbox must also additionally maintain some standing queue at the bottleneck link to make decisions effectively.
+Indeed, the packets end-host Cubic sends beyond those that the link can transmit must be queued somewhere in the network or get dropped. Without \name, they get queued up at the bottleneck link. With \name, they instead just get queued up at the \inbox. However, the congestion controller at \inbox also additionally maintains a small standing queue at the bottleneck link (which can be seen in Figure~\ref{fig:design:shift-bottleneck}) to avoid under-utilization.
 Therefore, we expect the overall end-to-end-delays to increase slightly.
 As a result, \emph{solely} using a more sophisticated congestion control algorithm at the \name is unlikely to be the cause of significant reductions in the flow completion time.
 
