@@ -11,6 +11,9 @@ showtext_auto()
 data <- read.csv("minrtt-50-delay-dist.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric","numeric", "numeric", "numeric", "numeric"))
 colnames(data) <- c("t", "mm_delay", "inbox_delay", "diff_delay", "mm_thru", "inbox_thru", "diff_thru")
 
+data$mm_delay <- data$mm_delay + 50
+data$inbox_delay <- data$inbox_delay + 50
+
 p1 <- ggplot() + 
     #geom_step(data=raw, aes(x=t, y=recv, colour="raw"),size=1) + 
     geom_step(data=data, aes(x=t,y=inbox_delay, colour="measured"),size=1)  + 
@@ -19,12 +22,12 @@ p1 <- ggplot() +
     theme(legend.position="top") + 
     #scale_color_manual(name = "", values = c(true = "blue", windowed="red", raw="green")) +
     #scale_color_brewer(name="", aesthetics=c("colour"),palette="Paired", labels=c("Measured", "Measured (Windowed)", "Bottleneck")) + 
-    scale_color_manual(name="",labels=c(measured="Measured", true="Bottleneck"), values=c(true="#2c7bb6", measured="#d7191c")) +
+    scale_color_manual(name="",labels=c(measured="Estimated", true="Actual"), values=c(true="#2c7bb6", measured="#d7191c")) +
     scale_x_continuous(breaks=seq(0,max(data$t),by=1)) +
-    scale_y_continuous(breaks=seq(0,36,by=6)) +
+    scale_y_continuous(breaks=seq(0,84,by=12)) +
     xlab("Time (seconds)") + 
-    ylab("Delay (ms)") + 
-    coord_cartesian(xlim=c(20,30), ylim=c(0,36)) + 
+    ylab("RTT (ms)") + 
+    coord_cartesian(xlim=c(20,30), ylim=c(0,84)) + 
     theme(text = element_text(size=17))
 
 data <- read.csv("minrtt-delay-dist.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric","numeric","numeric","numeric","numeric"))
@@ -79,7 +82,7 @@ p_delay <- ggplot(df_delay, aes(x,y)) + geom_line() +
     # Put origin at 0
     scale_y_continuous(expand=c(0,0)) + #, limits=c(0,.4)) +
     scale_fill_brewer(guide="none") +
-    xlab("Difference Between True and Measured RTT (ms)") +
+    xlab("Difference Between Estimated And Actual RTT (ms)") +
     ylab("PDF") +
     coord_cartesian(xlim=c(xmin_delay, xmax_delay),, ylim=c(0,0.8)) +
     theme_minimal() +
