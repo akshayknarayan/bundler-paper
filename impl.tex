@@ -48,7 +48,8 @@ Our patches to the TBF qdisc comprise $112$ lines of C.
 \Para{\capinbox control plane} We implement it to run in user-space in $1167$ lines of Rust.
 We use CCP~\cite{ccp} to run different congestion control algorithms (described next). CCP is a platform for expressing congestion control algorithms in an asynchronous format, which makes it a natural choice for our epoch-based measurement architecture. The control plane uses \texttt{libccp}~\cite{ccp} to interface with the congestion control algorithm, and  \texttt{libnl} to communicate with the qdisc.
 
-\Para{Congestion control algorithms} We use existing implementations of congestion control algorithms on CCP~\cite{nimbus, copa}. We extend 
+\Para{Congestion control algorithms} We use existing implementations of congestion control algorithms on CCP~\cite{nimbus, copa, bbr} to compute sending rates at the \inbox, and leverage Nimbus' elasticity detection technique~\cite{nimbus} to detect persistent buffer-filling flows. Upon detection of buffer-filling flows, the \inbox  starts pushing traffic at an increased rate (set to the observed received rate plus an additive probe factor), such that its control over the bundled traffic is relinquished. This enables the congestion control algorithms at the unmodified endhosts to compete with the buffer-filling flow, as they would in the default case, without a \name. The additive probe factor is a function of Nimbus' pulse amplitude, and is set, in our implementation, to one-sixteenth of the maximum receive rate seen so far.
+
 %It maintains the congestion control state of each bundle, but does not maintain (or observe) per-flow state.
 %\radhika{no. of LoC for \inbox dataplane?} \an{first paragraph of this section?}
 
@@ -104,19 +105,19 @@ Finally (9), if the \inbox changes the desired epoch length based on new measure
 
 %\radhika{if above parts are covered in Sec 3, add a backwards pointer, and start with the implementation details below.}
 
-Recent work~\cite{copa, nimbus} has considered the problem of switching between modes to take advantage of low queueing delays when it is possible to do so, yet reacting to and competing fairly with elastic cross traffic when it present.
-Unfortunately, it is not immediately clear how to determine \name's fair rate once we detect elastic cross traffic.
-The number of individual component connections which are backlogged at any given time may vary, and determining which connections should count towards \name's aggregate fair share rate would thus require per-connection state \radhika{not super clear to me}.
+% Recent work~\cite{copa, nimbus} has considered the problem of switching between modes to take advantage of low queueing delays when it is possible to do so, yet reacting to and competing fairly with elastic cross traffic when it present.
+% Unfortunately, it is not immediately clear how to determine \name's fair rate once we detect elastic cross traffic.
+% The number of individual component connections which are backlogged at any given time may vary, and determining which connections should count towards \name's aggregate fair share rate would thus require per-connection state \radhika{not super clear to me}.
 
-We sidestep this issue with a simple, yet powerful, observation: rather than attempt to compete with elastic cross traffic, \name should \emph{get out of the way} of its component connections.
-The end-to-end congestion controllers responsible for \name's component connections will then naturally compete with and achieve their fair rate against elastic cross traffic.
+% We sidestep this issue with a simple, yet powerful, observation: rather than attempt to compete with elastic cross traffic, \name should \emph{get out of the way} of its component connections.
+% The end-to-end congestion controllers responsible for \name's component connections will then naturally compete with and achieve their fair rate against elastic cross traffic.
 
-It is important to implement this approach carefully. 
-Consider a naive implementation in which upon detecting elastic cross traffic, \name stopped pacing packets entirely.
-This approach would be unable to detect when the elastic cross traffic subsided, since it yields all control over the network queues.
+% It is important to implement this approach carefully. 
+% Consider a naive implementation in which upon detecting elastic cross traffic, \name stopped pacing packets entirely.
+% This approach would be unable to detect when the elastic cross traffic subsided, since it yields all control over the network queues.
 
-Thus, when \name's congestion control algorithm detects that the cross traffic is elastic, it uses a simple control rule: \texttt{rate <- observed\_receive\_rate * 1.25}. 
-This control rule will rapidly grow the pacing rate at the \inbox until it stabilizes at 25\% above the offered load.
-Then, using the elasticity detection mechanism described in prior work~\cite{nimbus}, \inbox can modulate the pacing rate to determine when to retake control of the queueing, and therefore the scheduling policy.
+% Thus, when \name's congestion control algorithm detects that the cross traffic is elastic, it uses a simple control rule: \texttt{rate <- observed\_receive\_rate * 1.25}. 
+% This control rule will rapidly grow the pacing rate at the \inbox until it stabilizes at 25\% above the offered load.
+% Then, using the elasticity detection mechanism described in prior work~\cite{nimbus}, \inbox can modulate the pacing rate to determine when to retake control of the queueing, and therefore the scheduling policy.
 
-\an{move the elastic cross traffic comparison results here?} \radhika{no, add a forward pointer}
+% \an{move the elastic cross traffic comparison results here?} \radhika{no, add a forward pointer}

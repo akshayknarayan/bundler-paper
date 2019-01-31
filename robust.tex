@@ -5,24 +5,18 @@ We first verify that \name indeed runs congestion control algorithms appropriate
 Figure~\ref{fig:eval:tputdelay} shows that for two of the three congestion control algorithms we evaluate --- Copa~\cite{copa} and Nimbus~\cite{nimbus} --- the throughput (in Figure~\ref{fig:eval:tputdelay:a}) and queueing delay (in Figure~\ref{fig:eval:tputdelay:b}) distributions over a one-minute experiment are similar to the same algorithm running at the end-host (\ie without \name).
 
 BBR's~\cite{bbr} delay distribution suffers because of its interaction with the end-to-end congestion control. When BBR enters its \texttt{PROBE\_RTT} mode by setting a congestion window of $4$ packets, end-host implementations simply stop transmitting.
-However, with \name the end-host implementation is Cubic; it continues probing for bandwidth until the \inbox is forced to drop packets.
+However, with \name the end-host implementation is another congestion controller, Cubic; it continues probing for bandwidth while BBR throttles the rate until the \inbox is forced to drop packets.
 
-\name is compatible with multiple endhost congestion control algorithms\footnote{We omit a figure for brevity.}.
+\name is compatible with multiple endhost congestion control algorithms (we omit a figure for brevity).
 When we configure endhosts to use BBR\footnote{We use the BBR implementation provided in Linux $4.13$.} (instead of Cubic as above), \name's benefits remain: \name achieves 58\% lower FCTs in the median.
 This is primarily because in the \baseline using BBR causes endhosts to achieve 66\% worse median slowdown ($1.62$ with Cubic to $2.68$ with BBR); \name's slowdown is only 5\% worse when endhosts use BBR ($1.08$ with Cubic to $1.14$ with BBR).
 
 \paragrapha{Self-Inflicted Delays} Correct congestion control behavior is crucial to achieving low FCTs.
-In Figure~\ref{fig:eval:cc} we compare three congestion control protocols to the Baseline: BBR~\cite{bbr}, Nimbus~\cite{nimbus}, and Copa~\cite{copa}.
-In this scenario, it is important to control delays in the bottleneck queue, since it is FIFO scheduled and therefore queued packets from short requests must wait behind those from longer requests. Nimbus and BBR both maintain slightly higher queueing delays at the bottleneck link, and thus they achieve higher median FCTs \an{numbers}. 
+In Figure~\ref{fig:eval:cc} we repeat the FCT experiments in \S\ref{s:eval:fct} and now compare three congestion control protocols to the \baseline: BBR~\cite{bbr}, Nimbus~\cite{nimbus}, and Copa~\cite{copa}.
+In this scenario, it is important to control delays in the bottleneck queue, since it is FIFO scheduled and therefore queued packets from short requests must wait behind those from longer requests. 
+Nimbus and BBR both maintain slightly higher queueing delays at the bottleneck link, and thus they achieve higher median FCTs \an{numbers}. 
 Nimbus, which is slightly more aggressive than Copa, induces a higher queue build up at the bottleneck, and a smaller queue build up at the \name, when compared to Copa. It therefore results in a higher median FCT than Copa, though still providing significant benefits over the baseline. 
 BBR, however is even more aggressive and cannot maintain sufficient queuing at the \name to provide enough benefits.
-
-\radhika{Also, no way to further improve BBR?}
-\an{try to understand bbr results}
-
-%\radhika{might be interesting to have another line that shows what happens when \name uses Cubic, and how it can break things.}
-%\an{I don't think we can run a meaningful cubic experiment since the implementation looks carefully at measurements (loss, out-of-order deliveries) that we don't precisely measure}
-%\an{try running a cubic experiment}
 
 \input{congestion-control}
 
@@ -33,7 +27,7 @@ Meanwhile, the characteristics of other traffic --- not part of the traffic aggr
 For example, traffic primarily comprised of short web requests has the inelastic property: regardless of what \name's congestion controller (or, indeed, any end-to-end congestion controller) does, the component short requests, which remain in TCP slow start for their entirety, will occupy some fraction of the bottleneck link capacity.
 In this case, the congestion controller must yield bandwidth to the cross traffic, but can still maintain low delays at the bottleneck link.
 
-We can see this phenomenon in action in Figure~\ref{fig:robust:cr-inelastic}. 
+We can see this phenomenon in action in Figure~\ref{fig:robust:cr-inelastic}, where we split the offered load in three fractions amongst the bundle and non-bundle cross traffic. 
 Each of the congestion control algorithms we evaluate sacrifice (to varying degrees) bandwidth in reaction to the cross traffic, which hurts the FCTs of the larger requests.
 However, the scheduling policy apportions the remaining bandwidth to the short flows, so there is still an improvement in FCTs at the median.
 
@@ -50,12 +44,3 @@ We indeed see this in Figure~\ref{fig:robust:cr-elastic}.
 \input{twobundler}
 \paragrapha{Competing Bundles} \name's improvements return once competing traffic starts using \name as well. In Figure~\ref{fig:robust:twobundler}, we show the performance of each of two bundles of traffic competing in the same bottleneck link. 
 Despite both bundles containing persistently backlogged flows, just as in Figure~\ref{fig:robust:cr-elastic}, here \name improves the FCTs of both bundles independently.
-
-\cut{
-\subsection{Path Characteristics}\label{s:robust:path}
-\an{should these go in ``microbenchmarks'' in \S\ref{s:measurement}?} \radhika{i don't think so}
-\begin{outline}
-\1 Different RTTs
-\1 Different bandwidths
-\end{outline}
-}
