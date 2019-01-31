@@ -45,7 +45,11 @@ Our patches to the TBF qdisc comprise $112$ lines of C.
 % Our patch to the TBF qdisc comprises $112$ lines of C.
 % \an{cut?}\an{Additionally, we remove one line in the rate update to disable re-filling the token bucket on rate changes to prevent a penalty for frequent rate updates\footnote{by default, TBF instantaneously re-fills the token bucket when the set rate changes. In our implementation, the \inbox sets the rate frequently, causing rate fluctuations. We therefore disable this functionality.}.}
 
+<<<<<<< HEAD
 \Para{\capinbox control plane} We implement the \inbox control plane to run in user-space in $1167$ lines of Rust.
+=======
+We implement the \inbox control plane to run in user-space in $1167$ lines of Rust.
+>>>>>>> origin/master
 We use existing implementations of congestion control algorithms on CCP~\cite{ccp}. CCP is a platform for expressing congestion control algorithms in an asynchronous format, which makes it a natural choice for our epoch-based measurement architecture. The control plane uses \texttt{libccp}~\cite{ccp} to interface with the congestion control algorithm, and  \texttt{libnl} to communicate with the qdisc.
 %It maintains the congestion control state of each bundle, but does not maintain (or observe) per-flow state.
 %\radhika{no. of LoC for \inbox dataplane?} \an{first paragraph of this section?}
