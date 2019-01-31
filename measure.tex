@@ -9,7 +9,8 @@
 % A significant complication is that for accurate measurements on RTT time-scales, we must calculate send and receive rates over the same set of packets~\cite{packettrain} \radhika{one line explanation on why}.
 % This requirement drives the design of our measurement methodology.
 
-As discussed in the previous section, \name measures network congestion signals (RTT and packet arrival rates) over the duration (or \emph{epochs}) between infrequently sampled packets (that we call \emph{epoch boundary packets}). In this section, we describe our strategy for independently sampling the same set of epoch boundary packets at the paired \name boxes, and for measuring congestion signals using them. We end with an evaluation showing the accuracy of our approach.
+\fc{maybe explain why these signals}
+\name measures network congestion signals (RTT and packet arrival rates) over the duration (or \emph{epochs}) between infrequently sampled packets (that we call \emph{epoch boundary packets}). In this section, we describe our strategy for independently sampling the same set of epoch boundary packets at the paired \name boxes, and for measuring congestion signals using them. We end with an evaluation showing the accuracy of our approach.
 
 \subsection{Determining Epoch Boundaries}
 \label{s:measure:marking}
@@ -173,7 +174,7 @@ Note that our measurement technique is robust to a boundary packet being lost be
 %\input{micro-epoch}
 
 % How do we choose the number of packets that should e in each epoch?
-In \S\ref{s:measure:marking}, we assumed a fixed epoch size of $N$ packets. However, in practice, epochs must be such that measurements are collected at least once per RTT~\cite{ccp}. Therefore, for each bundle, we track that minimum observed RTT ($minRTT$ at the \inbox and set the epoch size $N = (0.25 \times minRTT \times send\_rate)$, where the $send\_rate$ is computed as described above. The final rates passed to the congestion control algorithms at the \inbox are then computed over a sliding window of epochs that corresponds to one RTT.\footnote{Averaging over a window of multiple epochs also increases resilience to possible (though rare) re-ordering of packets between the \inbox and the \outbox, which can result in them seeing different number of packets between two epochs.} 
+In \S\ref{s:measure:marking}, we assumed a fixed epoch size of $N$ packets. However, in practice, epochs must be such that measurements are collected at least once per RTT~\cite{ccp}. Therefore, for each bundle, we track that minimum observed RTT ($minRTT$ at the \inbox and set the epoch size $N = (0.25 \times minRTT \times send\_rate)$, where the $send\_rate$ is computed as described above. The final rates passed to the congestion control algorithms at the \inbox are then computed over a sliding window of epochs that corresponds to one RTT. Averaging over a window of multiple epochs also increases resilience to possible re-ordering of packets between the \inbox and the \outbox, which can result in them seeing different number of packets between two epochs.
 %This makes epoch size a function of the bandwidth-delay product (BDP).
 % Because epoch sizes are sampled from a uniform random variable, setting larger epoch sizes will increase the variance in the observed epoch sizes.
 % If the epoch size is small relative to the rate, the raw measurements will be noisy, but we can correct for this by measuring over a sliding window.
