@@ -1,14 +1,16 @@
 \section{Evaluation}\label{s:eval}
 
-We have seen in Figure~\ref{fig:design:shift-bottleneck} that \name can move the network queues to the \inbox to gain control over scheduling. Given that this is possible, what benefits can \name achieve, and where do they come from?
-We now evaluate these aspects of our design. Specifically:
+%We have seen in Figure~\ref{fig:design:shift-bottleneck} that \name can move the network queues to the \inbox to gain control over scheduling. 
+%Given that this is possible, what benefits can \name achieve, and where do they come from?
+Our evaluation answers the following questions:
 \begin{enumerate}
     \item Where do \name's performance benefits come from? We discuss this in the context of improving the flow completion times of \name's component flows. (\S\ref{s:eval:fct})
     \item Can \name enforce different scheduling policies? (\S\ref{s:eval:policies})
-    \item Under what conditions do \name's performance benefits hold? (\S\ref{s:robust:cross})
+    \item Do \name's performance benefits hold across different scenarios? (\S\ref{s:robust:cross})
+    %\item Under what conditions do \name's performance benefits hold? (\S\ref{s:robust:cross})
 \end{enumerate}
 
-\subsection{Understanding Benefits}\label{s:eval:fct}
+\subsection{Understanding \name's Performance Benefits}\label{s:eval:fct}
 
 \paragrapha{Experimental Setup}
 We evaluate our implementation of \name (discussed in \S\ref{s:impl}) using network emulation via mahimahi~\cite{mahimahi}.
