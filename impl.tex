@@ -7,11 +7,16 @@
 
 \cut{The prevalence of middleboxes today means that there are multiple options for implementing a \name \radhika{cut this line?}.}
 
+\name boxes can be implemented as described below (although the specific implementations could vary across deployments).
 
-\Para{\inbox} Our \inbox implementation comprises of a \emph{data plane} and a \emph{control plane}. The data plane is responsible for (i) packet forwarding, (ii) tracking the number of bytes sent in the last epoch, (iii) reporting epoch boundary packets and the feedback from the \outbox to the control plane,  (iv) enforcing a sending rate (computed by the control plane) on a bundle, and (iv) enforcing the desired scheduling policies on the traffic within a bundle. The control plane is responsible for (i) measuring congestion signals and computing epoch sizes using the information provided by the data plane, and (ii) running the congestion control algorithm for each bundle to compute appropriate sending rates based on the congestion signals. 
+\Para{\capinbox} It comprises of a \emph{data plane} and a \emph{control plane}. The data plane is responsible for (i) packet forwarding, (ii) tracking the number of sent bytes, (iii) identifying and reporting the epoch boundary packets to the control plane, (iv) enforcing a sending rate (computed by the control plane) on a bundle, and (iv) enforcing the desired scheduling policies for a bundle. It can implemented in software~\cite{bess, click, mos, netbricks, tc}, or in programmable hardware~\cite{p4}. The control plane, implemented in software, is responsible for (i) measuring congestion signals using the information provided by the data plane along with the feedback from the \outbox, (ii) computing and communicating epoch sizes, and (iii) running the congestion control algorithm for each bundle to compute appropriate sending rates based on the measured congestion signals. 
 
-\Para{\outbox} The \outbox is simple and does not require a control plane. It simply tracks the number of bytes and sends feedback messages to the \inbox on observing epoch packets.
+\Para{\capoutbox} It (i) tracks the number of received bytes, (ii) receives and updates epoch size values, (iii) identifies epoch boundary packets and sends feedback message to the \inbox up on receiving one. Similar to \inbox's data plane, it can also be implemented using either software or hardware.
 
+% \vspace{0.05in}
+% \noindent We next describe our prototype implementation (\ref{s:impl:prototype}) and illustrate how it works (\ref{s:impl:loop}). 
+
+%\radhika{move to end, see comment at end of paragraph}.
 % We describe a two-part design for the \inbox: a ``control plane'' and ``data plane'' separation.
 % The data plane is responsible for packet forwarding, maintaining a count of the \cut{in-bundle} bytes sent, enforcing a rate and scheduling policy on the bundle, and reporting epoch boundary packets to the control plane.
 % These operations can be implemented either in software, via modern platforms for network function virtualization~\cite{bess, click, mos, netbricks}, or in hardware via programmable switches~\cite{p4} \radhika{move to end, see comment at end of paragraph}.
@@ -19,6 +24,34 @@
 % The \outbox is simple and does not require a control plane; it simply must observe the packet stream, maintain a byte count, and send reports to the \inbox on observing epoch packets.
 % The \outbox can, therefore, be implemented entirely in hardware if necessary \radhika{cut}.
 % \radhika{We envision the control plane to be implemented in software, while the data plane can be implemented in...(the line you had before)}
+
+
+\subsection{Prototype}\label{s:impl:prototype}
+
+We now describe our prototype implementation of the \name boxes.
+
+\Para{\capinbox data plane} We implement it using Linux \texttt{tc}~\cite{tc}.
+%and we limit our scheduling policy to those available in the Linux kernel.
+We patch the TBF queueing discipline (qdisc)~\cite{tbf} to detect epoch boundary packets, and to report them to the control plane using a netlink socket. We use the FNV hash function~\cite{fnv-hash}, a non-cryptographic fast hash function with a low collision rate, to compute the packet content hash for identifying epoch boundaries.
+%, and make the internal scheduling policy configurable.
+We also patch TBF's ``inner\_qdisc'' to support SFQ~\cite{sfq}, FQ-CoDel~\cite{fq-codel} and strict prioritization, in addition to the default FIFO. 
+By default, TBF instantaneously re-fills the token bucket when the rate is updated. We disable this feature to avoid rate fluctuations caused by our frequent rate updates. 
+Our patches to the TBF qdisc comprise $112$ lines of C.
+%\an{cut?}\an{Additionally, we remove one line in the rate update to disable re-filling the token bucket on rate changes to prevent a penalty for frequent rate updates\footnote{}.}
+
+% For our prototype, we implement the \inbox data plane using Linux \texttt{tc}~\cite{tc}, and we limit our implementations of scheduling policy to those already widely available in the Linux kernel.
+% We patch the TBF queueing discipline (qdisc)~\cite{tbf} to detect epoch boundary packets, transmit feedback to the control plane using a netlink socket, and make the internal scheduling policy configurable.
+% We express scheduling policy by changing TBF's ``inner\_qdisc'' from the default FIFO to a work-conserving, scheduling qdisc: we support SFQ~\cite{sfq} and FQ-CoDel~\cite{fq-codel}.
+% Our patch to the TBF qdisc comprises $112$ lines of C.
+% \an{cut?}\an{Additionally, we remove one line in the rate update to disable re-filling the token bucket on rate changes to prevent a penalty for frequent rate updates\footnote{by default, TBF instantaneously re-fills the token bucket when the set rate changes. In our implementation, the \inbox sets the rate frequently, causing rate fluctuations. We therefore disable this functionality.}.}
+
+We implement the \inbox control plane to run in user-space in $1167$ lines of Rust.
+We use existing implementations of congestion control algorithms on CCP~\cite{ccp}. CCP is a platform for expressing congestion control algorithms in an asynchronous format, which makes it a natural choice for our epoch-based measurement architecture. The control plane uses \texttt{libccp}~\cite{ccp} to interface with the congestion control algorithm, and  \texttt{libnl} to communicate with the qdisc.
+%It maintains the congestion control state of each bundle, but does not maintain (or observe) per-flow state.
+%\radhika{no. of LoC for \inbox dataplane?} \an{first paragraph of this section?}
+
+We implement the \outbox using \texttt{libpcap} in $188$ lines of Rust. 
+%It listens for packets on the interface, checks for epoch packets, and sends the reports to the \inbox. It must maintain per-bundle counters (described in \S\ref{s:impl:discovery}).
 
 \subsection{\name Event Loop}\label{s:impl:loop}
 Figure~\ref{fig:bundler} overviews the operation of our \name implementation.
@@ -43,23 +76,11 @@ Finally (9), if the \inbox changes the desired epoch length based on new measure
 
 %\radhika{i liked this subsection!}
 
-\subsection{Prototype}\label{s:impl:prototype}
-For our prototype, we implement the \inbox data-plane using Linux \texttt{tc}~\cite{tc}, and we limit our implementations of scheduling policy to those already widely available in the Linux kernel.
-We patch the TBF queueing discipline (qdisc)~\cite{tbf} to detect epoch boundary packets, transmit feedback to the control plane using a netlink socket, and make the internal scheduling policy configurable.
-We express scheduling policy by changing TBF's ``inner\_qdisc'' from the default FIFO to a work-conserving, scheduling qdisc: we support SFQ~\cite{sfq} and FQ-CoDel~\cite{fq-codel}.
-Our patch to the TBF qdisc comprises $112$ lines of C.
-\an{cut?}\an{Additionally, we remove one line in the rate update to disable re-filling the token bucket on rate changes to prevent a penalty for frequent rate updates\footnote{by default, TBF instantaneously re-fills the token bucket when the set rate changes. In our implementation, the \inbox sets the rate frequently, causing rate fluctuations. We therefore disable this functionality.}.}
 
-We implement the \inbox control plane to run in user-space in $1167$ lines of Rust. 
-It uses \texttt{libnl} to communicate with the qdisc, and \texttt{libccp}~\cite{ccp} to communicate with the congestion control algorithm via Unix-domain sockets.
-It maintains the congestion control state of each bundle, but does not maintain (or observe) per-flow state.
-%\radhika{no. of LoC for \inbox dataplane?} \an{first paragraph of this section?}
 
-We implement the \outbox using \texttt{libpcap} in $188$ lines of Rust. It listens for packets on the interface, checks for epoch packets, and sends the reports to the \inbox. It must maintain per-bundle counters (described in \S\ref{s:impl:discovery}).
 
-\radhika{We use the Fowler/Noll/Vo (FNV) hash function~\cite{fnv-hash}, a non-cryptographic fast hash function with a low collision rate.}
 
-\radhika{an experiment showing scalability of bundler implementation?}
+%\radhika{an experiment showing scalability of bundler implementation?}
 
 \subsection{Congestion Control}\label{s:impl:cc}
 We use existing implementations of congestion control algorithms on CCP~\cite{ccp}, a platform for expressing congestion control algorithms in an asynchronous format; since CCP algorithms are already designed to receive network feedback asynchronously, they are a natural choice for our epoch-based measurement architecture. \radhika{this sentence should comer earlier, maybe when you first mention ``control-plane'' at the beginning of Sec 5, especially since 5.2 mentions CCP and libccp.}
