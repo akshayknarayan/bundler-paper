@@ -1,0 +1,106 @@
+\begin{figure}
+    \centering
+<<micro:time-delay,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=3>>=
+
+library(ggplot2)
+library(showtext)
+font_add_google("Lato")
+showtext_auto()
+
+data <- read.csv("minrtt-50-delay-dist.out", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric","numeric", "numeric", "numeric", "numeric"))
+colnames(data) <- c("t", "mm_delay", "inbox_delay", "diff_delay", "mm_thru", "inbox_thru", "diff_thru")
+
+p1 <- ggplot() + 
+    #geom_step(data=raw, aes(x=t, y=recv, colour="raw"),size=1) + 
+    geom_step(data=data, aes(x=t,y=mm_delay, colour="true"),size=1) + 
+    geom_step(data=data, aes(x=t,y=inbox_delay, colour="measured"),size=1)  + 
+    theme_minimal() + 
+    theme(legend.position="bottom") + 
+    #scale_color_manual(name = "", values = c(true = "blue", windowed="red", raw="green")) +
+    #scale_color_brewer(name="", aesthetics=c("colour"),palette="Paired", labels=c("Measured", "Measured (Windowed)", "Bottleneck")) + 
+    scale_color_manual(name="",labels=c(mesaured="Measured", true="Bottleneck"), values=c(measured="#2c7bb6", true="#d7191c")) +
+    scale_x_continuous(breaks=seq(0,max(data$t),by=1)) +
+    scale_y_continuous(breaks=seq(0,36,by=6)) +
+    xlab("Time (seconds)") + 
+    ylab("Delay (ms)") + 
+    coord_cartesian(xlim=c(20,30), ylim=c(0,36)) + 
+    theme(text = element_text(size=18))
+
+p1
+
+@
+
+<<micro:dist-delay,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=3>>=
+
+data <- read.csv("minrtt-delay-dist.out", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric","numeric","numeric","numeric","numeric"))
+colnames(data) <- c("t", "mm_delay", "inbox_delay", "diff_delay", "mm_thru", "inbox_thru", "diff_thru")
+
+# Adjust for mahimahi delay overhead
+# data$mm_delay <- data$mm_delay + 0.8
+data$diff_delay <- data$diff_delay + 0.8
+
+# Relative
+#data$diff_delay <- (data$diff_delay / 50.0) * 100.0
+# TODO FOR NOW ASSUMES SINGLE DELAY
+
+data$diff_delay <- data$diff_delay * -1
+
+dens_delay <- density(data$diff_delay)
+df_delay <- data.frame(x=dens_delay$x, y=dens_delay$y)
+probs_delay <- c(0.1,0.9)
+quants_delay <- quantile(data$diff_delay, prob=probs_delay)
+df_delay$quant <- factor(findInterval(df_delay$x, quants_delay))
+
+xmin_delay <- -10
+xmax_delay <- 10
+xchange_delay <- 2
+# Set x (-10, -8 , ... 8, 10)
+xtics_delay <- setNames(as.double(seq(xmin_delay, xmax_delay,by=xchange_delay)), seq(xmin_delay, xmax_delay,by=xchange_delay))
+#all_breaks <- append(xtics, quants)
+
+ind <- min(which(df_delay$quant == 1))
+slope <- (df_delay[ind,]$y - df_delay[(ind-1),]$y) / (df_delay[ind,]$x - df_delay[(ind-1),]$x)
+inter <- df_delay[ind,]$y - slope*df_delay[ind,]$x
+med <- quants_delay[["10%"]] * slope + inter
+df_delay <- rbind(df_delay, c(quants_delay[["10%"]]-0.0001, med, 0))
+df_delay <- rbind(df_delay, c(quants_delay[["10%"]]+0.0001, med, 1))
+
+ind <- min(which(df_delay$quant == 2))
+slope <- (df_delay[ind,]$y - df_delay[(ind-1),]$y) / (df_delay[ind,]$x - df_delay[(ind-1),]$x)
+inter <- df_delay[ind,]$y - slope*df_delay[ind,]$x
+med <- quants_delay[["90%"]] * slope + inter
+df_delay <- rbind(df_delay, c(quants_delay[["90%"]]-0.0001, med, 1))
+df_delay <- rbind(df_delay, c(quants_delay[["90%"]]+0.0001, med, 2))
+
+probs_delay <- c(0.01,0.1,0.5,0.9,0.99)
+quants_delay <- quantile(data$diff_delay, prob=probs_delay)
+
+p_delay <- ggplot(df_delay, aes(x,y)) + geom_line() +
+    geom_ribbon(aes(ymin=0,ymax=y,fill=quant,alpha=0.7)) +
+    geom_vline(aes(xintercept=quants_delay[["10%"]]), linetype="dashed") +
+    geom_vline(aes(xintercept=quants_delay[["50%"]]), linetype="dashed") +
+    geom_vline(aes(xintercept=quants_delay[["90%"]]), linetype="dashed") +
+    scale_x_continuous(breaks=xtics_delay) + #, limits=c(-20,20)) +
+    # Put origin at 0
+    scale_y_continuous(expand=c(0,0)) + #, limits=c(0,.4)) +
+    scale_fill_brewer(guide="none") +
+    xlab("Difference Between True and Measured RTT (ms)") +
+    ylab("PDF") +
+    coord_cartesian(xlim=c(xmin_delay, xmax_delay)) +
+    theme_bw() +
+    theme(legend.position="none") +
+    annotate("segment", x=-10.9, xend=-1.2, y=0.5,yend=0.5, colour="black", size=1, arrow=arrow(length = unit(0.15,"cm"))) +
+    annotate("segment", x=-1.2, xend=-10.9, y=0.5,yend=0.5, colour="black", size=1, arrow=arrow(length = unit(0.15,"cm"))) +
+    annotate("text", x=c(-6), y=c(0.55), label=c("Underestimate (10%)"), size=3, color="black") +
+    annotate("segment", x=.65, xend=10.9, y=0.5,yend=0.5, colour="black", size=1, arrow=arrow(length = unit(0.15,"cm"))) +
+    annotate("segment", x=10.9, xend=.65, y=0.5,yend=0.5, colour="black", size=1, arrow=arrow(length = unit(0.15,"cm"))) +
+    annotate("text", x=c(6), y=c(0.55), label=c("Overestimate (10%)"), size=3, color="black") +
+    theme(text = element_text(size=18))
+
+p_delay
+
+@
+
+    \caption{\name's estimate of the delay }
+    \label{fig:micro:time-delay}
+\end{figure}
