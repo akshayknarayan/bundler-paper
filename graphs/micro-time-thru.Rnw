@@ -1,6 +1,12 @@
 \begin{figure}
     \centering
-<<micro:time-thru,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=4>>=
+<<micro:time-thru,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=6>>=
+
+library(patchwork)
+library(ggplot2)
+library(showtext)
+font_add_google("Lato")
+showtext_auto()
 
 thru <- read.csv("./84-10000-nimbus-sfq-62-pl-mixed-diff.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric","numeric"))
 raw <- read.csv("./84-10000-nimbus-sfq-62-pl-mixed-epochs.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric"))
@@ -10,34 +16,22 @@ raw$recv <- raw$recv / 125000.0
 
 p1 <- ggplot() + 
     #geom_step(data=raw, aes(x=t, y=recv, colour="raw"),size=1) + 
-    geom_step(data=thru, aes(x=V1,y=V2, colour="true"),size=1) + 
     geom_step(data=thru, aes(x=V1,y=V3, colour="windowed"),size=1)  + 
+    geom_step(data=thru, aes(x=V1,y=V2, colour="true"),size=1) + 
     theme_minimal() + 
-    theme(legend.position="bottom") + 
+    theme(legend.position="top") + 
     #scale_color_manual(name = "", values = c(true = "blue", windowed="red", raw="green")) +
     #scale_color_brewer(name="", aesthetics=c("colour"),palette="Paired", labels=c("Measured", "Measured (Windowed)", "Bottleneck")) + 
-    scale_color_manual(name="",labels=c(windowed="Measured", true="Bottleneck"), values=c(windowed="#2c7bb6", true="#d7191c")) +
+    scale_color_manual(name="", labels=c(windowed="Measured", true="Bottleneck"), values=c(true="#2c7bb6", windowed="#d7191c")) +
     scale_x_continuous(breaks=seq(0,max(thru$V1),by=1)) +
     scale_y_continuous(breaks=seq(0,108,by=12)) +
     xlab("Time (seconds)") + 
     ylab("Rate (Mbps)") + 
     coord_cartesian(xlim=c(20,25), ylim=c(0,108)) + 
-    theme(text = element_text(size=16))
+    theme(text = element_text(size=17))
 
-p1
-@
-
-<<micro:dist-thru,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=3>>=
-
-data <- read.csv("minrtt-delay-dist.out", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric","numeric","numeric","numeric","numeric"))
+data <- read.csv("minrtt-delay-dist.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric","numeric","numeric","numeric","numeric"))
 colnames(data) <- c("t", "mm_delay", "inbox_delay", "diff_delay", "mm_thru", "inbox_thru", "diff_thru")
-
-# Adjust for mahimahi delay overhead
-# data$mm_delay <- data$mm_delay + 0.8
-
-# Relative
-#data$diff_delay <- (data$diff_delay / 50.0) * 100.0
-# TODO FOR NOW ASSUMES SINGLE DELAY
 
 data$diff_thru <- data$diff_thru * -1
 
@@ -73,25 +67,33 @@ quants_thru <- quantile(data$diff_thru, prob=probs_thru)
 
 p_thru <- ggplot(df_thru, aes(x,y)) + geom_line() +
     geom_ribbon(aes(ymin=0,ymax=y,fill=quant,alpha=0.7)) +
-    geom_vline(aes(xintercept=quants_thru[["10%"]]), linetype="dashed") +
-    geom_vline(aes(xintercept=quants_thru[["50%"]]), linetype="dashed") +
-    geom_vline(aes(xintercept=quants_thru[["90%"]]), linetype="dashed") +
+    #geom_vline(aes(xintercept=quants_thru[["10%"]]), linetype="dashed") +
+    #geom_vline(aes(xintercept=quants_thru[["50%"]]), linetype="dashed") +
+    #geom_vline(aes(xintercept=quants_thru[["90%"]]), linetype="dashed") +
+    geom_segment(aes(x=quants_thru[["10%"]], xend=quants_thru[["10%"]], y=0, yend=0.6), linetype="dashed") +
+    geom_segment(aes(x=quants_thru[["50%"]], xend=quants_thru[["50%"]], y=0, yend=0.6), linetype="dashed") +
+    geom_segment(aes(x=quants_thru[["90%"]], xend=quants_thru[["90%"]], y=0, yend=0.6), linetype="dashed") +
+    scale_x_continuous(breaks=xtics_thru) + #, limits=c(-20,20)) +
     # Put origin at 0
-    scale_y_continuous(expand=c(0,0)) + #, limits=c(0,.4)) +
+    scale_y_continuous(expand=c(0,0), limits=c(0,.7)) +
     scale_fill_brewer(guide="none") +
-    xlab("Difference Between True and Measured Throughput (Mbps)") + 
+    xlab("Difference Between True and Measured Throughput (Mbps)") +
     ylab("PDF") +
-    coord_cartesian(xlim=c(xmin_thru, xmax_thru)) + 
-    theme_bw() +
-    theme(legend.position="none") + 
-    annotate("segment", x=-10.9, xend=-3.8, y=0.5,yend=0.5, colour="black", size=1, arrow=arrow(length = unit(0.15,"cm"))) +
-    annotate("segment", x=-3.8, xend=-10.9, y=0.5,yend=0.5, colour="black", size=1, arrow=arrow(length = unit(0.15,"cm"))) +
-    annotate("text", x=c(-6), y=c(0.55), label=c("Underestimate (10%)"), size=3, color="black") +
-    annotate("segment", x=2, xend=10.9, y=0.5,yend=0.5, colour="black", size=1, arrow=arrow(length = unit(0.15,"cm"))) +
-    annotate("segment", x=10.9, xend=2, y=0.5,yend=0.5, colour="black", size=1, arrow=arrow(length = unit(0.15,"cm"))) +
-    annotate("text", x=c(6), y=c(0.55), label=c("Overestimate (10%)"), size=3, color="black")
+    coord_cartesian(xlim=c(xmin_thru, xmax_thru)) +
+    theme_minimal() + 
+    theme(legend.position="none") +
+    annotate("segment", x=-10.9, xend=-2, y=0.5,yend=0.5, colour="black", size=1, arrow=arrow(length = unit(0.15,"cm"))) +
+    annotate("segment", x=-2, xend=-10.9, y=0.5,yend=0.5, colour="black", size=1, arrow=arrow(length = unit(0.15,"cm"))) +
+    annotate("text", x=c(-6.5), y=c(0.55), label=c("Underestimate (10%)"), size=4.5, color="black") +
+    annotate("segment", x=3.6, xend=10.9, y=0.5,yend=0.5, colour="black", size=1, arrow=arrow(length = unit(0.15,"cm"))) +
+    annotate("segment", x=10.9, xend=3.6, y=0.5,yend=0.5, colour="black", size=1, arrow=arrow(length = unit(0.15,"cm"))) +
+    annotate("text", x=c(7.5), y=c(0.55), label=c("Overestimate (10%)"), size=4.5, color="black") +
+    annotate("text", x=c(-1.92), y=c(0.65), label=c("10%"), size=4.5, color="black") +
+    annotate("text", x=c(0.4), y=c(0.65), label=c("50%"), size=4.5, color="black") +
+    annotate("text", x=c(3.7), y=c(0.65), label=c("90%"), size=4.5, color="black") +
+    theme(text = element_text(size=17))
 
-p_thru
+p1 + p_thru + plot_layout(ncol=1, heights=c(1.5,2))
 
 @
 
