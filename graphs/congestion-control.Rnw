@@ -49,7 +49,7 @@ ggplot(med, aes(
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
     ylab(NULL) +
-    ggtitle("> 10KB") +
+    ggtitle("10KB - 1MB") +
     scale_fill_manual(
         values=c(
             "copa_sfq" = "#beaed4",
