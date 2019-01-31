@@ -14,18 +14,13 @@ This observation implies that we can expect to have a small number of bundles ac
 %However, since queuing still occurs in the middle of the network, it relies on the customers targeting a common global objective, or on the network operators isolating different customers' traffic, both of which are difficult to realize. 
 \name provides a solution that does not require any cooperation from downstream networks in other organizations.
 
-In that spirit, \name is closer to OverQoS~\cite{overqos}. Proposed more than a decade ago, OverQoS aimed to provide QoS benefits in the Internet by aggregating and managing traffic at the nodes of an overlay network~\cite{ron}. Given the aggregation opportunities today, where a few content providers generate majority of the Internet traffic~\cite{fivecomps}, we observe that the time for reaping benefits from such designs may have arrived. Recent trends enable a simpler and more deployable approach that \name adopts, where rather than deploying an overlay network, just deploying a middlebox at the sending and the receiving domains can result in significant amounts of traffic aggregation. In addition, \name provides a novel mechanism to \emph{move} the in-network queues, and actively gain the power to schedule across the bundled traffic. 
-
-
+In that spirit, \name is closer to OverQoS~\cite{overqos}. Proposed more than a decade ago, OverQoS aimed to provide QoS benefits in the Internet by aggregating and managing traffic at the nodes of an overlay network~\cite{ron}. Given the aggregation opportunities today, where a few content providers generate majority of the Internet traffic~\cite{fivecomps}, we observe that the time for reaping benefits from such designs may have arrived. Recent trends enable a simpler and more deployable approach; instead of deploying an overlay network, \name{} proposes deploying a middlebox at the sending and the receiving domains to aggregate sufficient traffic. In addition, \name provides a novel mechanism to \emph{move} the in-network queues, and gain the power to schedule the bundled traffic. 
 
 
 %\Para{Overlays} OverQoS~\cite{overqos} proposed an extension to overlay-based network architectures~\cite{ron} to deploy QoS independently of endhosts, a mechanism for packet scheduling.
 %OverQoS uses loss-based congestion control and therefore cannot shift queues; our approach is complementary.
 
-
-
-
-\Para{Split TCP Proxy} This middlebox splits the TCP connections traversing it, such that the senders observe a smaller round-trip time and can increase their sending rate faster. Since it terminates and re-establishes TCP connections, it requires implementing a full TCP stack, managing per-connection state and intrusively changing the packet headers. Again, \name has orthogonal (yet, complementary) goals, which allow for a light-weight implementation, without requiring any per-connection state (unless needed for a specific scheduling algorithm) or any modifications to the packets traversing it. We show how combining \name's features with a TCP Proxy could lead to further improvements in performance in \S\ref{s:eval:proxy}. 
+\Para{Split TCP Proxy} This middlebox splits the TCP connections traversing it, such that the senders observe a smaller round-trip time and can increase their sending rate faster. Since it terminates and re-establishes TCP connections, it requires implementing a full TCP stack, managing per-connection state and intrusively changing the packet headers. Again, \name has orthogonal goals, which allow for a lightweight design without requiring any per-connection state (unless needed for a specific scheduling algorithm) or any modifications to the packets traversing it. We show how combining \name's features with a TCP Proxy could lead to further improvements in performance in \S\ref{s:eval:proxy}. 
 
 %\Para{VPN tunneling} 
 
