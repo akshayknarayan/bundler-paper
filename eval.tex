@@ -108,7 +108,7 @@ We demonstrate that, in addition to improving flow completion times, our impleme
 \paragrapha{Achieving Improved Flow Completion Times} \S\ref{s:eval:fct} shows how enabling SFQ at the \name improves the median slowdown by \overviewBenefitsBundlerMedianImprovement.
 
 \paragrapha{Achieving Low Packet Delays}
-We enable CoDel~\cite{fq-codel} at the \inbox, to lower the packet delays, and test it for a single large backlogged flow, using the setup described in \S\ref{s:eval:}.
+We enable CoDel~\cite{fq-codel} at the \inbox, to lower the packet delays, and test it for a single large backlogged flow, using the setup described in \S\ref{s:eval}.
 %, which adds ECN marks to packets in fair-queue buckets which exceed a threshold. 
 %As a result, endhosts cut their windows earlier than otherwise, and thus achieve low end-to-end-delays.
 We measure the distribution of RTTs seen by the endhost connections with \name and \baseline.
