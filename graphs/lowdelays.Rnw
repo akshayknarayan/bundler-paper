@@ -31,7 +31,7 @@ df$rtt <- (df$rtt / 1e3) - 50
 
 delaysBundler = quantile(df[df$alg == "copa_fqcodel",]$rtt, c(0.5, 0.99))
 delaysBaseline = quantile(df[df$alg == "nobundler_fifo",]$rtt, c(0.5, 0.99))
-delaysImprovement = 100 * (1- (delaysBundler[1] / delaysBaseline[1]))
+delaysImprovement = 100 * (1 - (delaysBundler[1] / delaysBaseline[1]))
 @
 %    \caption{We configure \name with the fq-codel scheduling policy to achieve low end-to-end queueing delays. \name's packet delay is \Sexpr{round(delaysImprovement, 0)}\% lower in the median.}
 %\end{figure}

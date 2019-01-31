@@ -21,6 +21,14 @@ ggplot(df, aes(x=Cross, y=Slowdown, fill=Alg)) +
         limit=c("nimbus_sfq", "nimcopa_sfq", "nobundler_fifo"),
         labels=c("nimbus_sfq" = "Bundler \n Nimbus ", "nimcopa_sfq" = "Bundler \n Copa ", "nobundler_fifo" = "Status Quo")
     ) +
+    scale_x_discrete(
+        limit=c("12Mbps", "24Mbps", "36Mbps"),
+        labels=c(
+            "12Mbps" = "12Mbps Cross\n72Mbps Bundle", 
+            "24Mbps" = "24Mbps Cross\n60Mbps Bundle", 
+            "36Mbps" = "36Mbps Cross\n48Mbps Bundle"
+        )
+    ) +
     theme_minimal() +
     theme(
         legend.position="top",
@@ -29,6 +37,6 @@ ggplot(df, aes(x=Cross, y=Slowdown, fill=Alg)) +
         text = element_text(size=18, family="Lato", face="bold")
     )
 @
-    \caption{Inelastic cross traffic.}
+    \caption{Inelastic cross traffic. \name and the cross traffic combined offer 84Mbps of load to the bottleneck queue. The cross traffic's offered load increases along the x-axis.}
     \label{fig:robust:cr-inelastic}
 \end{figure}

@@ -47,4 +47,6 @@ Bundler (SFQ)     &  \Sexpr{round(strictprio_copa_sfq[1],2)}  &  \Sexpr{round(st
     \label{fig:eval:strict-prio}
 \end{tabular}
 \end{center}
+\newcommand{\strictPrioTailImprovementOverFq}{\Sexpr{round((1-(strictprio_copa_prio[2] / strictprio_copa_sfq[2]))*100, 0)}\%\xspace}
+\newcommand{\strictPrioImprovement}{\Sexpr{round((1-(strictprio_copa_prio[1] / strictprio_nobundler[1]))*100, 0)}\%\xspace}
 
