@@ -49,7 +49,7 @@ ggplot(med, aes(
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
     ylab(NULL) +
-    ggtitle("> 10KB") +
+    ggtitle("10KB - 1MB") +
     scale_fill_manual(
         values=c(
             "copa_sfq" = "#beaed4",
@@ -101,12 +101,12 @@ ggplot(big, aes(
 ccCopaPerf = quantile(df[df$Alg=="copa_sfq",]$Slowdown, c(0.5, 0.99))
 ccNimbusPerf = quantile(df[df$Alg=="nimbus_sfq",]$Slowdown, c(0.5, 0.99))
 ccBBRPerf = quantile(df[df$Alg=="bbr_sfq",]$Slowdown, c(0.5, 0.99))
-ccBaselinePerf = quantile(df[df$Alg=="nobundle_fifo",]$Slowdown, c(0.5, 0.99))
+ccBaselinePerf = quantile(df[df$Alg=="nobundler_fifo",]$Slowdown, c(0.5, 0.99))
 @
     \caption{Choosing a congestion control algorithm at \name remains important, just as it is at the end-host. Note the different y-axis scales for each group of request sizes.}
     \label{fig:eval:cc}
 \end{figure}
-\newcommand{\ccCopaMedian}{\Sexpr{ccCopaPerf[0]}}
-\newcommand{\ccNimbusMedian}{\Sexpr{ccNimbusPerf[0]}}
-\newcommand{\ccBBRMedian}{\Sexpr{ccBBRPerf[0]}}
-\newcommand{\ccBaselineMedian}{\Sexpr{ccBaselinePerf[0]}}
+\newcommand{\ccCopaMedian}{\Sexpr{round(ccCopaPerf[1], 2)}\xspace}
+\newcommand{\ccNimbusMedian}{\Sexpr{round(ccNimbusPerf[1], 2)}\xspace}
+\newcommand{\ccBBRMedian}{\Sexpr{round(ccBBRPerf[1], 2)}\xspace}
+\newcommand{\ccBaselineMedian}{\Sexpr{round(ccBaselinePerf[1], 2)}\xspace}
