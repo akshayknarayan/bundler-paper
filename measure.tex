@@ -47,10 +47,10 @@ Our technique side-steps these issues by using the contents of a packet to sampl
 % For $H$, we use the Fowler/Noll/Vo (FNV) hash function~\cite{fnv-hash}, a non-cryptographic fast hash function with a low collision rate. 
 
 
-%\paragrapha{Choosing header subset} 
-The combination of selected packet fields, over which the hash is computed, can vary across different deployments. However, it must satisfy the following requirements: 
+%\paragrapha{Choosing header subset}
+The combination of selected packet fields over which the hash is computed can vary across different deployments, but it must satisfy the following requirements: 
 
-\paragraphn{(i)} It must be the same at both the \inbox and the \outbox.
+\paragraphn{(i)} It must be the same between the the \inbox and the \outbox.
 
 \paragraphn{(ii)} Its values must remain unchanged as a packet traverses the network from the \inbox to the \outbox (so, for example, the TTL field must be excluded).\footnote{Certain fields, that are otherwise unchanged within the network, can be changed by the NATs deployed in a customer's domain. Ensuring that the \name boxes sit outside the NAT would allow them to make use of those fields.} 
 

@@ -17,15 +17,15 @@ We used Cubic congestion control at the endhosts for our experiments so far. Whe
 %This is primarily because in the \baseline using BBR causes endhosts to achieve 66\% worse median slowdown ($1.62$ with Cubic to $2.68$ with BBR); \name's slowdown is only 5\% worse when endhosts use BBR ($1.08$ with Cubic to $1.14$ with BBR). 
 This shows that \name is compatible with multiple endhost congestion control algorithms (we omit a figure for brevity).
 
+\subsection{Impact of cross traffic}
 
-
-\paragrapha{Self-Inflicted Delays} Correct congestion control behavior is crucial to achieving low FCTs.
-In Figure~\ref{fig:eval:cc} we repeat the FCT experiments in \S\ref{s:eval:fct} and now compare three congestion control protocols to the \baseline: BBR~\cite{bbr}, Nimbus~\cite{nimbus}, and Copa~\cite{copa}.
-In this scenario, it is important to control delays in the bottleneck queue, since it is FIFO scheduled and therefore queued packets from short requests must wait behind those from longer requests. 
-Nimbus and BBR both maintain slightly higher queueing delays at the bottleneck link, and thus they achieve higher median FCTs. 
-Nimbus, which is slightly more aggressive than Copa, induces a higher queue build up at the bottleneck, and a smaller queue build up at the \name, when compared to Copa. It therefore results in a higher median slowdown (\ccNimbusMedian) than Copa (\ccCopaMedian), though still providing significant benefits over the baseline (\ccBaselineMedian). 
-BBR, however is even more aggressive and cannot maintain sufficient queuing at the \name to provide enough benefits: it achievesa median slowdown of \ccBBRMedian.
-Meanwhile, the characteristics of other traffic --- not part of the traffic aggregate \name controls --- on the link can force \name's congestion controller to behave more aggressively in order to remain competitive in the bottleneck link. This would reduce the amount of queue build up at the \name, thus reducing its benefits.
+% \paragrapha{Self-Inflicted Delays} Correct congestion control behavior is crucial to achieving low FCTs.
+% In Figure~\ref{fig:eval:cc} we repeat the FCT experiments in \S\ref{s:eval:fct} and now compare three congestion control protocols to the \baseline: BBR~\cite{bbr}, Nimbus~\cite{nimbus}, and Copa~\cite{copa}.
+% In this scenario, it is important to control delays in the bottleneck queue, since it is FIFO scheduled and therefore queued packets from short requests must wait behind those from longer requests. 
+% Nimbus and BBR both maintain slightly higher queueing delays at the bottleneck link, and thus they achieve higher median FCTs. 
+% Nimbus, which is slightly more aggressive than Copa, induces a higher queue build up at the bottleneck, and a smaller queue build up at the \name, when compared to Copa. It therefore results in a higher median slowdown (\ccNimbusMedian) than Copa (\ccCopaMedian), though still providing significant benefits over the baseline (\ccBaselineMedian). 
+% BBR, however is even more aggressive and cannot maintain sufficient queuing at the \name to provide enough benefits: it achievesa median slowdown of \ccBBRMedian.
+% Meanwhile, the characteristics of other traffic --- not part of the traffic aggregate \name controls --- on the link can force \name's congestion controller to behave more aggressively in order to remain competitive in the bottleneck link. This would reduce the amount of queue build up at the \name, thus reducing its benefits.
 
 \input{inelastic-cross}
 \paragrapha{Inelastic Cross Traffic} We first consider the case of \emph{inelastic} cross traffic; that is, traffic that does not respond to queue-size fluctuations.
