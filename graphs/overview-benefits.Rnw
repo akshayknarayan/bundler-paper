@@ -46,12 +46,17 @@ ggplot(med, aes(
     geom_boxplot(outlier.shape=NA) +
     ylab(NULL) +
     ggtitle("Medium\n10KB - 1MB") +
-    scale_fill_brewer(type="qual", palette=2,
+    scale_fill_manual(
         limit=c("nobundler_fifo", "copa_sfq", "nobundler_sfq"),
         labels=c(
             "nobundler_fifo" = "Status Quo  ",
             "copa_sfq" = "Bundler  ", 
             "nobundler_sfq" = "In-Network"
+        ),
+        values = c(
+            "nobundler_fifo" = "#d95f02",
+            "copa_sfq" = "#1b9e77",
+            "nobundler_sfq" = "#7570b3"
         )
     ) +
     scale_x_discrete(
