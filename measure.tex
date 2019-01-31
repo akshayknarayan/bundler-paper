@@ -269,13 +269,9 @@ When the \inbox updates the epoch size $N$ for a bundle, it needs to send an out
     leaving the bottleneck over a five second segment from one run in our evaluation (\fc{expand}).
     Here we demonstrate the necessity of a window to smooth out the estimation.
 
-    In Figure~\ref{fig:micro:thru}, we compute the difference between our smoothed estimate of the receive rate 
+    In Figure~\ref{fig:micro:thru}, for both t we compute the difference between our estimate of the receive rate 
     and the bottleneck rate at each time step and plot the distribution of this difference across
     all of the traces in our evaluation. 80\% of the time our estimate is within 3Mbps of the 
     actual rate.
 
-    In Figure~\ref{fig:micro:delay}, we compute the difference between our estimate of the RTT between
-    the \inbox and \outbox and the actual RTT at each time stpe and plot the distribution again
-    across all of the traces in our evaluation. 80\% of the time we are within 2ms of the actual RTT.
-    \radhika{discuss}
     
