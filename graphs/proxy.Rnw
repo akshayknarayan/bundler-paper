@@ -86,6 +86,6 @@ ggplot(big, aes(
         plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     )
 @
-    \caption{A proxy-based implementation of \name could yield further benefits to the long flows.}
+    \caption{A proxy-based implementation of \name could yield further benefits to the long flows. Note the different y-axis scales for each group of request sizes.}
     \label{fig:eval:proxy}
 \end{figure}

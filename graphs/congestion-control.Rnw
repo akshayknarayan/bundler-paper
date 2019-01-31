@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-    <<eval:cc,fig.showtext=TRUE,cache=TRUE,echo=FALSE,message=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
+<<eval:cc,fig.showtext=TRUE,cache=TRUE,echo=FALSE,message=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
 library(ggplot2)
 library(showtext)
 font_add_google("Lato")
@@ -97,7 +97,16 @@ ggplot(big, aes(
         text = element_text(angle=30,size=18, family="Lato", face="bold"),
         plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     )
+
+ccCopaPerf = quantile(df[df$Alg=="copa_sfq",]$Slowdown, c(0.5, 0.99))
+ccNimbusPerf = quantile(df[df$Alg=="nimbus_sfq",]$Slowdown, c(0.5, 0.99))
+ccBBRPerf = quantile(df[df$Alg=="bbr_sfq",]$Slowdown, c(0.5, 0.99))
+ccBaselinePerf = quantile(df[df$Alg=="nobundle_fifo",]$Slowdown, c(0.5, 0.99))
 @
-    \caption{Choosing a congestion control algorithm at \name remains important, just as it is at the end-host.}
+    \caption{Choosing a congestion control algorithm at \name remains important, just as it is at the end-host. Note the different y-axis scales for each group of request sizes.}
     \label{fig:eval:cc}
 \end{figure}
+\newcommand{\ccCopaMedian}{\Sexpr{ccCopaPerf[0]}}
+\newcommand{\ccNimbusMedian}{\Sexpr{ccNimbusPerf[0]}}
+\newcommand{\ccBBRMedian}{\Sexpr{ccBBRPerf[0]}}
+\newcommand{\ccBaselineMedian}{\Sexpr{ccBaselinePerf[0]}}
