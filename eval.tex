@@ -56,15 +56,15 @@ Finally, for the \name configuration, we use a Copa~\cite{copa} congestion contr
 Figure~\ref{fig:eval:best} presents the results with the above experiment setup.
 With \name, the median 
 slowdown\footnote{We define the ``slowdown'' of a request as its completion time divided by what its completion time would have been in an unloaded network. A slowdown of $1$ is optimal, and lower numbers represent better performance.} 
-decreases from \overviewBenefitsBaselineMedian % %$1.62$ 
-for Baseline to \overviewBenefitsBundlerMedian %$1.08$ 
-with \name: \overviewBenefitsBundlerMedianImprovement %33\% 
+decreases from \overviewBenefitsBaselineMedian 
+for Baseline to \overviewBenefitsBundlerMedian 
+with \name: \overviewBenefitsBundlerMedianImprovement
 lower.
 
 Furthermore, \name's performance is near to the benefits that could be achieved with \optimal.
-Both \name and \optimal achieve an identical median slowdown of $1.08$.
-\optimal provides better performance in the tail: the $99\%$ile slowdown is $4.46$ for ``\optimal'' and $9.83$ for \name.
-Note that the baseline achieves a $99\%$ile slowdown of $10.77$.
+Both \name and \optimal achieve an identical median slowdown of \overviewBenefitsBundlerMedian.
+\optimal provides better performance in the tail: the $99\%$ile slowdown is \overviewBenefitsOptimalTail for ``\optimal'' and \overviewBenefitsBundlerTail for \name.
+Meanwhile, the \baseline achieves a $99\%$ile slowdown of \overviewBenefitsBaselineTail.
 We next discuss the source of this higher tail FCT compared to \optimal.
 
 \paragrapha{Necessity of scheduling} \an{move this text to earlier?}It is important to note that \name by itself is not necessarily a means of achieving low end-to-end delays, as promised by recent efforts in congestion control~\cite{copa, nimbus}, despite its use of these modern congestion control algorithms.
@@ -76,25 +76,27 @@ However, the congestion controller at \inbox must also additionally maintain som
 Therefore, we expect the overall end-to-end-delays to increase slightly.
 As a result, \emph{solely} using a more sophisticated congestion control algorithm at the \name is unlikely to be the cause of significant reductions in the flow completion time.
 
+\input{fifo-not-enough}
 This is why the tail FCT for \name does not match \optimal's.
 We can see this by measuring the relative performance of using FIFO scheduling at the \name instead of the SFQ scheduling in Figure~\ref{fig:eval:best}.
 The results are in Figure~\ref{fig:eval:fifo}. 
-Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a median FCT of $173$ms, it is $18$\% higher than the \baseline. 
-\input{fifo-not-enough}
+Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a median slowdown of \overviewBenefitsFifoMedian, it is \overviewBenefitsFifoWorse higher than the \baseline. 
 
 \subsection{Different Scheduling Policies}\label{s:eval:policies}
-\fc{Mention configuring scheduling here rather than in each paragraph}
+Per \S\ref{s:impl}, our \name implementation can implement any scheduling discipline available in Linux. We demonstrate that \name can achieve low packet delay, strict prioritization, and rate fairness.
 
-\input{lowdelays}
 \paragrapha{Achieving Low Delays}
-\name can configure its scheduling policy to achieve low end-to-end-delays.
-In Figure~\ref{fig:eval:lowdelays}, we show that when we configure the scheduling policy at \inbox, we can change the RTTs component connections observe.
-Note that due to the effect discussed above, using FIFO scheduling results in higher delays than the \baseline case.
+\name uses fq-codel~\cite{fq-codel}, which adds ECN marks to packets in fair-queue buckets which exceed a threshold. 
+As a result, endhosts cut their windows earlier than otherwise, and thus achieve low end-to-end-delays.
+We measure the distribution of RTTs endhost connections observe with \name and \baseline.
+\input{lowdelays}
+Because it controls endhost packet transmissions, fq-codel achieves \delaysImprovement lower median packet delay.
+%Note that due to the effect discussed above, using FIFO scheduling results in higher delays than the \baseline case.
 
 \paragrapha{Strict Prioritization}\label{s:eval:strictprio}
-In Figure~\ref{fig:eval:strict-prio}, there are two classes of traffic transitting \name: a high-priority and low-priority class. Using a priority scheduler at \name can improve FCTs for the high-priority class. 
-When compared to fair queueing in this scenario, prioritization achieves $47$\% lower $99^{\text{th}}$\%ile FCT for the prioritized traffic class.
+Using a priority scheduler at \name can improve FCTs for a higher-priority class of traffic transitting \name over a lower-priority class. 
 \input{strict-prio}
+Furthermore, when compared to fair queueing in this scenario, prioritization achieves $47$\% lower $99^{\text{th}}$\%ile FCT for the prioritized traffic class.
 
 \input{waterfall}
 \paragrapha{Rate Fairness and Stability}\label{s:eval:waterfall}

@@ -83,7 +83,12 @@ ggplot(big, aes(
         text = element_text(angle=0,size=18, family="Lato", face="bold"),
         plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     )
+
+overview_benefits_bundler_results = quantile(df[df$Alg=="copa_sfq",]$Slowdown, c(0.5, 0.99))
+overview_benefits_fifo_results = quantile(df[df$Alg=="copa_fifo",]$Slowdown, c(0.5, 0.99))
 @
-    \caption{With FIFO scheduling, the benefits of \name are lost: FCTs are 18\% worse in the median.}
+    \caption{With FIFO scheduling, the benefits of \name are lost: FCTs are \Sexpr{round(100*(1-((overview_benefits_fifo_results[1] / overview_benefits_bundler_results[1])-1)), 0)}\% worse in the median.}
     \label{fig:eval:fifo}
 \end{figure}
+\newcommand{\overviewBenefitsFifoMedian}{\Sexpr{round(overview_benefits_fifo_results[1], 2)}\xspace}
+\newcommand{\overviewBenefitsFifoWorse}{\Sexpr{round(100*(1-((overview_benefits_fifo_results[1] / overview_benefits_bundler_results[1])-1)), 0)}\%\xspace}

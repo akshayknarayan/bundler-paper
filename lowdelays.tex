@@ -1,10 +1,16 @@
-\begin{figure}
-    \centering
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
-\includegraphics[width=\maxwidth]{figure/eval:lowdelays-1} 
+%\begin{figure}
+%    \centering
 
-\end{knitrout}
-    \caption{We configure \name with the fq-codel scheduling policy to achieve low end-to-end queueing delays.}
+%    \caption{We configure \name with the fq-codel scheduling policy to achieve low end-to-end queueing delays. \name's packet delay is round(delaysImprovement, 0)\% lower in the median.}
+%\end{figure}
+\newcommand{\delaysImprovement}{97\%\xspace}
+\begin{center}
+\begin{tabular}{c|c|c}
+Scheme     &  Median RTT                          &    $99$\%ile  RTT                      \\
+\hline
+Bundler    &  4.25   &    15.32   \\
+\baseline  &  122.2  &    151.53
     \label{fig:eval:lowdelays}
-\end{figure}
+\end{tabular}
+\end{center}
+
