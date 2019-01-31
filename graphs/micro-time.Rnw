@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-    <<micro:time,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=4>>=
+<<micro:time,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=4>>=
 
 thru <- read.csv("./84-10000-nimbus-sfq-62-pl-mixed-diff.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric","numeric"))
 raw <- read.csv("./84-10000-nimbus-sfq-62-pl-mixed-epochs.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric"))

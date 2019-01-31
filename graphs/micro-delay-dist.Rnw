@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-    <<micro:delay,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=2>>=
+<<micro:delay,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=2>>=
 
     library(ggplot2)
 data <- read.csv("all_delay-diff.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric","numeric","numeric"))

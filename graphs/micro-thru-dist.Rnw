@@ -1,8 +1,10 @@
 \begin{figure}
     \centering
-    <<micro:thru,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=2>>=
-
-    library(ggplot2)
+<<micro:thru,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.showtext=TRUE,fig.width='\\columnwidth',fig.height=2>>=
+library(ggplot2)
+library(showtext)
+font_add_google("Lato")
+showtext_auto()
 thru <- read.csv("84Mbps_thru-diff.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric","numeric"))
 
 fill_gaps <- function(df) {

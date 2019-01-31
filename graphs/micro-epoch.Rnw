@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-    <<micro:epoch,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=3>>=
+<<micro:epoch,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=3>>=
 
 library(ggplot2)
 

@@ -1,7 +1,7 @@
 \begin{figure}
     \centering
     \begin{subfigure}[b]{0.5\textwidth}
-    <<eval:tput-delay:a,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
+<<eval:tput-delay:a,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
 library(ggplot2)
 library(showtext)
 font_add_google("Lato")
@@ -29,7 +29,7 @@ ggplot(df, aes(x=Throughput, colour=Impl)) +
     \caption{Throughput (in Mbit/s) Comparison.}\label{fig:eval:tputdelay:a}
     \end{subfigure}
     \begin{subfigure}[b]{0.5\textwidth}
-    <<eval:tput-delay:b,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
+<<eval:tput-delay:b,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
 library(ggplot2)
 library(showtext)
 font_add_google("Lato")
