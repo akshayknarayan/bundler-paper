@@ -1,5 +1,5 @@
 \section{Design Overview}\label{s:design}
-\fc{LOCK}
+
 \begin{figure*}
     \centering
     \includegraphics[width=\textwidth]{img/shift-bottleneck-combined}
@@ -152,11 +152,11 @@ Therefore, \name adopts a two-sided design, with measurements conducted between 
 \paragraphi{(1) Out-of-band feedback} 
 %To conduct its measurements, the \inbox instead receives an explicit out-of-band \emph{feedback message} from the \outbox. 
 The \outbox sends explicit out-of-band \emph{feedback messages} to the \inbox, which are used for measuring congestion signals. 
-This out-of-band feedback mechanism is not only agnostic to the underlying protocol (be it TCP or UDP), but also side-steps the issue of TCP acknowledgements not passing through the same \inbox. \fc{should we say why we made this decision?}
+This out-of-band feedback mechanism is not only agnostic to the underlying protocol (be it TCP or UDP), but also side-steps the issue of TCP acknowledgements not passing through the same \inbox.
 
 \paragraphi{(2) Infrequent measurements} Sending an out-of-band feedback message for every packet arriving at the \outbox would result in high communication overhead. Furthermore, conducting measurements on every outgoing packet at the \inbox would require maintaining state for each of them, which can be expensive, especially at high bandwidth-delay products. We, therefore, conduct measurements on a few sampled packets, at least once per RTT, which is sufficient for most congestion control algorithms~\cite{ccp}. 
 
-\paragraphi{(3) Independent sampling} The \inbox and \outbox need to agree upon the set of sampled packets over which measurements will be conducted (to ensure overlap between the packets for which the \outbox generates feedback and the packets for which the \inbox maintains state). It is tempting to simply mark \fc{is this a known term?} such packets at the \inbox. However, past studies~\cite{ipoptions, mboxbadness, quic} have shown how such strategies may fail in practice, as many deployed middleboxes have a tendency to drop or re-write packets with unfamiliar header fields. 
+\paragraphi{(3) Independent sampling} The \inbox and \outbox need to agree upon the set of sampled packets over which measurements will be conducted (to ensure overlap between the packets for which the \outbox generates feedback and the packets for which the \inbox maintains state). It is tempting to simply mark such packets at the \inbox. However, past studies~\cite{ipoptions, mboxbadness, quic} have shown how such strategies may fail in practice, as many deployed middleboxes have a tendency to drop or re-write packets with unfamiliar header fields. 
 %Another option is to explicitly exchange coordination messages, but the overhead incurred by that would defeat the purpose of sampling packets. 
 We, therefore, devise a technique to sample packets solely based on the hash computed over certain fields in the packet header, which allows the \inbox and the \outbox to independently sample the same set of packets.
 
@@ -233,5 +233,3 @@ We take advantage of this property in our approach to dynamic bundle identificat
 
 % Of course, traffic from other customers may also compete for a share of this bottleneck link. Because \name acts to enforce the policy of a single customer, it naturally can control only that customer's traffic.
 % Therefore, \name's scheduling benefits will come from the \emph{self-inflicted} queueing the component flows cause.
-
-
