@@ -14,7 +14,7 @@ Given \name's ability to move the in-network queues to the \inbox (as shown earl
 
 \paragrapha{Experimental Setup}
 We evaluate our implementation of \name (discussed in \S\ref{s:impl}) using network emulation via mahimahi~\cite{mahimahi}.
-Mahimahi creates a Linux network namespace and applies the configured network condition (emulated delay or link bandwidth) to all packets that traverse it. We set the link bandwidth to 96Mbps, and the one-way delay to 25ms.  
+Mahimahi creates a Linux network namespace and applies the configured network condition (emulated delay or link bandwidth) to all packets that traverse it. 
 
 There are three $8$-core machines in our setup: one machine is a sender, another is configured as a middlebox and runs a \inbox, and a third is the receiver. The \outbox runs on the same machine as the receiver, inside the same mahimahi network namespace as the receiving application. 
 Our prototype requires that the sending application and the \inbox run on different machines, to prevent TCP small queues (TSQ) from interfering with the queuing behaviour that one would expect in a real deployment. 
@@ -28,10 +28,11 @@ Throughout our experiments, CPU utilization on the machines remained below $10$\
 
 A many-threaded client generates requests from a request size CDF drawn from an Internet core router~\cite{caida-dataset}, and assigns them to one of $200$ server processes on the traffic generator.
 The workload is heavy-tailed: 97.6\% of requests are 10KB or shorter, and the largest 0.002\% of requests are between $5$MB and $100$MB.
-Each server then sends the requested amount of data to the client  (corresponding to 84Mbps of offered load, unless otherwise specified) and we measure the flow completion time of each such request.
+Each server then sends the requested amount of data to the client and we measure the flow completion time of each such request. \reword{In addition, the server also generates a persistently backlogged connection to the client.}
 %We use multiple server processes to emulate multiple machines behind the \name at the customer's edge.
-Unless otherwise specified, each result in this section is comprised of $100,000$ requests sampled from this distribution, across $10$ runs each with a different random seed.
-\reword{In addition, the server also generates a persistently backlogged connection to the client.}
+
+Unless otherwise specified, we use the following settings. The link bandwidth at the mahimahi link is set to 96Mbps, and the one-way delay is set to 25ms. The requests result in an offered load of 84Mbps. The endhost runs Cubic~\cite{cubic} congestion controller, and the \inbox runs Copa~\cite{copa}. Each experiment is comprised of $100,000$ requests sampled from this distribution, across $10$ runs each with a different random seed. 
+
 %that models a background large data transfer which would normally fill the bottleneck queue.
 %
 %\radhika{another title for this section, or some preceding explanation on what each section is about}
@@ -51,6 +52,7 @@ This scenario highlights the benefits of using \name when the congestion on the 
 
 %On a $96$Mbps link, we generate  from the CDF described above.
 
+In this section, we evaluate the benefits provided by doing fair queuing at the \name, and use median slowdown as our metric, where the ``slowdown'' of a request as its completion time divided by what its completion time would have been in an unloaded network. A slowdown of $1$ is optimal, and lower numbers represent better performance.
 
 We evaluate three configurations: 
 (i) The ``\baseline'' configuration represents the status quo: the \inbox simply forwards packets as it receives them, and the mahimahi bottleneck uses FIFO scheduling.
@@ -59,41 +61,39 @@ We implement this scheme by modifying mahimahi (our patch comprises $171$ lines 
 at the mahimahi bottleneck. 
 Recall from \S\ref{s:intro} that this configuration is not enforced in practice.
 %: it would force all customers --- who may desire diverging scheduling policies --- to use the same scheduler.
-(iii) The \name configuration, that uses Copa~\cite{copa} for rate control and the stochastic fair queueing~\cite{sfq} scheduling policy at the \inbox.
-(iv) 
+(iii) The default \name configuration, that uses Copa~\cite{copa} for rate control and the stochastic fair queueing~\cite{sfq} scheduling policy at the \inbox.
+%(iv) Finally, perform a factor analysis for \name, we also evaluate a configuration where \name does FIFO scheduling. 
 
-Therefore, in this section, we evaluate the benefits provided by doing fair queuing at the \name, and use median slowdown as our metric, where the ``slowdown'' of a request as its completion time divided by what its completion time would have been in an unloaded network. A slowdown of $1$ is optimal, and lower numbers represent better performance.
 
 
 Figure~\ref{fig:eval:best} presents the results with the above experiment setup. 
-As is expected from the use of fair queuing, \name is able to achieve significant improvements in the slowdown for short flows, followed by some  
-\name, using fair queueing, significantly improves the slowdown for short ($<$10KB) flows, while the medium
-With \name, the median slowdown\footnote{We define the ``slowdown'' of a request as its completion time divided by what its completion time would have been in an unloaded network. A slowdown of $1$ is optimal, and lower numbers represent better performance.} 
+As is expected from the use of fair queuing, \name is able to achieve significant reductions in the slowdown for short flows, followed by some reduction for medium-sized flows, and similar performance for large flows. 
+%\name, using fair queueing, significantly improves the slowdown for short ($<$10KB) flows, while the medium
+The median slowdown
+%\footnote{We define the ``slowdown'' of a request as its completion time divided by what its completion time would have been in an unloaded network. A slowdown of $1$ is optimal, and lower numbers represent better performance.} 
 decreases from \overviewBenefitsBaselineMedian 
 for Baseline to \overviewBenefitsBundlerMedian 
 with \name: \overviewBenefitsBundlerMedianImprovement
 lower.
 
-Furthermore, \name's performance is near to the benefits that could be achieved with \optimal.
+Furthermore, \name's performance is close to \optimal.
 Both \name and \optimal achieve an identical median slowdown of \overviewBenefitsBundlerMedian.
 \optimal provides better performance in the tail: the $99\%$ile slowdown is \overviewBenefitsOptimalTail for ``\optimal'' and \overviewBenefitsBundlerTail for \name.
 Meanwhile, the \baseline achieves a $99\%$ile slowdown of \overviewBenefitsBaselineTail.
-We next discuss the source of this higher tail FCT compared to \optimal.
+%We next discuss the source of this higher tail FCT compared to \optimal.
 
-\paragrapha{Necessity of scheduling} \an{move this text to earlier?}It is important to note that \name by itself is not necessarily a means of achieving low end-to-end delays, as promised by recent efforts in congestion control~\cite{copa, nimbus}, despite its use of these modern congestion control algorithms.
-
+\paragrapha{Necessity of scheduling} It is important to note that \name by itself (i.e. without a suitable scheduling policy) is not a means of achieving improved performance. 
+%as promised by recent efforts in congestion control~\cite{copa, nimbus}, 
+despite doing aggregated congestion control across all flows in a bundle.
 To see why this is the case, recall that \name does not modify the end-hosts: they continue to run the default Cubic congestion controller, which will probe for bandwidth until it observes loss.
-Indeed, the packets end-host Cubic sends beyond those the link can transmit must queue somewhere in the network or be lost. Without \name, they get queued up at the bottleneck link.
-With \name, they instead queue at the \inbox.
-However, the congestion controller at \inbox must also additionally maintain some standing queue at the bottleneck link to make decisions effectively.
-Therefore, we expect the overall end-to-end-delays to increase slightly.
-As a result, \emph{solely} using a more sophisticated congestion control algorithm at the \name is unlikely to be the cause of significant reductions in the flow completion time.
+Indeed, the packets end-host Cubic sends beyond those that the link can transmit must be queued somewhere in the network or get dropped. Without \name, they get queued up at the bottleneck link. With \name, they instead just get queued up at the \inbox. In addition, the congestion controller at \inbox also maintains a small standing queue at the bottleneck link (which can be seen in Figure~\ref{fig:design:shift-bottleneck}) to avoid under-utilization, which increases the end-to-end-delays slightly. Therefore, doing the FIFO scheduling at the \name, as is done by the \baseline, results in slightly worse performance (shown in Figure~\ref{fig:eval:fifo}).
+%As a result, \emph{solely} using a more sophisticated congestion control algorithm at the \name is unlikely to be the cause of significant reductions in the flow completion time.
 
 \input{fifo-not-enough}
-This is why the tail FCT for \name does not match \optimal's.
-We can see this by measuring the relative performance of using FIFO scheduling at the \name instead of the SFQ scheduling in Figure~\ref{fig:eval:best}.
-The results are in Figure~\ref{fig:eval:fifo}. 
-Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a median slowdown of \overviewBenefitsFifoMedian, it is \overviewBenefitsFifoWorse higher than the \baseline. 
+% This is why the tail FCT for \name does not match \optimal's.
+% We can see this by measuring the relative performance of using FIFO scheduling at the \name instead of the SFQ scheduling in Figure~\ref{fig:eval:best}.
+% The results are in Figure~\ref{fig:eval:fifo}. 
+% Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a median slowdown of \overviewBenefitsFifoMedian, it is \overviewBenefitsFifoWorse higher than the \baseline. 
 
 \subsection{Different Scheduling Policies}\label{s:eval:policies}
 Per \S\ref{s:impl}, our \name implementation can implement any scheduling discipline available in Linux. We demonstrate that \name can achieve low packet delay, strict prioritization, and rate fairness.
