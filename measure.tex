@@ -253,12 +253,17 @@ When the \inbox updates the epoch size $N$ for a bundle, it needs to send an out
 \label{s:measure:microbench}
     \input{micro-time-thru}
     \input{micro-time-delay}
-    We now evaluate the accuracy of our measured congestion signals. 
+    We now evaluate the accuracy of our measurement technique and its robustness to various network conditions. 
     
-    As an illustrative example, Figure~\ref{fig:micro:time}, compares our estimate of the 
-    We now explore how well our measurements match the actual network conditions. 
-
-    %First, we consider our estimate of the receive rate (Equation 1c). 
+    In Figure~\ref{fig:micro:time}, we look closely at a five second segment from one from one experiment in our evaluation (\S\ref{s:eval}) and compare our estimate of the receive rate and RTT to the actual values at the bottleneck router.
+    It is easy to see that during this short time segment \name is able to track the values closely over time. 
+    
+    
+    
+    
+    
+    
+    
     In Figure~\ref{fig:micro:time}, we compare our estimate of the receive rate (``Measured'')
     to the actual rate of packets 
     leaving the bottleneck over a five second segment from one run in our evaluation (\fc{expand}).

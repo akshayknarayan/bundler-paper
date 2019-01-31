@@ -32,6 +32,9 @@ If the endhost uses an aggressive delay-based congestion controller, it will not
 If \emph{all} such endhosts deploy aggressive delay-control schemes --- an unlikely scenario, as endhost congestion control is difficult to evolve~\cite{quic} --- \name may have limited ability to reorder, and thus schedule packets.
 However, we note that using delay-based congestion controllers is an expression of a desired scheduling policy: namely, low packet delays.
 \name is thus compatible with this method of enforcing endhost scheduling policy, while additionally enabling isolation of the delay-sensitive traffic (via scheduling) from other flows.
+
+
+
 %
 \cut{
 \begin{outline}

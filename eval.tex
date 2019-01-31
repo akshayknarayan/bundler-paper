@@ -144,14 +144,21 @@ the highest possible bitrate and thus maximize QoE.
 
 \input{robust}
 
-\subsection{Offered load}\label{s:eval:offeredload}
-Naturally, if a link is less congested, scheduling the packets that traverse it will have less benefit. Accordingly, as we reduce the offered load in this experiment, we expect the gains from scheduling to diminish. The result is in Figure~\ref{fig:eval:offeredload}. We reduce the offered load by removing persistently backlogged connections from the workload and generating individual requests at 50\% ($48$Mbps), 75\% ($72$Mbps) and 87.5\% ($84$Mbps) of the bottleneck link bandwidth.
-At 87.5\% load, even without the load offered by a persistently backlogged connection, \name improves FCTs by \an{amount}. 
-As the offered load decreases to 50\%, the benefit provided by \name decreases as well -- to \an{amount} at the 75th percentile.
+\subsection{Changing Offered load}\label{s:eval:offeredload}
+%Naturally, if a link is less congested, scheduling the packets that traverse it will have less benefit. Accordingly, as the offered load is reduced, we would expect the gains from scheduling to diminish. 
+We now use the web request distribution described in \S\ref{s:eval:setup} to generate a load of 50\% ($48$Mbps), 75\% ($72$Mbps) and 87.5\% ($84$Mbps) of the bottleneck link bandwidth. Our results in Figure~\ref{fig:eval:offeredload} show that as the offered load is decreased, the benfits of \name reduce. This is because if a link is less congested, scheduling the packets that traverse it will have less benefit.
+% At 87.5\% load, even without the load offered by a persistently backlogged connection, \name improves FCTs by \an{amount}. 
+% As the offered load decreases to 50\%, the benefit provided by \name decreases as well -- to \an{amount} at the 75th percentile.
 
 \input{varying-offered-load}
 
 \subsection{Terminating TCP Connections}\label{s:eval:proxy}
+
+We now study the benefits of combining \name with a TCP proxy. A TCP-proxy enables the the end-to-end congestion controller to observe a smaller RTT, by acknowledging its segments much faster than the original receiver further away. It therefore allows a rapid window growth.
+A proxy-based design could then apply a scheduling policy to the acknowledged, but yet unsent traffic from terminated connections.
+
+
+
 An alternate implementation of a \name could terminate TCP connections at the \inbox. 
 %\radhika{I assume we mention this in an earlier section? else we need a line or two about why this experiment is interesting.}
 We consider the best-case outcome of terminating TCP connections --- the RTT the end-to-end congestion controller observed would decrease (since the proxy would acknowledge its segments much faster than the original receiver would), and it would therefore grow its window rapidly.
