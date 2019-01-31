@@ -3,7 +3,7 @@
 \begin{figure*}
     \centering
     \includegraphics[width=\textwidth]{img/shift-bottleneck-combined}
-    \caption{This illustrative example with a single flow shows how \name can take control of queues in the network. The bubbles show the trend in measured queueing delays at the relevant queue over time. The queue where delays build up can best make scheduling decisions, since that is where there is the most choice between packets to send. Therefore, the \inbox \emph{shifts} the queues to itself to gain scheduling power.}\label{fig:design:shift-bottleneck}
+    \caption{This illustrative example with a single flow shows how \name can take control of queues in the network. The \fc{callouts?} show the trend in measured queueing delays at the relevant queue over time. The queue where delays build up can best make scheduling decisions, since it has the most choice between packets to send. Therefore, the \inbox \emph{shifts} the queues to itself to gain scheduling power.}\label{fig:design:shift-bottleneck}
 \end{figure*}
 
 \cut{
@@ -33,7 +33,7 @@ In this section, we first describe our key insight for moving the in-network que
 
 %The central idea behind \name is to make it a choke-point of a customer's traffic, such that queuing occurs at the \name where the customer can effectively enforce different scheduling policies, instead of occurring at the links in the middle of the network over which it has no control.  
 
-A trivial strategy for inducing queuing at the \name is to throttle its outgoing rate. However, if this rate is made smaller than the bundle's share of bandwidth at the bottleneck link in the network, it can adversely affect its throughput. Instead, the rate needs to be set such that the bottleneck link sees a small queue while remaining fully utilized (and the bundled traffic competes fairly in the presence of cross traffic). We make a simple, but powerful, observation: existing congestion control algorithms~\cite{nimbus, copa} perform exactly this calculation. Therefore, running such an algorithm at the \inbox of the \name to set a bundle's rate, would reduce its self-inflicted queue at the bottleneck, shifting it to the \inbox instead, without impacting aggregate throughput. Note that the individual end hosts would continue running their default congestion control algorithm~\cite{cubic, bbr}, as before, which would now react to the queue build up and packet drops incurred at the \inbox.
+A trivial strategy for inducing queuing at the \name is to throttle its outgoing rate. However, if this rate is made smaller than the bundle's share of bandwidth at the bottleneck link in the network, it can decrease throughput. Instead, the rate needs to be set such that the bottleneck link sees a small queue while remaining fully utilized (and the bundled traffic competes fairly in the presence of cross traffic). We make a simple, but powerful, observation: existing congestion control algorithms~\cite{nimbus, copa} perform exactly this calculation. Therefore, running such an algorithm at the \inbox to set a bundle's rate would reduce its self-inflicted queue at the bottleneck, shifting it to the \inbox instead, without impacting aggregate throughput. Note that each end host would continue running its default congestion control algorithm~\cite{cubic, bbr}, as before, which would now react to the queue build up and packet drops incurred at the \inbox.
 
 %In order to prevent under-utilization of the bottleneck links in the network, \name needs to occupy . 
 %We make a simple, but powerful, observation: many congestion control algorithms perform exactly this calculation! 
@@ -42,7 +42,7 @@ A trivial strategy for inducing queuing at the \name is to throttle its outgoing
 %Since component flows, running traditional congestion control algorithms, will probe for bandwidth until they experience loss, they build queues at the \name instead of at the bottleneck.
 %Since the \name now controls the queues corresponding to the traffic aggregate, it can schedule the packets of component flows. \radhika{needs fixing!}
 
-Figure~\ref{fig:design:shift-bottleneck} illustrates this method for a single flow traversing a bottleneck link in the network.\footnote{Details of the emulated network setup which resulted in the illustrated queue length time-series has been provided in \S\ref{s:eval}.} Without \name, packets from the end hosts are queued in the network, while the queue at the edge is unoccupied. In contrast, a \name deployed at the edge is able to shift the queue to its \inbox.
+Figure~\ref{fig:design:shift-bottleneck} illustrates this method for a single flow traversing a bottleneck link in the network.\footnote{Details of the emulated network setup which resulted in the illustrated queue length time-series are in \S\ref{s:eval}.} Without \name, packets from the end hosts are queued in the network, while the queue at the edge is unoccupied. In contrast, a \name deployed at the edge is able to shift the queue to its \inbox.
 
 %In the remainder of this section, we describe our design requirement and choices for \name. 
 %\radhika{transition line}
@@ -72,7 +72,7 @@ Our design choices were guided by our key requirement of \emph{deployment and ma
 
 \paragraphn{(iii)} The only persistent state maintained in the \name is the network condition (in the form of congestion signals) which can be naturally re-aquired, thus making it crash-resistant. 
 
-\paragraphn{(iv)} \name makes no changes to the headers of the packets traversing it, ensuring no change in compatibility with other networking components in a packet's path~\cite{mboxbadness, ipoptions, quic}.
+\paragraphn{(iv)} \name makes no changes to the headers of the packets traversing it, ensuring no interference with other networking components in a packet's path~\cite{mboxbadness, ipoptions, quic}.
 
 \vspace{5pt}
 \noindent We discuss specific design choices in more details below. 
@@ -154,11 +154,11 @@ Congestion control algorithms require network feedback from the receivers to mea
 \paragraphi{(1) Out-of-band feedback} 
 %To conduct its measurements, the \inbox instead receives an explicit out-of-band \emph{feedback message} from the \outbox. 
 The \outbox sends explicit out-of-band \emph{feedback messages} to the \inbox, which are used for measuring congestion signals. 
-This out-of-band feedback mechanism is not only agnostic to the underlying protocol (be it TCP or UDP), but also side-steps the issue of TCP acknowledgements not passing through the same \inbox.
+This out-of-band feedback mechanism is not only agnostic to the underlying protocol (be it TCP or UDP), but also side-steps the issue of enforcing that TCP acknowledgements pass through the same \inbox.
 
 \paragraphi{(2) Infrequent measurements} Sending an out-of-band feedback message for every packet arriving at the \outbox would result in high communication overhead. Furthermore, conducting measurements on every outgoing packet at the \inbox would require maintaining state for each of them, which can be expensive, especially at high bandwidth-delay products. We, therefore, conduct measurements on a few sampled packets, at least once per RTT, which is sufficient for most congestion control algorithms~\cite{ccp}. 
 
-\paragraphi{(3) Independent sampling} The \inbox and \outbox need to agree upon the set of sampled packets over which measurements will be conducted (to ensure overlap between the packets for which the \outbox generates feedback and the packets for which the \inbox maintains state). It is tempting to simply mark such packets at the \inbox. However, past studies~\cite{ipoptions, mboxbadness, quic} have shown how such strategies may fail in practice, as many deployed middleboxes have a tendency to drop or re-write packets with unfamiliar header fields. 
+\paragraphi{(3) \reword{Independent} sampling} The \inbox and \outbox need to agree upon the set of sampled packets over which measurements will be conducted (to ensure overlap between the packets for which the \outbox generates feedback and the packets for which the \inbox maintains state). It is tempting to simply mark such packets at the \inbox. However, past studies~\cite{ipoptions, mboxbadness, quic} have shown how such strategies may fail in practice, as many deployed middleboxes have a tendency to drop or re-write packets with unfamiliar header fields. 
 %Another option is to explicitly exchange coordination messages, but the overhead incurred by that would defeat the purpose of sampling packets. 
 We, therefore, devise a technique to sample packets solely based on the hash computed over certain fields in the packet header, which allows the \inbox and the \outbox to independently sample the same set of packets.
 
