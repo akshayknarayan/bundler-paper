@@ -64,7 +64,7 @@ Figure~\ref{fig:bundler} provides an overview of how our \name implementation op
 
 (1) Packets arriving at the \inbox are sent to the qdisc. Those that match a bundle are put into the proper queue, 
 otherwise they are forwarded immediately. (2) The qdisc determines whether a packet matches the epoch boundary
-condition (\S\ref{s:measure:marking}). (3) If so, it sends a netlink message to the contr process running in user-space, which records the epoch, and then forwards the packet along. (4) The \outbox observes the same epoch boundary packet. (5) It sends an out-of-band UDP message to the \inbox containing the hash of the packet and its current state. (6) The \inbox receives the UDP message, and uses it to calculate the epochs and measurements as described 
+condition (\S\ref{s:measure:marking}). (3) If so, it sends a netlink message to the control plane process running in user-space, and then forwards the packet along. The control plane process records the epoch boundary packet (\S\ref{s:measure:compute}) (4) The \outbox observes the same epoch boundary packet. (5) It sends an out-of-band UDP message to the \inbox that contains the hash of the packet and its current state. (6) The \inbox receives the UDP message, and uses it to calculate the epochs and measurements as described 
 in \S\ref{s:measurement}. 
 (7) Asynchronously, the \inbox invokes the congestion control algorithm every $10$ms~\cite{ccp}
 %\footnote{Prior work shows~\cite{ccp} that the datapath need only invoke congestion control algorithms on RTT-timescales, and evaluates congestion control algorithms on their sensitivity to this period.}.
