@@ -35,7 +35,7 @@ strictprio_copa_prio <- quantile(strictprio_copa_prio$Slowdown, c(0.5, 0.99))
 strictprio_nobundler <- quantile(strictprio_nobundler$Slowdown, c(0.5, 0.99))
 
 @
-\begin{centering}
+\begin{center}
 \begin{tabular}{c|c|c}
 Scheme     &  Median                                    &  $99$\%ile                                 \\
 \hline
@@ -43,5 +43,5 @@ Bundler    &  \Sexpr{round(strictprio_copa_prio[1],2)}  &  \Sexpr{round(strictpr
 \baseline  &  \Sexpr{round(strictprio_nobundler[1],2)}  &  \Sexpr{round(strictprio_nobundler[2],2)}
     \label{fig:eval:strict-prio}
 \end{tabular}
-\end{centering}
+\end{center}
 

@@ -88,10 +88,10 @@ Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a 
 In Figure~\ref{fig:eval:lowdelays}, we show that when we configure the scheduling policy at \inbox, we can change the RTTs component connections observe.
 Note that due to the effect discussed above, using FIFO scheduling results in higher delays than the \baseline case.
 
-\input{strict-prio}
 \paragrapha{Strict Prioritization}\label{s:eval:strictprio}
 In Figure~\ref{fig:eval:strict-prio}, there are two classes of traffic transitting \name: a high-priority and low-priority class. Using a priority scheduler at \name can improve FCTs for the high-priority class. 
 When compared to fair queueing in this scenario, prioritization achieves $47$\% lower $99^{\text{th}}$\%ile FCT for the prioritized traffic class.
+\input{strict-prio}
 
 \input{waterfall}
 \paragrapha{Rate Fairness and Stability}\label{s:eval:waterfall}
