@@ -2,7 +2,7 @@
 
 %We have seen in Figure~\ref{fig:design:shift-bottleneck} that \name can move the network queues to the \inbox to gain control over scheduling. 
 %Given that this is possible, what benefits can \name achieve, and where do they come from?
-Our evaluation answers the following questions:
+Given \name's ability to move the in-network queues to the \inbox (as shown earlier in Figure~\ref{fig:design:shift-bottleneck}), we now evaluate the following:
 \begin{enumerate}
     \item Where do \name's performance benefits come from? We discuss this in the context of improving the flow completion times of \name's component flows. (\S\ref{s:eval:fct})
     \item Can \name enforce different scheduling policies? (\S\ref{s:eval:policies})
@@ -14,21 +14,25 @@ Our evaluation answers the following questions:
 
 \paragrapha{Experimental Setup}
 We evaluate our implementation of \name (discussed in \S\ref{s:impl}) using network emulation via mahimahi~\cite{mahimahi}.
-Mahimahi creates a Linux network namespace and applies some network condition (emulated delay or link bandwidth) to all packets that traverse it.
+Mahimahi creates a Linux network namespace and applies the configured network condition (emulated delay or link bandwidth) to all packets that traverse it. We set the link bandwidth to 96Mbps, and the one-way delay to 25ms.  
 
-There are three $8$-core machines in our setup: one machine is a sender, another is configured as a middlebox and runs an \inbox, and a third is the receiver. Throughout our experiments, CPU utilization on the machines remained below $10$\%.
-It is important for experiment fidelity to run the sending application on a different machine than the \inbox; otherwise, because the \inbox data-path uses tc (\S\ref{s:impl}), TCP small queues (TSQ) unrealistically avoids queueing.
-The \outbox runs on the same machine as the receiver, inside the same mahimahi network namespace as the receiving application.
-\an{somebody make sure this makes sense}\an{Since our prototype implementation uses the Linux kernel datapath, we disable TCP segmentation offload (TSO) and generic receive offload (GRO) on the machines to maintain a consistent view of packet headers between the \inbox and the \outbox.
-This is an artifact of our prototype implementation of the \outbox using \texttt{libpcap}: in a real deployment, the \outbox would have the same view of the packets as the \inbox.}
+There are three $8$-core machines in our setup: one machine is a sender, another is configured as a middlebox and runs a \inbox, and a third is the receiver. The \outbox runs on the same machine as the receiver, inside the same mahimahi network namespace as the receiving application. 
+Our prototype requires that the sending application and the \inbox run on different machines, to prevent TCP small queues (TSQ) from interfering with the queuing behaviour that one would expect in a real deployment. 
+%It is important for experiment fidelity to run the sending application on a different machine than the \inbox; otherwise, because the \inbox data-path uses tc (\S\ref{s:impl}), TCP small queues (TSQ) unrealistically avoids queueing.
+Since our \outbox implementation uses \texttt{libpcap}, GRO would change the packets before they are delivered to the \outbox, which would cause inconsistent epoch boundary identification between the two boxes. We, therefore, disable TSO and GRO.
+Throughout our experiments, CPU utilization on the machines remained below $10$\%.
 
-The application we use emulates web traffic: a many-threaded client generates requests from a given empirical request size CDF~\cite{caida-dataset} and assigns them to one of $200$ server processes on the traffic generator.
-Each server then sends the requested amount of data to the client and
-we measure the flow completion time of each such request.
-We use multiple server processes to emulate multiple machines behind the \name at the customer's edge.
+% \an{somebody make sure this makes sense}\an{Since our prototype implementation uses the Linux kernel datapath, we disable TCP segmentation offload (TSO) and generic receive offload (GRO) on the machines to maintain a consistent view of packet headers between the \inbox and the \outbox.
+% This is an artifact of our prototype implementation of the \outbox using \texttt{libpcap}: in a real deployment, the \outbox would have the same view of the packets as the \inbox.}
 
+
+A many-threaded client generates requests from a request size CDF drawn from an Internet core router~\cite{caida-dataset}, and assigns them to one of $200$ server processes on the traffic generator.
+The workload is heavy-tailed: 97.6\% of requests are 10KB or shorter, and the largest 0.002\% of requests are between $5$MB and $100$MB.
+Each server then sends the requested amount of data to the client  (corresponding to 84Mbps of offered load, unless otherwise specified) and we measure the flow completion time of each such request.
+%We use multiple server processes to emulate multiple machines behind the \name at the customer's edge.
 Unless otherwise specified, each result in this section is comprised of $100,000$ requests sampled from this distribution, across $10$ runs each with a different random seed.
-In addition, there is a persistently backlogged connection inside the traffic aggregate that models a background large data transfer which would normally fill the bottleneck queue.
+\reword{In addition, the server also generates a persistently backlogged connection to the client.}
+%that models a background large data transfer which would normally fill the bottleneck queue.
 %
 %\radhika{another title for this section, or some preceding explanation on what each section is about}
 %
@@ -40,24 +44,31 @@ In addition, there is a persistently backlogged connection inside the traffic ag
 \input{overview-benefits}
 \newcommand{\baseline}{Status Quo\xspace}
 \newcommand{\optimal}{In-Network\xspace}
+
 \paragrapha{Comparison with \baseline and \optimal Scheduling} 
 We first present results for a simplified scenario without any cross-traffic, i.e. all traffic traversing through the network is generated by the same customer and is, therefore, part of the same bundle. 
-This scenario highlights the benefits of using \name when the congestion on the bottleneck link in the network is self-inflicted by a single customer. We explore the effects of queues at the bottleneck caused by other cross-traffic in \S\ref{s:robust:cross}.
+This scenario highlights the benefits of using \name when the congestion on the bottleneck link in the network is self-inflicted. We explore the effects of congestion due to other cross-traffic in \S\ref{s:robust:cross}.
 
-On a $96$Mbps link, we generate $84$Mbps of offered request load from a CDF with a heavy-tailed request size CDF drawn from an Internet core router~\cite{caida-dataset}.
-The workload is heavy-tailed: 97.6\% of requests are 10KB or shorter, and the largest 0.002\% of requests are between $5$MB and $100$MB.
+%On a $96$Mbps link, we generate  from the CDF described above.
 
-We evaluate three configurations. 
-The ``\baseline'' configuration represents the status quo: the \inbox simply forwards packets as it receives them, and the mahimahi bottleneck uses FIFO scheduling.
-The ``\optimal'' configuration deploys fair queueing\footnote{
+
+We evaluate three configurations: 
+(i) The ``\baseline'' configuration represents the status quo: the \inbox simply forwards packets as it receives them, and the mahimahi bottleneck uses FIFO scheduling.
+(ii) The ``\optimal'' configuration deploys fair queueing\footnote{
 We implement this scheme by modifying mahimahi (our patch comprises $171$ lines of C++) to add a packet-level fair-queueing scheduler to the bottleneck link.}
 at the mahimahi bottleneck. 
-Recall from \S\ref{s:intro} that this configuration is not deployable in practice: it would force all customers --- who may desire diverging scheduling policies --- to use the same scheduler.
-Finally, for the \name configuration, we use a Copa~\cite{copa} congestion controller at the \inbox to manage the bottleneck queue, and the stochastic fair queueing~\cite{sfq} scheduling policy. 
+Recall from \S\ref{s:intro} that this configuration is not enforced in practice.
+%: it would force all customers --- who may desire diverging scheduling policies --- to use the same scheduler.
+(iii) The \name configuration, that uses Copa~\cite{copa} for rate control and the stochastic fair queueing~\cite{sfq} scheduling policy at the \inbox.
+(iv) 
 
-Figure~\ref{fig:eval:best} presents the results with the above experiment setup.
-With \name, the median 
-slowdown\footnote{We define the ``slowdown'' of a request as its completion time divided by what its completion time would have been in an unloaded network. A slowdown of $1$ is optimal, and lower numbers represent better performance.} 
+Therefore, in this section, we evaluate the benefits provided by doing fair queuing at the \name, and use median slowdown as our metric, where the ``slowdown'' of a request as its completion time divided by what its completion time would have been in an unloaded network. A slowdown of $1$ is optimal, and lower numbers represent better performance.
+
+
+Figure~\ref{fig:eval:best} presents the results with the above experiment setup. 
+As is expected from the use of fair queuing, \name is able to achieve significant improvements in the slowdown for short flows, followed by some  
+\name, using fair queueing, significantly improves the slowdown for short ($<$10KB) flows, while the medium
+With \name, the median slowdown\footnote{We define the ``slowdown'' of a request as its completion time divided by what its completion time would have been in an unloaded network. A slowdown of $1$ is optimal, and lower numbers represent better performance.} 
 decreases from \overviewBenefitsBaselineMedian 
 for Baseline to \overviewBenefitsBundlerMedian 
 with \name: \overviewBenefitsBundlerMedianImprovement
