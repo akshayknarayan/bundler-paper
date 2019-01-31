@@ -17,7 +17,6 @@ We used Cubic congestion control at the endhosts for our experiments so far. Whe
 %This is primarily because in the \baseline using BBR causes endhosts to achieve 66\% worse median slowdown ($1.62$ with Cubic to $2.68$ with BBR); \name's slowdown is only 5\% worse when endhosts use BBR ($1.08$ with Cubic to $1.14$ with BBR). 
 This shows that \name is compatible with multiple endhost congestion control algorithms (we omit a figure for brevity).
 
-\input{congestion-control}
 
 \paragrapha{Self-Inflicted Delays} Correct congestion control behavior is crucial to achieving low FCTs.
 In Figure~\ref{fig:eval:cc} we repeat the FCT experiments in \S\ref{s:eval:fct} and now compare three congestion control protocols to the \baseline: BBR~\cite{bbr}, Nimbus~\cite{nimbus}, and Copa~\cite{copa}.
