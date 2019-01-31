@@ -6,13 +6,19 @@
 \end{figure*}
 
 \cut{The prevalence of middleboxes today means that there are multiple options for implementing a \name \radhika{cut this line?}.}
-We describe a two-part design for the \inbox: a ``control plane'' and ``data plane'' separation.
-The data plane is responsible for packet forwarding, maintaining a count of the \cut{in-bundle} bytes sent, enforcing a rate and scheduling policy on the bundle, and reporting epoch boundary packets to the control plane.
-These operations can be implemented either in software, via modern platforms for network function virtualization~\cite{bess, click, mos, netbricks}, or in hardware via programmable switches~\cite{p4} \radhika{move to end, see comment at end of paragraph}.
-The control plane is responsible for computing measurements by combining feedback from the data plane and \outbox, and running the congestion control logic necessary to pick the appropriate rate for each bundle.
-The \outbox is simple and does not require a control plane; it simply must observe the packet stream, maintain a byte count, and send reports to the \inbox on observing epoch packets.
-The \outbox can, therefore, be implemented entirely in hardware if necessary \radhika{cut}.
-\radhika{We envision the control plane to be implemented in software, while the data plane can be implemented in...(the line you had before)}
+
+
+\Para{\inbox} Our \inbox implementation comprises of a \emph{data plane} and a \emph{control plane}. The data plane is responsible for (i) packet forwarding, (ii) tracking the number of bytes sent in the last epoch, (iii) reporting epoch boundary packets and the feedback from the \outbox to the control plane,  (iv) enforcing a sending rate (computed by the control plane) on a bundle, and (iv) enforcing the desired scheduling policies on the traffic within a bundle. The control plane is responsible for (i) measuring congestion signals and computing epoch sizes using the information provided by the data plane, and (ii) running the congestion control algorithm for each bundle to compute appropriate sending rates based on the congestion signals. 
+
+\Para{\outbox} The \outbox is simple and does not require a control plane. It simply tracks the number of bytes and sends feedback messages to the \inbox on observing epoch packets.
+
+% We describe a two-part design for the \inbox: a ``control plane'' and ``data plane'' separation.
+% The data plane is responsible for packet forwarding, maintaining a count of the \cut{in-bundle} bytes sent, enforcing a rate and scheduling policy on the bundle, and reporting epoch boundary packets to the control plane.
+% These operations can be implemented either in software, via modern platforms for network function virtualization~\cite{bess, click, mos, netbricks}, or in hardware via programmable switches~\cite{p4} \radhika{move to end, see comment at end of paragraph}.
+% The control plane is responsible for computing measurements by combining feedback from the data plane and \outbox, and running the congestion control logic necessary to pick the appropriate rate for each bundle.
+% The \outbox is simple and does not require a control plane; it simply must observe the packet stream, maintain a byte count, and send reports to the \inbox on observing epoch packets.
+% The \outbox can, therefore, be implemented entirely in hardware if necessary \radhika{cut}.
+% \radhika{We envision the control plane to be implemented in software, while the data plane can be implemented in...(the line you had before)}
 
 \subsection{\name Event Loop}\label{s:impl:loop}
 Figure~\ref{fig:bundler} overviews the operation of our \name implementation.
