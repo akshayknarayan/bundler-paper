@@ -70,7 +70,7 @@ in \S\ref{s:measurement}.
 %\footnote{Prior work shows~\cite{ccp} that the datapath need only invoke congestion control algorithms on RTT-timescales, and evaluates congestion control algorithms on their sensitivity to this period.}.
 via \texttt{libccp},
 %giving it a chance to observe any new measurements and change its behavior. 
-(8) If it updates the sending rate, the  communicates this to the qdisc
+(8) The \inbox control plane communicates the rate, if updated, to the qdisc
 using \texttt{libnl}. 
 % Since the qdisc only supports rate enforcement, if the algorithm
 % also uses a congestion window, the \inbox computes $\text{\emph{effective rate}} = \frac{\text{CWND}}{\text{RTT}}$
