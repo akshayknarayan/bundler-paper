@@ -43,18 +43,17 @@ So the next question that arises is, does such in-network congestion occur in pr
 %Given the earlier observation that most of the traffic belongs to a few large content providers~\cite{fivecomps}, 
 We expect this to become common, \reword{as \name's popularity increases}. 
 
-\paragraphi{Congestion due to un-bundled cross-traffic} We now consider the scenario where the cross-traffic includes flows from domains that have not yet deployed a \name. If all such \emph{un-bundled} competing flows are short-lived (up to a few MBs), the bundled traffic still sees significant performance benefits. However, if the cross traffic includes a persistent backlogged flow that aggressively fills up any available buffer space at the bottleneck link, then, in order to compete fairly, \name relinquishes its control over the bundled traffic and falls back to status quo performance (as described later). Such flows are unlikely to arrive very frequently\radhika{cite} \fc{Is it okay to say all of this without saying why until later?}
+\paragraphi{Congestion due to un-bundled cross-traffic} We now consider the scenario where the cross-traffic includes flows from domains that have not yet deployed a \name. If all such \emph{un-bundled} competing flows are short-lived (up to a few MBs), the bundled traffic still sees significant performance benefits. However, if the cross traffic includes a persistent backlogged flow that aggressively fills up any available buffer space at the bottleneck link, then, in order to compete fairly, \reword{\name relinquishes its control} over the bundled traffic and falls back to status quo performance (as described later). Such flows are unlikely to arrive very frequently~\cite{caida-dataset}. \fc{Is it okay to say all of this without saying why until later?}
 %some traffic distribution paper}.
 
 %\radhika{can we / do we need to say something about the likelihood for flows in a bundle sharing the bottleneck?}
 
-\Para{Common bottleneck shared across flows in a bundle} \name's design for moving queues is most\fc{(only?)} effective when the component flows within a bundle share in-network bottlenecks. 
+\Para{Common bottleneck shared across flows in a bundle} \name's design for moving queues is \reword{most} effective when the component flows within a bundle share in-network bottlenecks. 
 \reword{This would indeed hold} in most scenarios. 
 As discussed above, in-network congestion primarily occurs at inter-domain links. Therefore, even if an ISP does load balancing for its core, the inter-domain links are still likely to be shared by the flows having common sending and receiving domains. We evaluate the effects of non-shared bottlenecks across flows in a bundle, as well as the effects potentially different path lengths between them in \S\ref{s:eval}. \radhika{revise}
 
 \vspace{0.05in}
-\noindent Hence, while there can be certain situations where \name fails to provide any benefits, there are also many scenarios where it can significantly improve performance. This, combined with its deployment ease, makes a strong case for deploying \name. 
-\fc{would be stronger to say something about \name not making things worse}
+\noindent Hence, while there can be certain situations where \name fails to provide any benefits \fc{(say something about doesn't make things worse )}, there are also many scenarios where it can significantly improve performance. This, combined with its deployment ease, makes a strong case for deploying \name. 
 
 
 %when this cross-traffic comprises of a mix of short-lived flows (up to a few megabytes).  
