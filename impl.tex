@@ -64,13 +64,13 @@ Figure~\ref{fig:bundler} provides an overview of how our \name implementation op
 
 (1) Packets arriving at the \inbox are sent to the qdisc. Those that match a bundle are put into the proper queue, 
 otherwise they are forwarded immediately. (2) The qdisc determines whether a packet matches the epoch boundary
-condition (\S\ref{s:measure:marking}). (3) If so, it sends a netlink message to the control plane process running in user-space, and then forwards the packet along. The control plane process records the epoch boundary packet (\S\ref{s:measure:compute}) (4) The \outbox observes the same epoch boundary packet. (5) It sends an out-of-band UDP message to the \inbox that contains the hash of the packet and its current state. (6) The \inbox receives the UDP message, and uses it to calculate the epochs and measurements as described 
+condition (\S\ref{s:measure:marking}). (3) If so, it sends a netlink message to the control plane process running in user-space, and then forwards the packet along. The control plane process records the epoch boundary packet (\S\ref{s:measure:compute}) (4) The \outbox observes the same epoch boundary packet. (5) It sends an out-of-band UDP message to the \reword{\inbox} that contains the hash of the packet and its current state. (6) The \reword{\inbox} receives the UDP message, and uses it to calculate the epochs and measurements as described 
 in \S\ref{s:measurement}. 
-(7) Asynchronously, the \inbox invokes the congestion control algorithm every $10$ms~\cite{ccp}
+(7) Asynchronously, the \inbox control plane invokes the congestion control algorithm every $10$ms~\cite{ccp}
 %\footnote{Prior work shows~\cite{ccp} that the datapath need only invoke congestion control algorithms on RTT-timescales, and evaluates congestion control algorithms on their sensitivity to this period.}.
 via \texttt{libccp},
 %giving it a chance to observe any new measurements and change its behavior. 
-(8) If it updates the sending rate, the \inbox communicates this to the qdisc
+(8) If it updates the sending rate, the  communicates this to the qdisc
 using \texttt{libnl}. 
 % Since the qdisc only supports rate enforcement, if the algorithm
 % also uses a congestion window, the \inbox computes $\text{\emph{effective rate}} = \frac{\text{CWND}}{\text{RTT}}$
