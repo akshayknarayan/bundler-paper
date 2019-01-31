@@ -10,15 +10,15 @@ We now evaluate the impact of a different congestion control algorithm running a
 
 \input{congestion-control}
 
-\Para{Changing \inbox congestion controller} So far we evaluate \name by running Copa~\cite{copa} at the \inbox.  Figure~\ref{fig:eval:cc} shows \name's performance with other congestion control algorithms (namely, Nimbus~\cite{nimbus} and BBR~\cite{bbr}), and using SFQ scheduling. We find that using Nimbus provides similar benefits over \baseline as Copa. BBR, on the other hand, performs slightly worse than \baseline. This is because it pushes packets into the network more aggressively than the other schemes, resulting in a bigger in-network queue. This, combined with the queue built at the \name, results in the endhosts experiencing higher queueing delays than \baseline. This shows that the choice of congestion control algorithm, and its ability to maintain small queues in the network, plays an important role. 
+\Para{\inbox congestion control} So far we evaluate \name by running Copa~\cite{copa} at the \inbox.  Figure~\ref{fig:eval:cc} shows \name's performance with other congestion control algorithms (namely, Nimbus~\cite{nimbus} and BBR~\cite{bbr}), and using SFQ scheduling. We find that using Nimbus provides similar benefits over \baseline as Copa. BBR, on the other hand, performs slightly worse than \baseline. This is because it pushes packets into the network more aggressively than the other schemes, resulting in a bigger in-network queue. This, combined with the queue built at the \name, results in the endhosts experiencing higher queueing delays than \baseline. This shows that the choice of congestion control algorithm, and its ability to maintain small queues in the network, plays an important role. 
 
-\Para{Impact of endhost congestion controller} 
-We used Cubic congestion control at the endhosts for our experiments so far. When we configure endhosts to use BBR (as implemented in Linux $4.13$), \name's benefits remain: \name achieves 58\% lower FCTs in the median compared to the updated \baseline where the endhosts use BBR.
+\Para{Endhost congestion control} 
+We used Cubic congestion control at the endhosts for our experiments so far. When we configure endhosts to use BBR (as implemented in Linux $4.13$), \name's benefits remain: \name achieves 58\% lower FCTs in the median compared to the updated \baseline where the endhosts use BBR. 
 %This is primarily because in the \baseline using BBR causes endhosts to achieve 66\% worse median slowdown ($1.62$ with Cubic to $2.68$ with BBR); \name's slowdown is only 5\% worse when endhosts use BBR ($1.08$ with Cubic to $1.14$ with BBR). 
 This shows that \name is compatible with multiple endhost congestion control algorithms (we omit a figure for brevity).
 
 \subsection{Impact of cross traffic}
-
+In studying the impact of cross traffic, we present results with both Nimbus and Copa being used as the congestion control algorithm at the \inbox.
 % \paragrapha{Self-Inflicted Delays} Correct congestion control behavior is crucial to achieving low FCTs.
 % In Figure~\ref{fig:eval:cc} we repeat the FCT experiments in \S\ref{s:eval:fct} and now compare three congestion control protocols to the \baseline: BBR~\cite{bbr}, Nimbus~\cite{nimbus}, and Copa~\cite{copa}.
 % In this scenario, it is important to control delays in the bottleneck queue, since it is FIFO scheduled and therefore queued packets from short requests must wait behind those from longer requests. 
@@ -28,16 +28,16 @@ This shows that \name is compatible with multiple endhost congestion control alg
 % Meanwhile, the characteristics of other traffic --- not part of the traffic aggregate \name controls --- on the link can force \name's congestion controller to behave more aggressively in order to remain competitive in the bottleneck link. This would reduce the amount of queue build up at the \name, thus reducing its benefits.
 
 \input{inelastic-cross}
-\paragrapha{Inelastic Cross Traffic} We first consider the case of \emph{inelastic} cross traffic; that is, traffic that does not respond to queue-size fluctuations.
-For example, traffic primarily comprised of short web requests has the inelastic property: regardless of what \name's congestion controller (or, indeed, any end-to-end congestion controller) does, the component short requests, which remain in TCP slow start for their entirety, will occupy some fraction of the bottleneck link capacity.
-In this case, the congestion controller must yield bandwidth to the cross traffic, but can still maintain low delays at the bottleneck link.
-
-We can see this phenomenon in action in Figure~\ref{fig:robust:cr-inelastic}, where we split the offered load in three fractions amongst the bundle and non-bundle cross traffic. 
-Each of the congestion control algorithms we evaluate sacrifice (to varying degrees) bandwidth in reaction to the cross traffic, which hurts the FCTs of the larger requests.
-However, the scheduling policy apportions the remaining bandwidth to the short flows, so there is still an improvement in FCTs at the median.
+\paragrapha{Short-lived flows} We first consider the case where the cross traffic comprises of short-lived flows up to a few MBs.
+%; that is, traffic that does not respond to queue-size fluctuations.
+% For example, traffic primarily comprised of short web requests has the inelastic property: regardless of what \name's congestion controller (or, indeed, any end-to-end congestion controller) does, the component short requests, which remain in TCP slow start for their entirety, will occupy some fraction of the bottleneck link capacity.
+% In this case, the congestion controller must yield bandwidth to the cross traffic, but can still maintain low delays at the bottleneck link.
+We split the offered load (comprising of web requests described in \S\ref{s:eval:setup}) between the bundled traffic and non-bundle cross traffic in the three ways, as shown in Figure~\ref{fig:robust:cr-inelastic}. \name continues to provide benefits for this case, since maintaining low in-network queues is still possible in the presence of such flows.
+%Each of the congestion control algorithms we evaluate sacrifice bandwidth (to varying degrees)  in reaction to the cross traffic, which hurts the FCTs of the larger requests.
+%However, the scheduling policy apportions the remaining bandwidth to the short flows, so there is still an improvement in FCTs at the median.
 
 \input{elastic-cross}
-\paragrapha{Elastic Cross Traffic} Elastic cross traffic, which fills the bottleneck link's buffer, is the worst-case scenario for \name.
+\paragrapha{Buffer-filling flows} Elastic cross traffic, which fills the bottleneck link's buffer, is the worst-case scenario for \name.
 The congestion controller must push packets into the bottleneck queue to compete fairly, and thus it cannot retain packets at the \inbox to schedule.
 As a result, we expect performance to be no better than the baseline.
 We indeed see this in Figure~\ref{fig:robust:cr-elastic}.

@@ -50,7 +50,7 @@ Our technique side-steps these issues by using the contents of a packet to sampl
 %\paragrapha{Choosing header subset}
 The combination of selected packet fields over which the hash is computed can vary across different deployments, but it must satisfy the following requirements: 
 
-\paragraphn{(i)} It must be the same between the the \inbox and the \outbox.
+\paragraphn{(i)} It must be the same at both the \inbox and the \outbox.
 
 \paragraphn{(ii)} Its values must remain unchanged as a packet traverses the network from the \inbox to the \outbox (so, for example, the TTL field must be excluded).\footnote{Certain fields, that are otherwise unchanged within the network, can be changed by the NATs deployed in a customer's domain. Ensuring that the \name boxes sit outside the NAT would allow them to make use of those fields.} 
 
@@ -106,8 +106,8 @@ The combination of IP ID, source port and source IP (used by our prototype imple
 
 Given our technique to identify epoch boundaries, it is straight-forward to measure congestion signals, as illustrated in Figure~\ref{fig:ratecalc}.
 %Given this method of marking epochs, we can now construct the procedure for computing measurements.
-For each bundle, the \inbox tracks the total number of bytes sent since the last epoch boundary, and, upon identifying an epoch boundary packet, $p_i$, it records: (i) its hash, $h(p_i)$, (ii) the time when it is sent out, $t_{\text{sent}}(p_i)$, and (iii) the number of bytes sent since the last epoch boundary, $b_{sent}(p_i)$. 
-The \outbox, on the other hand, tracks only the total number of bytes received since the last epoch boundary. Upon the arrival and identification of the same epoch boundary packet, $p_i$, it immediately sends a feedback message to the \inbox containing: (i) its hash, $h(p_i)$, (ii) the time when it was received, $t_{recv}(p_i)$, and (iii) the number of bytes received since the last epoch boundary, $b_{recv}(p_i)$. 
+For each bundle, the \inbox tracks the total number of bytes sent within this bundle, and, upon identifying an epoch boundary packet, $p_i$, it records: (i) its hash, $h(p_i)$, (ii) the time when it is sent out, $t_{\text{sent}}(p_i)$, and (iii) the total number of bytes sent thus far including this packet, $b_{sent}(p_i)$. 
+The \outbox similarly tracks the total number of bytes received for each bundle. Upon the arrival and identification of the epoch boundary packet $p_i$, it immediately sends a feedback message to the \inbox containing: (i) its hash, $h(p_i)$, (ii) the time when it was received, $t_{recv}(p_i)$, and (iii) the total number of bytes received thus far including this packet, $b_{recv}(p_i)$. 
 %For each bundle, the \inbox keeps track of: (i) the total number of bytes sent since the last epoch, (ii)  
 % For a given bundle, the \inbox runs the aforementioned function on each packet $p$. Each time
 % the function returns true, the \inbox updates an epoch data structure that records the packet hash,
@@ -122,7 +122,7 @@ The \outbox, on the other hand, tracks only the total number of bytes received s
 % packet hash \hptwo\ in the epoch data structure, which represents the end of the current epoch,
 % along with the earliest boundary packet still in the data structure, \hpone\ which represents the start
 % of the current epoch. It now has all of the information necessary to calculate one sample of the following:
-Upon receiving the feedback $p_i$, the \inbox records the received information, and using its previously recorded state, it compute the RTT and the rates at which packets are sent and received, as below:
+Upon receiving the feedback $p_i$, the \inbox records the received information, and using its previously recorded state, it can compute the RTT and the rates at which packets are sent and received, as below:par
 
 % \begin{subequations}
 %     \begin{align}
@@ -174,7 +174,7 @@ Note that our measurement technique is robust to a boundary packet being lost be
 %\input{micro-epoch}
 
 % How do we choose the number of packets that should e in each epoch?
-In \S\ref{s:measure:marking}, we assumed a fixed epoch size of $N$ packets. However, in practice, epochs must be such that measurements are collected at least once per RTT~\cite{ccp}. Therefore, for each bundle, we track that minimum observed RTT ($minRTT$ at the \inbox and set the epoch size $N = (0.25 \times minRTT \times send\_rate)$, where the $send\_rate$ is computed as described above. The final rates passed to the congestion control algorithms at the \inbox are then computed over a sliding window of epochs that corresponds to one RTT. Averaging over a window of multiple epochs also increases resilience to possible re-ordering of packets between the \inbox and the \outbox, which can result in them seeing different number of packets between two epochs.
+In \S\ref{s:measure:marking}, we assumed a fixed epoch size of $N$ packets. However, in practice, epochs must be such that measurements are collected at least once per RTT~\cite{ccp}. Therefore, for each bundle, we track that minimum observed RTT ($minRTT$) at the \inbox and set the epoch size $N = (0.25 \times minRTT \times send\_rate)$, where the $send\_rate$ is compute as described above. The final rates passed to the congestion control algorithms at the \inbox are then computed over a sliding window of epochs that corresponds to one RTT. Averaging over a window of multiple epochs also increases resilience to possible re-ordering of packets between the \inbox and the \outbox, which can result in them seeing different number of packets between two epochs.
 %This makes epoch size a function of the bandwidth-delay product (BDP).
 % Because epoch sizes are sampled from a uniform random variable, setting larger epoch sizes will increase the variance in the observed epoch sizes.
 % If the epoch size is small relative to the rate, the raw measurements will be noisy, but we can correct for this by measuring over a sliding window.
@@ -253,6 +253,9 @@ When the \inbox updates the epoch size $N$ for a bundle, it needs to send an out
 \label{s:measure:microbench}
     \input{micro-time-thru}
     \input{micro-time-delay}
+    We now evaluate the accuracy of our measured congestion signals. 
+    
+    As an illustrative example, Figure~\ref{fig:micro:time}, compares our estimate of the 
     We now explore how well our measurements match the actual network conditions. 
 
     %First, we consider our estimate of the receive rate (Equation 1c). 
