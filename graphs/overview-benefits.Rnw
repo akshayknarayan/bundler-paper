@@ -88,7 +88,18 @@ ggplot(big, aes(
         text = element_text(angle=30,size=18, family="Lato", face="bold"),
         plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     )
+
+overview_benefits_bundler_results = quantile(df[df$Alg=="copa_sfq",]$Slowdown, c(0.5, 0.99))
+overview_benefits_baseline_results = quantile(df[df$Alg=="nobundler_fifo",]$Slowdown, c(0.5, 0.99))
+overview_benefits_optimal_results = quantile(df[df$Alg=="nobundler_sfq",]$Slowdown, c(0.5, 0.99))
 @
-    \caption{\name achieves $33$\% lower median slowdown. Note the differing axis scales. For both \name and Optimal, performance benefits come from preventing short flows from queueing behind long ones. \an{Whiskers currently show 1.25 inter-quantile range, figure out how to show 99th \%ile? Also, can barely see Bundler and Optimal...}}
+    \caption{\name achieves 33\% lower median slowdown. Note the differing axis scales. For both \name and Optimal, performance benefits come from preventing short flows from queueing behind long ones.}
     \label{fig:eval:best}
 \end{figure}
+\newcommand{\overviewBenefitsBaselineMedian}{\Sexpr{round(overview_benefits_baseline_results[1], 2)}\xspace}
+\newcommand{\overviewBenefitsBaselineTail}{\Sexpr{round(overview_benefits_baseline_results[2], 2)}\xspace}
+\newcommand{\overviewBenefitsBundlerMedian}{\Sexpr{round(overview_benefits_bundler_results[1], 2)}\xspace}
+\newcommand{\overviewBenefitsBundlerTail}{\Sexpr{round(overview_benefits_bundler_results[2], 2)}\xspace}
+\newcommand{\overviewBenefitsOptimalMedian}{\Sexpr{round(overview_benefits_optimal_results[1], 2)}\xspace}
+\newcommand{\overviewBenefitsOptimalTail}{\Sexpr{round(overview_benefits_optimal_results[2], 2)}\xspace}
+\newcommand{\overviewBenefitsBundlerMedianImprovement}{\Sexpr{round(100*(1-(overview_benefits_bundler_results[1] / overview_benefits_baseline_results[1])), 2)}\%\xspace}

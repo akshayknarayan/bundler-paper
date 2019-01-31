@@ -56,7 +56,10 @@ Finally, for the \name configuration, we use a Copa~\cite{copa} congestion contr
 Figure~\ref{fig:eval:best} presents the results with the above experiment setup.
 With \name, the median 
 slowdown\footnote{We define the ``slowdown'' of a request as its completion time divided by what its completion time would have been in an unloaded network. A slowdown of $1$ is optimal, and lower numbers represent better performance.} 
-decreases from $1.62$ for Baseline to $1.08$ with \name: 33\% lower.
+decreases from \overviewBenefitsBaselineMedian % %$1.62$ 
+for Baseline to \overviewBenefitsBundlerMedian %$1.08$ 
+with \name: \overviewBenefitsBundlerMedianImprovement %33\% 
+lower.
 
 Furthermore, \name's performance is near to the benefits that could be achieved with \optimal.
 Both \name and \optimal achieve an identical median slowdown of $1.08$.
