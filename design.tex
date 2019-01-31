@@ -63,7 +63,8 @@ Figure~\ref{fig:design:shift-bottleneck} illustrates this method for a single fl
 \subsection{Design Choices}
 
 \fc{current wording sounds too passive?}
-Our design choices, guided by our requirement of \emph{deployment and management ease}, resulted in the following features:
+Our design choices were guided by our key requirement of \emph{deployment and management ease}. They provide the following nice properties:
+%, resulted in the following features:
 
 \paragraphn{(i)} \name requires no changes to the endhosts or to the routers in the network, making it independently deployable. 
 
@@ -144,10 +145,10 @@ must
 }
 
 \Para{Two-sided measurement of congestion signals}\label{s:design:twosided}
-%We now look into the technique for measuring congestion signals (\ie RTT values). 
-Conventional congestion control \reword{designs} have used TCP acknowledgements to measure congestion signals. However, this is not a good option for \name because: (i) it is incompatible with UDP, which is commonly used by video streaming applications, and (ii) it requires the reverse traffic to also pass through \name's \inbox, which may not always be the case.  
+%We now look into the technique for measuring congestion signals (\ie RTT values).
+Congestion control algorithms require network feedback from the receivers to measure congestion and adjust the sending rates accordingly. Conventional endhost-based implementations have used TCP acknowledgements for this. However, this is not a good option for \name because: (i) it is incompatible with UDP, which is commonly used by video streaming applications, and (ii) it requires the reverse traffic to also pass through \name's \inbox, which may not always be the case.  
 %Second, there can be significant differences in the RTT values between flows that are part of the same bundle, but belong to different receiving endhosts, which would make these values an unreliable congestion signal for the aggregated bundle. 
-Therefore, \name adopts a two-sided design, with measurements conducted between a \inbox and a \outbox. By design, all flows in a bundle pass through the same \inbox and \outbox pair.\footnote{We discuss different options for establishing pairing between a \inbox and a \outbox in \S\ref{s:discussion}} We highlight the key features of our two-sided measurement technique below, and describe it in more detail in \S\ref{s:measurement}. \fc{train of thought is not as clear to me here}
+ Instead, \name's two-sided design allows measurement of congestion signals to be conducted between solely an \pair. We highlight the key features of our two-sided measurement technique below, and describe it in more detail in \S\ref{s:measurement}. \fc{train of thought is not as clear to me here}
 
 \paragraphi{(1) Out-of-band feedback} 
 %To conduct its measurements, the \inbox instead receives an explicit out-of-band \emph{feedback message} from the \outbox. 

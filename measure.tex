@@ -121,7 +121,7 @@ The \outbox, on the other hand, tracks only the total number of bytes received s
 % packet hash \hptwo\ in the epoch data structure, which represents the end of the current epoch,
 % along with the earliest boundary packet still in the data structure, \hpone\ which represents the start
 % of the current epoch. It now has all of the information necessary to calculate one sample of the following:
-Upon receiving the feedback $p_i$, the \inbox uses its recorded state to compute the RTT and the rates at which packets are sent and received as below:
+Upon receiving the feedback $p_i$, the \inbox records the received information, and using its previously recorded state, it compute the RTT and the rates at which packets are sent and received, as below:
 
 % \begin{subequations}
 %     \begin{align}
@@ -140,7 +140,7 @@ Upon receiving the feedback $p_i$, the \inbox uses its recorded state to compute
 %         recv\_rate &= &\frac{bytes\_rcvd\ at\ r_2 - bytes\_rcvd\ at\ r_1}{r_2-r_1}
 %     \end{align}
 % \end{subequations}
-
+\vspace{-10pt}
 \begin{subequations}
     \begin{align}
         RTT &= &now -  t_{sent}(p_i)\\
@@ -149,10 +149,9 @@ Upon receiving the feedback $p_i$, the \inbox uses its recorded state to compute
     \end{align}
 \end{subequations}
 
-Finally, the \inbox records the information received in the feedback for $p_i$, and clears the recorded state of all epoch boundaries preceding $p_i$.
+Finally, the \inbox clears the recorded state of all epoch boundaries preceding $p_i$.
 
-
-Note that our measurement technique, as described above, is robust to a boundary packet being lost between the \inbox and the \outbox. In this case, the \inbox would not get a feedback for the lost boundary packet, and it would simply compute rates for the next boundary packet over a longer epoch. 
+Note that our measurement technique is robust to a boundary packet being lost between the \inbox and the \outbox. In this case, the \inbox would not get a feedback for the lost boundary packet, and it would simply compute rates for the next boundary packet over a longer epoch. 
 
 %Further note, that our discussion so far has ignored re-ordering of packets between the \inbox and \outbox, in which case, they can see different number of packets between each epoch boundary, which can interfere with the rate computations. We expect such re-ordering to be rare, although computing   
 
