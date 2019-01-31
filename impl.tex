@@ -48,7 +48,10 @@ Our patches to the TBF qdisc comprise $112$ lines of C.
 \Para{\capinbox control plane} We implement it to run in user-space in $1167$ lines of Rust.
 We use CCP~\cite{ccp} to run different congestion control algorithms (described next). CCP is a platform for expressing congestion control algorithms in an asynchronous format, which makes it a natural choice for our epoch-based measurement architecture. The control plane uses \texttt{libccp}~\cite{ccp} to interface with the congestion control algorithm, and  \texttt{libnl} to communicate with the qdisc.
 
-\Para{Congestion control algorithms} We use existing implementations of congestion control algorithms on CCP~\cite{nimbus, copa, bbr} to compute sending rates at the \inbox, and leverage Nimbus' elasticity detection technique~\cite{nimbus} to detect persistent buffer-filling flows. Upon detection of buffer-filling flows, the \inbox  starts pushing traffic at an increased rate, set to the observed received rate plus an additive probe factor. The c, such that its control over the bundled traffic is relinquished. This enables the congestion control algorithms at the unmodified endhosts to compete with the buffer-filling flow, as they would in the default case, without a \name. The additive probe factor is a function of Nimbus' pulse amplitude, and is set, in our implementation, to one-sixteenth of the maximum receive rate seen so far.
+\Para{Congestion control algorithms} We use existing implementations of congestion control algorithms on CCP~\cite{nimbus, copa, bbr} to compute sending rates at the \inbox. If the algorithm uses a congestion window, the \inbox computes $\text{\emph{effective rate}} = \frac{\text{CWND}}{\text{RTT}}$ and sets the rate of the qdisc to be the minimum of the explicit rate and this effective rate.
+%Upon receiving new RTT samples, the \inbox updates the effective rate, and updates the qdisc rate if appropriate.
+
+The \inbox also leverages Nimbus' elasticity detection technique~\cite{nimbus} to detect persistent buffer-filling flows. When such flows are detected, the \inbox  starts pushing traffic at an increased rate, set to the observed received rate plus an additive probe factor. This probing ensures that the sending rate set by \inbox eventually exceeds the offered load, thus enabling it to relinquish its control over the bundled traffic. This, in turn, allows the congestion control algorithms at the unmodified endhosts to compete with the buffer-filling flow, as they would in the default case, without a \name. The additive probe factor is a function of Nimbus' pulse amplitude, and is set, in our implementation, to one-sixteenth of the maximum receive rate seen so far. 
 
 %It maintains the congestion control state of each bundle, but does not maintain (or observe) per-flow state.
 %\radhika{no. of LoC for \inbox dataplane?} \an{first paragraph of this section?}
@@ -57,24 +60,22 @@ We use CCP~\cite{ccp} to run different congestion control algorithms (described 
 %It listens for packets on the interface, checks for epoch packets, and sends the reports to the \inbox. It must maintain per-bundle counters (described in \S\ref{s:impl:discovery}).
 
 \subsection{\name Event Loop}\label{s:impl:loop}
-Figure~\ref{fig:bundler} overviews the operation of our \name implementation.
+Figure~\ref{fig:bundler} provides an overview of how our \name implementation operates.
 
 (1) Packets arriving at the \inbox are sent to the qdisc. Those that match a bundle are put into the proper queue, 
-otherwise they are forwarded immediately. (2) The qdisc observes a packet that matches the epoch boundary
-condition (\S\ref{s:measure:marking}). (3) It sends a netlink message to the \inbox process running in user-space, which records the packet
-in its epoch data structure, then forwards the packet along. (4) The \outbox observes the same epoch boundary
-packet. (5) It sends an out-of-band UDP message to the \inbox containing the hash of the packet and its current state. 
-(6) The \inbox receives the UDP message, and uses it to calculate the epochs and measurements as described 
-in \S\ref{s:measurement}.
-
-(7) Asynchronously, the \inbox invokes the congestion control algorithm every $10$ms\footnote{Prior work shows~\cite{ccp} that the datapath need only invoke congestion control algorithms only on RTT-timescales, and evaluates congestion control algorithms on their sensitivity to this period.}.
+otherwise they are forwarded immediately. (2) The qdisc determines whether a packet matches the epoch boundary
+condition (\S\ref{s:measure:marking}). (3) If so, it sends a netlink message to the contr process running in user-space, which records the epoch, and then forwards the packet along. (4) The \outbox observes the same epoch boundary packet. (5) It sends an out-of-band UDP message to the \inbox containing the hash of the packet and its current state. (6) The \inbox receives the UDP message, and uses it to calculate the epochs and measurements as described 
+in \S\ref{s:measurement}. 
+(7) Asynchronously, the \inbox invokes the congestion control algorithm every $10$ms~\cite{ccp}
+%\footnote{Prior work shows~\cite{ccp} that the datapath need only invoke congestion control algorithms on RTT-timescales, and evaluates congestion control algorithms on their sensitivity to this period.}.
 via \texttt{libccp},
-giving it a chance to observe any new measurements and change its behavior. (8) If it decides to update
-the bundle rate or congestion window, the \inbox communicates this to the qdisc
-using \texttt{libnl}. Since the qdisc only supports rate enforcement, if the algorithm
-also uses a congestion window, the \inbox computes $\text{\emph{effective rate}} = \frac{\text{CWND}}{\text{RTT}}$
-and sets the rate of the qdisc to the minimum of the explicit rate and this effective rate.
-Upon receiving new RTT samples, the \inbox updates the effective rate, and updates the qdisc rate if appropriate.
+%giving it a chance to observe any new measurements and change its behavior. 
+(8) If it updates the sending rate, the \inbox communicates this to the qdisc
+using \texttt{libnl}. 
+% Since the qdisc only supports rate enforcement, if the algorithm
+% also uses a congestion window, the \inbox computes $\text{\emph{effective rate}} = \frac{\text{CWND}}{\text{RTT}}$
+% and sets the rate of the qdisc to the minimum of the explicit rate and this effective rate.
+%Upon receiving new RTT samples, the \inbox updates the effective rate, and updates the qdisc rate if appropriate.
 Finally (9), if the \inbox changes the desired epoch length based on new measurements, it communicates this to the \outbox, also out-of-band.
 
 %\radhika{i liked this subsection!}

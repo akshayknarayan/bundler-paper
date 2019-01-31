@@ -83,7 +83,7 @@ Our design choices were guided by our key requirement of \emph{deployment and ma
 
 \paragraphi{(1) Congestion signal} Packet losses should not be used as congestion signals, since that would require building up a queue at the bottleneck until a packet drop occurs, thus defeating our primary purpose. Furthermore, it would react badly with the (unmodified) end hosts that commonly deploy loss-based algorithms~\cite{cubic}, by causing the sending rate to be reduced twice for every packet drop. An ECN-based algorithm is also not an option with unmodified network routers. This makes the round-trip time (RTT), along with the sending and receiving rates of packets, \reword{the ideal choice}.
 
-\paragraphi{(2) Detection of buffer-filling cross-traffic} It is well-known that RTT-based schemes compete poorly with buffer-filling loss-based schemes~\cite{nimbus, copa, timely}. Therefore, \name's congestion control must have a mechanism to detect the presence of a competing buffer-filling flow, and the ability to switch over to an equally aggressive algorithm, to avoid impacting throughput. 
+\paragraphi{(2) Detection of buffer-filling cross-traffic} It is well-known that RTT-based schemes compete poorly with buffer-filling loss-based schemes~\cite{nimbus, copa, timely}. Therefore, \name's congestion control must have a mechanism to detect the presence of a competing buffer-filling flow, and fall back to status quo performance. 
 
 Among the existing congestion control algorithms, Copa~\cite{copa} and Nimbus~\cite{nimbus} best satisfy the above requirements.  
 %\name's congestion control algorithm would adjust 
