@@ -30,7 +30,23 @@ ggplot(df, aes(
     coord_cartesian(ylim=c(1,1.5)) +
     theme_minimal() + 
     theme(text = element_text(size=18, family="Lato", face="bold"))
+
+highUtilBundler = quantile(df[df$Load == "84Mbps" & df$Alg=="copa_sfq",]$Slowdown, c(0.5, 0.99))
+highUtilSQ = quantile(df[df$Load == "84Mbps" & df$Alg=="nobundler_fifo",]$Slowdown, c(0.5, 0.99))
+highUtilTailImprove = (1 - (highUtilBundler[2] / highUtilSQ[2]))
+
+medUtilBundler = quantile(df[df$Load == "72Mbps" & df$Alg=="copa_sfq",]$Slowdown, c(0.5, 0.99))
+medUtilSQ = quantile(df[df$Load == "72Mbps" & df$Alg=="nobundler_fifo",]$Slowdown, c(0.5, 0.99))
+medUtilTailImprove = (1 - (medUtilBundler[2] / medUtilSQ[2]))
+
+lowUtilBundler = quantile(df[df$Load == "48Mbps" & df$Alg=="copa_sfq",]$Slowdown, c(0.5, 0.99))
+lowUtilSQ = quantile(df[df$Load == "48Mbps" & df$Alg=="nobundler_fifo",]$Slowdown, c(0.5, 0.99))
+lowUtilTailImprove = (1 - (lowUtilBundler[2] / lowUtilSQ[2]))
 @
     \caption{\name offers diminishing returns with lower amounts of offered load.}
     \label{fig:eval:offeredload}
 \end{figure}
+%
+\newcommand{\highUtilTailImprove}{\Sexpr{round(highUtilTailImprove, 0)}\%\xspace}
+\newcommand{\medUtilTailImprove}{\Sexpr{round(medUtilTailImprove, 0)}\%\xspace}
+\newcommand{\lowUtilTailImprove}{\Sexpr{round(lowUtilTailImprove, 0)}\%\xspace}
