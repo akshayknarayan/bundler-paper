@@ -29,6 +29,6 @@ ggplot(df, aes(x=factor(Cross), y=Slowdown, fill=Alg)) +
         text = element_text(size=18, family="Lato", face="bold")
     )
 @
-    \caption{Varying number of elastic cross traffic flows.}
+    \caption{Varying number of competing elastic cross traffic flows. As before, \name's traffic offers 84Mbps of load, with one persistently backlogged connection.}
     \label{fig:robust:cr-elastic}
 \end{figure}

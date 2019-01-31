@@ -22,13 +22,22 @@ ggplot(small, aes(
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
     ylab("Slowdown") +
-    ggtitle("< 10KB") +
-    scale_fill_brewer(type="qual", palette=2) +
-    scale_x_discrete(
-        limit=c("proxy_copa_sfq", "copa_sfq"),
+    ggtitle("Small\n< 10KB") +
+    scale_fill_manual(limit=c("copa_sfq", "proxy_copa_sfq"),
+        values = c(
+            "copa_sfq" = "#1b9e77",
+            "proxy_copa_sfq" = "#386cb0"
+        ),
         labels=c(
-            "proxy_copa_sfq" = "Proxy",
-            "copa_sfq" = "Bundler"
+            "copa_sfq" = "Bundler ",
+            "proxy_copa_sfq" = "Proxy"
+        )
+    ) +
+    scale_x_discrete(
+        limit=c("copa_sfq","proxy_copa_sfq"),
+        labels=c(
+            "copa_sfq" = "Bundler",
+            "proxy_copa_sfq" = "Proxy"
         ),
         scale_name=NULL, name=NULL
     ) +
@@ -45,13 +54,22 @@ ggplot(med, aes(
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
     ylab(NULL) +
-    ggtitle("10KB - 1MB") +
-    scale_fill_brewer(type="qual", palette=2) +
-    scale_x_discrete(
-        limit=c("proxy_copa_sfq", "copa_sfq"),
+    ggtitle("Medium\n10KB - 1MB") +
+    scale_fill_manual(limit=c("copa_sfq", "proxy_copa_sfq"),
+        values = c(
+            "copa_sfq" = "#1b9e77",
+            "proxy_copa_sfq" = "#386cb0"
+        ),
         labels=c(
-            "proxy_copa_sfq" = "Proxy",
-            "copa_sfq" = "Bundler"
+            "copa_sfq" = "Bundler ",
+            "proxy_copa_sfq" = "Proxy"
+        )
+    ) +
+    scale_x_discrete(
+        limit=c("copa_sfq","proxy_copa_sfq"),
+        labels=c(
+            "copa_sfq" = "Bundler",
+            "proxy_copa_sfq" = "Proxy"
         ),
         scale_name=NULL, name=NULL
     ) +
@@ -67,13 +85,22 @@ ggplot(big, aes(
         x=Alg, fill=Alg, y=Slowdown
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
-    ylab(NULL) + ggtitle("> 1MB") +
-    scale_fill_brewer(type="qual", palette=2) +
-    scale_x_discrete(
-        limit=c("proxy_copa_sfq", "copa_sfq"),
+    ylab(NULL) + ggtitle("Large\n> 1MB") +
+    scale_fill_manual(limit=c("copa_sfq", "proxy_copa_sfq"),
+        values = c(
+            "copa_sfq" = "#1b9e77",
+            "proxy_copa_sfq" = "#386cb0"
+        ),
         labels=c(
-            "proxy_copa_sfq" = "Proxy",
-            "copa_sfq" = "Bundler"
+            "copa_sfq" = "Bundler ",
+            "proxy_copa_sfq" = "Proxy"
+        )
+    ) +
+    scale_x_discrete(
+        limit=c("copa_sfq","proxy_copa_sfq"),
+        labels=c(
+            "copa_sfq" = "Bundler",
+            "proxy_copa_sfq" = "Proxy"
         ),
         scale_name=NULL, name=NULL
     ) +

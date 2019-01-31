@@ -22,7 +22,7 @@ ggplot(small, aes(
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
     ylab("Slowdown") +
-    ggtitle("< 10KB") +
+    ggtitle("Small\n< 10KB") +
     scale_fill_manual(
         values=c(
             "copa_sfq" = "#beaed4",
@@ -49,7 +49,7 @@ ggplot(med, aes(
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
     ylab(NULL) +
-    ggtitle("10KB - 1MB") +
+    ggtitle("Medium\n10KB - 1MB") +
     scale_fill_manual(
         values=c(
             "copa_sfq" = "#beaed4",
@@ -75,7 +75,7 @@ ggplot(big, aes(
         x=Alg, fill=Alg, y=Slowdown
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
-    ylab(NULL) + ggtitle("> 1MB") +
+    ylab(NULL) + ggtitle("Large\n> 1MB") +
     scale_fill_manual(
         values=c(
             "copa_sfq" = "#beaed4",

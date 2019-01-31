@@ -20,14 +20,16 @@ ggplot(small, aes(
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
     ylab("Slowdown") +
-    ggtitle("< 10KB") +
-    scale_fill_brewer(type="qual", palette=1) +
+    ggtitle("Small\n< 10KB") +
+    scale_fill_manual(limit=c("nobundler_fifo", "copa_sfq", "copa_fifo"),
+        values = c(
+            "nobundler_fifo" = "#d95f02",
+            "copa_sfq" = "#1b9e77",
+            "copa_fifo" = "#e7298a"
+        )
+    ) +
     scale_x_discrete(
-        limit=c("copa_sfq", "copa_fifo"),
-        labels=c(
-            "copa_fifo" = "Bundler\n FIFO",
-            "copa_sfq" = "Bundler\n SFQ"
-        ),
+        limit=c("nobundler_fifo", "copa_sfq", "copa_fifo"),
         scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,4)) +
@@ -35,29 +37,38 @@ ggplot(small, aes(
     theme(
         legend.position="top",
         legend.title=element_blank(),
+        axis.text.x=element_blank(),
         text = element_text(angle=0,size=18, family="Lato", face="bold"),
         plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     ) +
 ggplot(med, aes(
         x=Alg, fill=Alg, y=Slowdown
     )) +
-    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
+    geom_boxplot(outlier.shape=NA) +
     ylab(NULL) +
-    ggtitle("10KB - 1MB") +
-    scale_fill_brewer(type="qual", palette=1) +
-    scale_x_discrete(
-        limit=c("copa_sfq", "copa_fifo"),
-        labels=c(
-            "copa_fifo" = "Bundler\n FIFO",
-            "copa_sfq" = "Bundler\n SFQ"
+    ggtitle("Medium\n10KB - 1MB") +
+    scale_fill_manual(limit=c("nobundler_fifo", "copa_sfq", "copa_fifo"),
+        values = c(
+            "nobundler_fifo" = "#d95f02",
+            "copa_sfq" = "#1b9e77",
+            "copa_fifo" = "#e7298a"
         ),
+        labels=c(
+            "nobundler_fifo" = "Status Quo  ",
+            "copa_sfq" = "Bundler SFQ  ",
+            "copa_fifo" = "Bundler FIFO"
+        )
+    ) +
+    scale_x_discrete(
+        limit=c("nobundler_fifo", "copa_sfq", "copa_fifo"),
         scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,5)) +
     theme_minimal() + 
     theme(
-        legend.position="top",
+        legend.position="bottom",
         legend.title=element_blank(),
+        axis.text.x=element_blank(),
         text = element_text(angle=0,size=18, family="Lato", face="bold"),
         plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     ) +
@@ -65,14 +76,16 @@ ggplot(big, aes(
         x=Alg, fill=Alg, y=Slowdown
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
-    ylab(NULL) + ggtitle("> 1MB") +
-    scale_fill_brewer(type="qual", palette=1) +
+    ylab(NULL) + ggtitle("Large\n> 1MB") +
+    scale_fill_manual(limit=c("nobundler_fifo", "copa_sfq", "copa_fifo"),
+        values = c(
+            "nobundler_fifo" = "#d95f02",
+            "copa_sfq" = "#1b9e77",
+            "copa_fifo" = "#e7298a"
+        )
+    ) +
     scale_x_discrete(
-        limit=c("copa_sfq", "copa_fifo"),
-        labels=c(
-            "copa_fifo" = "Bundler\n FIFO",
-            "copa_sfq" = "Bundler\n SFQ"
-        ),
+        limit=c("nobundler_fifo", "copa_sfq", "copa_fifo"),
         scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,15)) +
@@ -80,6 +93,7 @@ ggplot(big, aes(
     theme(
         legend.position="top",
         legend.title=element_blank(),
+        axis.text.x=element_blank(),
         text = element_text(angle=0,size=18, family="Lato", face="bold"),
         plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     )
