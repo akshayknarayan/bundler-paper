@@ -1,11 +1,16 @@
 \subsection{Impact of Congestion Control} \label{s:robust:cross}\label{s:eval:cc}
-How does our choice of congestion control impact our results? 
-We first verify that \name indeed runs congestion control algorithms appropriately.
-\input{tput-delay}
-Figure~\ref{fig:eval:tputdelay} shows that for two of the three congestion control algorithms we evaluate --- Copa~\cite{copa} and Nimbus~\cite{nimbus} --- the throughput (in Figure~\ref{fig:eval:tputdelay:a}) and queueing delay (in Figure~\ref{fig:eval:tputdelay:b}) distributions over a one-minute experiment are similar to the same algorithm running at the end-host (\ie without \name).
 
-BBR's~\cite{bbr} delay distribution suffers because of its interaction with the end-to-end congestion control. When BBR enters its \texttt{PROBE\_RTT} mode by setting a congestion window of $4$ packets, end-host implementations simply stop transmitting.
-However, with \name the end-host implementation is another congestion controller, Cubic; it continues probing for bandwidth while BBR throttles the rate until the \inbox is forced to drop packets.
+We now evaluate the impact of a different congestion control algorithm running at the \inbox and at the endhosts.
+% We first verify that \name indeed runs congestion control algorithms appropriately.
+% \input{tput-delay}
+% Figure~\ref{fig:eval:tputdelay} shows that for two of the three congestion control algorithms we evaluate --- Copa~\cite{copa} and Nimbus~\cite{nimbus} --- the throughput (in Figure~\ref{fig:eval:tputdelay:a}) and queueing delay (in Figure~\ref{fig:eval:tputdelay:b}) distributions over a one-minute experiment are similar to the same algorithm running at the end-host (\ie without \name).
+
+% BBR's~\cite{bbr} delay distribution suffers because of its interaction with the end-to-end congestion control. When BBR enters its \texttt{PROBE\_RTT} mode by setting a congestion window of $4$ packets, end-host implementations simply stop transmitting.
+% However, with \name the end-host implementation is another congestion controller, Cubic; it continues probing for bandwidth while BBR throttles the rate until the \inbox is forced to drop packets.
+
+\input{congestion-control}
+
+\Para{Changing \inbox congestion controller} So far we evaluate \name by running Copa~\cite{copa} at the \inbox.  Figure~\ref{fig:eval:cc} shows \name's performance with other congestion control algorithms (namely, Nimbus~\cite{nimbus} and BBR~\cite{bbr}), and using SFQ scheduling. We find that using Nimbus provides similar benefits over \baseline as Copa. BBR, on the other hand, performs slightly worse than \baseline. This is because it pushes packets into the network more aggressively than the other schemes, resulting in a large in-network queue. This, combined with the queue built at the \name, results in the endhosts experiencing higher queueing delays than \baseline. This shows that the choice of congestion control algorithm, and its ability to maintain small queues in the network, is important for  
 
 \name is compatible with multiple endhost congestion control algorithms (we omit a figure for brevity).
 When we configure endhosts to use BBR\footnote{We use the BBR implementation provided in Linux $4.13$.} (instead of Cubic as above), \name's benefits remain: \name achieves 58\% lower FCTs in the median.

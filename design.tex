@@ -63,7 +63,7 @@ Figure~\ref{fig:design:shift-bottleneck} illustrates this method for a single fl
 \subsection{Design Choices}
 
 \fc{current wording sounds too passive?}
-Our design choices were guided by our key requirement of \emph{deployment and management ease}. They provide the following nice properties:
+Our design choices were guided by our key requirement of \emph{deployment and management ease}. They provide the following properties:
 %, resulted in the following features:
 
 \paragraphn{(i)} \name requires no changes to the endhosts or to the routers in the network, making it independently deployable. 
@@ -81,7 +81,8 @@ Our design choices were guided by our key requirement of \emph{deployment and ma
 %The congestion control algorithm that \name runs at the \inbox must satisfy the following constraints: 
 \name's congestion control algorithm must satisfy the following requirements: 
 
-\paragraphi{(1) Congestion signal} Packet losses should not be used as congestion signals, since that would require building up a queue at the bottleneck until a packet drop occurs, thus defeating our primary purpose. Furthermore, it would react badly with the (unmodified) end hosts that commonly deploy loss-based algorithms~\cite{cubic}, by causing the sending rate to be reduced twice for every packet drop. An ECN-based algorithm is also not an option with unmodified network routers. This makes the round-trip time (RTT), along with the sending and receiving rates of packets, \reword{the ideal choice}.
+\paragraphi{(1) Ability to limit network queueing} A loss-based congestion control algorithm is not a good choice for \name, since it would build up a queue at the bottleneck until a packet drop occurs, thus defeating our primary purpose. %Furthermore, it would react badly with the (unmodified) end hosts that commonly deploy loss-based algorithms~\cite{cubic}, by causing the sending rate to be reduced twice for every packet drop. 
+An ECN-based algorithm is also not an option with unmodified network routers. This makes algorithms that use round-trip time (RTT) \reword{the ideal choice}.
 
 \paragraphi{(2) Detection of buffer-filling cross-traffic} It is well-known that RTT-based schemes compete poorly with buffer-filling loss-based schemes~\cite{nimbus, copa, timely}. Therefore, \name's congestion control must have a mechanism to detect the presence of a competing buffer-filling flow, and fall back to status quo performance. 
 
@@ -158,9 +159,9 @@ This out-of-band feedback mechanism is not only agnostic to the underlying proto
 
 \paragraphi{(2) Infrequent measurements} Sending an out-of-band feedback message for every packet arriving at the \outbox would result in high communication overhead. Furthermore, conducting measurements on every outgoing packet at the \inbox would require maintaining state for each of them, which can be expensive, especially at high bandwidth-delay products. We, therefore, conduct measurements on a few sampled packets, at least once per RTT, which is sufficient for most congestion control algorithms~\cite{ccp}. 
 
-\paragraphi{(3) \reword{Independent} sampling} The \inbox and \outbox need to agree upon the set of sampled packets over which measurements will be conducted (to ensure overlap between the packets for which the \outbox generates feedback and the packets for which the \inbox maintains state). It is tempting to simply mark such packets at the \inbox. However, past studies~\cite{ipoptions, mboxbadness, quic} have shown how such strategies may fail in practice, as many deployed middleboxes have a tendency to drop or re-write packets with unfamiliar header fields. 
+\paragraphi{(3) Independent sampling} The \inbox and \outbox need to agree upon the set of sampled packets over which measurements will be conducted (to ensure overlap between the packets for which the \outbox generates feedback and the packets for which the \inbox maintains state). It is tempting to simply mark such packets at the \inbox. However, past studies~\cite{ipoptions, mboxbadness, quic} have shown how such strategies may fail in practice, as many deployed middleboxes have a tendency to drop or re-write packets with unfamiliar header fields. 
 %Another option is to explicitly exchange coordination messages, but the overhead incurred by that would defeat the purpose of sampling packets. 
-We, therefore, devise a technique to sample packets solely based on the hash computed over certain fields in the packet header, which allows the \inbox and the \outbox to independently sample the same set of packets.
+In the following section, we describe our technique to sample packets solely based on the hash computed over certain fields in the packet header, which allows the \inbox and the \outbox to independently sample the same set of packets.
 
 %By design, all flows in a bundle pass through the same \inbox and \outbox pair. The RTT is measured only between the \inbox and \outbox leading to a consistent  
 
@@ -189,7 +190,7 @@ We, therefore, devise a technique to sample packets solely based on the hash com
 
 \cut{
 We imagine an infrastructure, as depicted in Figure~\ref{fig:overview}, where each 
-entity (a datacenter, campus, etc.) runs an \inbox and \outbox at the edge of its network. Flows passing through its \inbox are bundled based on the \outbox they will be traversing. Each bundle is treated separately and has its own queue. 
+entity (a datacenter, campus, etc.) runs a \inbox and \outbox at the edge of its network. Flows passing through its \inbox are bundled based on the \outbox they will be traversing. Each bundle is treated separately and has its own queue. 
 }
 
 \cut{
