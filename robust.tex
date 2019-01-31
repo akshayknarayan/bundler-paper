@@ -4,14 +4,14 @@ We first verify that \name indeed runs congestion control algorithms appropriate
 \input{tput-delay}
 Figure~\ref{fig:eval:tputdelay} shows that for two of the three congestion control algorithms we evaluate --- Copa~\cite{copa} and Nimbus~\cite{nimbus} --- the throughput (in Figure~\ref{fig:eval:tputdelay:a}) and queueing delay (in Figure~\ref{fig:eval:tputdelay:b}) distributions over a one-minute experiment are similar to the same algorithm running at the end-host (\ie without \name).
 
-Furthermore, \name is compatible with multiple endhost congestion control algorithms.
-When we configure endhosts to use BBR\footnote{We use the BBR implementation provided in Linux $4.13$.} (as opposed to Cubic, as above), \name's benefits remain: \name achieves 58\% lower FCTs in the median.
-This is primarily because in the \baseline using BBR causes endhosts to achieve 66\% worse median slowdown ($1.62$ with Cubic to $2.68$ with BBR); \name's slowdown is only 5\% worse when endhosts use BBR ($1.08$ with Cubic to $1.14$ with BBR).
-
 BBR's~\cite{bbr} delay distribution suffers because of its interaction with the end-to-end congestion control. When BBR enters its \texttt{PROBE\_RTT} mode by setting a congestion window of $4$ packets, end-host implementations simply stop transmitting.
 However, with \name the end-host implementation is Cubic; it continues probing for bandwidth until the \inbox is forced to drop packets.
 
-Furthermore, correct congestion control behavior is crucial to achieving low FCTs.
+\name is compatible with multiple endhost congestion control algorithms\footnote{We omit a figure for brevity.}.
+When we configure endhosts to use BBR\footnote{We use the BBR implementation provided in Linux $4.13$.} (instead of Cubic as above), \name's benefits remain: \name achieves 58\% lower FCTs in the median.
+This is primarily because in the \baseline using BBR causes endhosts to achieve 66\% worse median slowdown ($1.62$ with Cubic to $2.68$ with BBR); \name's slowdown is only 5\% worse when endhosts use BBR ($1.08$ with Cubic to $1.14$ with BBR).
+
+\paragrapha{Self-Inflicted Delays} Correct congestion control behavior is crucial to achieving low FCTs.
 In Figure~\ref{fig:eval:cc} we compare three congestion control protocols to the Baseline: BBR~\cite{bbr}, Nimbus~\cite{nimbus}, and Copa~\cite{copa}.
 In this scenario, it is important to control delays in the bottleneck queue, since it is FIFO scheduled and therefore queued packets from short requests must wait behind those from longer requests. Nimbus and BBR both maintain slightly higher queueing delays at the bottleneck link, and thus they achieve higher median FCTs \an{numbers}. 
 Nimbus, which is slightly more aggressive than Copa, induces a higher queue build up at the bottleneck, and a smaller queue build up at the \name, when compared to Copa. It therefore results in a higher median FCT than Copa, though still providing significant benefits over the baseline. 

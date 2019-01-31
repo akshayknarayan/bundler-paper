@@ -96,11 +96,11 @@ Because it controls endhost packet transmissions, fq-codel achieves \delaysImpro
 \paragrapha{Strict Prioritization}\label{s:eval:strictprio}
 Using a priority scheduler at \name can improve FCTs for a higher-priority class of traffic transitting \name over a lower-priority class. 
 \input{strict-prio}
-Furthermore, when compared to fair queueing in this scenario, prioritization achieves $47$\% lower $99^{\text{th}}$\%ile FCT for the prioritized traffic class.
+Furthermore, when compared to fair queueing in this scenario, prioritization achieves $47$\% lower $99$\%ile FCT for the prioritized traffic class.
 
 \input{waterfall}
 \paragrapha{Rate Fairness and Stability}\label{s:eval:waterfall}
-In Figure~\ref{fig:eval:waterfall}, we show that \name, when configured with a fair scheduler, achieves fair and stable rates compared to the \baseline.
+In Figure~\ref{fig:eval:waterfall}, we show that \name, when configured with a fair scheduler, converges to fair and stable rates faster than the \baseline.
 
 \cut{
 \input{video-exp}
@@ -116,17 +116,18 @@ the highest possible bitrate and thus maximize QoE.
 }
 
 \subsection{Terminating TCP Connections}\label{s:eval:proxy}
-An alternate implementation choice for a \name would use a TCP proxy to terminate connections at the \inbox. 
+An alternate implementation of a \name could terminate TCP connections at the \inbox. 
 %\radhika{I assume we mention this in an earlier section? else we need a line or two about why this experiment is interesting.}
-We consider the best-case outcome of terminating TCP connections --- the effective RTT observed by the end-to-end congestion controller running at the servers would decrease (since the proxy would acknowledge its segments much faster than the original receiver would), and it would grow its window rapidly.
-A proxy-based design would then apply scheduling policy to component traffic (recall that we use SFQ).
-We emulate this best-case scenario by modifying the end-hosts to maintain a constant congestion window of $450$ packets --- slightly larger than the BDP --- and increasing the queue lengths at the \inbox to hold these packets. The other aspects of \name remain unchanged.
+We consider the best-case outcome of terminating TCP connections --- the RTT the end-to-end congestion controller observed would decrease (since the proxy would acknowledge its segments much faster than the original receiver would), and it would therefore grow its window rapidly.
+A proxy-based design could then apply a scheduling policy to the acknowledged, but yet unsent traffic from terminated connections.
+To emulate a best-case scenario for termination, we modify the end-hosts to maintain a constant congestion window of $450$ packets --- slightly larger than the BDP --- and increase the buffering at the \inbox to hold these packets. 
+The other aspects of \name, including scheduling, remain unchanged.
 The result is in Figure~\ref{fig:eval:proxy}.
 %
 \input{proxy}
 %
 \an{check this text}
-For the short requests, terminating TCP connections does not yield additional benefits: with or without termination, they finish in a few RTTs and never leave slow start.
+For the short requests which never leave TCP slow start, terminating TCP connections does not yield additional benefits: with or without termination, they finish in a few RTTs.
 For medium-to-long requests, terminating TCP connections yields benefits since they no longer incur the penalty of window growth.
 
 \input{robust}

@@ -25,6 +25,6 @@ ggplot(df, aes(x=Time, y=Tput, colour=Flow)) +
         text=element_text(size=18, family="Lato", face="bold")
     )
 @
-    \caption{\name configured with SFQ achieves fair and rate rates for component flows.}
+    \caption{\name with SFQ achieves fair and stable rates.}
     \label{fig:eval:waterfall}
 \end{figure}

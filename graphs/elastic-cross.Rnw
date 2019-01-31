@@ -19,7 +19,7 @@ ggplot(df, aes(x=factor(Cross), y=Slowdown, fill=Alg)) +
     xlab(NULL) +
     scale_fill_brewer(type="qual", palette=1,
         limit=c("nimbus_sfq", "nimcopa_sfq", "nobundler_fifo"),
-        labels=c("nimcopa_sfq" = "Bundler (Copa) ", "nimbus_sfq" = "Bundler (Nimbus) ", "bbr_sfq" = "Bundler (BBR) ", "nobundler_fifo" = "Status Quo")
+        labels=c("nimcopa_sfq" = "Bundler\nCopa", "nimbus_sfq" = "Bundler\nNimbus", "nobundler_fifo" = "Status Quo")
     ) +
     theme_minimal() +
     theme(

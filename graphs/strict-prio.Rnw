@@ -3,7 +3,7 @@ df <- read.csv("strictprio.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
 df$ofct <- (df$Size / 12e6) + 0.05
 df$Slowdown <- df$Duration / df$ofct
-df <- df[df$Alg == "copa_prio" | df$Alg == "nobundler_fifo",]
+#df <- df[df$Alg == "copa_prio" | df$Alg == "nobundler_fifo",]
 
 # don't plot
 #ggplot(df, aes(x=Alg, y=Slowdown, fill=Alg)) +
@@ -29,9 +29,11 @@ df <- df[df$Alg == "copa_prio" | df$Alg == "nobundler_fifo",]
 
 # calculate values for table
 strictprio_copa_prio <- df[df$Alg == "copa_prio",]
+strictprio_copa_sfq <- df[df$Alg == "copa_sfq",]
 strictprio_nobundler <- df[df$Alg == "nobundler_fifo",]
 
 strictprio_copa_prio <- quantile(strictprio_copa_prio$Slowdown, c(0.5, 0.99))
+strictprio_copa_sfq <- quantile(strictprio_copa_sfq$Slowdown, c(0.5, 0.99))
 strictprio_nobundler <- quantile(strictprio_nobundler$Slowdown, c(0.5, 0.99))
 
 @
@@ -39,7 +41,8 @@ strictprio_nobundler <- quantile(strictprio_nobundler$Slowdown, c(0.5, 0.99))
 \begin{tabular}{c|c|c}
 Scheme     &  Median Slowdown                           &  $99$\%ile Slowdown                        \\
 \hline
-Bundler    &  \Sexpr{round(strictprio_copa_prio[1],2)}  &  \Sexpr{round(strictprio_copa_prio[2],2)}  \\
+Bundler (Prio.)   &  \Sexpr{round(strictprio_copa_prio[1],2)} &  \Sexpr{round(strictprio_copa_prio[2],2)}  \\
+Bundler (SFQ)     &  \Sexpr{round(strictprio_copa_sfq[1],2)}  &  \Sexpr{round(strictprio_copa_sfq[2],2)}  \\
 \baseline  &  \Sexpr{round(strictprio_nobundler[1],2)}  &  \Sexpr{round(strictprio_nobundler[2],2)}
     \label{fig:eval:strict-prio}
 \end{tabular}
