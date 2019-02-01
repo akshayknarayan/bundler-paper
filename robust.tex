@@ -10,7 +10,7 @@ We now evaluate the impact of a different congestion control algorithm running a
 
 \input{congestion-control}
 
-\Para{\inbox congestion control} So far we evaluate \name by running Copa~\cite{copa} at the \inbox.  Figure~\ref{fig:eval:cc} shows \name's performance with other congestion control algorithms (namely, Nimbus~\cite{nimbus} and BBR~\cite{bbr}), and using SFQ scheduling. We find that using Nimbus provides similar benefits over \baseline as Copa. BBR, on the other hand, performs slightly worse than \baseline. This is because it pushes packets into the network more aggressively than the other schemes, resulting in a bigger in-network queue. This, combined with the queue built at the \name, results in the endhosts experiencing higher queueing delays than \baseline. This shows that the choice of congestion control algorithm, and its ability to maintain small queues in the network, plays an important role. 
+\Para{\capinbox congestion control} So far we evaluate \name by running Copa~\cite{copa} at the \inbox.  Figure~\ref{fig:eval:cc} shows \name's performance with other congestion control algorithms (namely, Nimbus~\cite{nimbus} and BBR~\cite{bbr}), and using SFQ scheduling. We find that using Nimbus provides similar benefits over \baseline as Copa. BBR, on the other hand, performs slightly worse than \baseline. This is because it pushes packets into the network more aggressively than the other schemes, resulting in a bigger in-network queue. This, combined with the queue built at the \name, results in the endhosts experiencing higher queueing delays than \baseline. This shows that the choice of congestion control algorithm, and its ability to maintain small queues in the network, plays an important role. 
 
 \input{e2e}
 \Para{Endhost congestion control} 
@@ -18,7 +18,7 @@ We used Cubic congestion control at the endhosts for our experiments so far. Whe
 This is primarily because in the \baseline using BBR causes endhosts to achieve 66\% worse median slowdown ($1.62$ with Cubic to $2.68$ with BBR); \name's slowdown is only 5\% worse when endhosts use BBR ($1.08$ with Cubic to $1.14$ with BBR). 
 This shows that \name is compatible with multiple endhost congestion control algorithms.
 
-\subsection{Impact of cross traffic}
+\subsection{Impact of Cross Traffic}
 In studying the impact of cross traffic, we present results with both Nimbus and Copa being used as the congestion control algorithm at the \inbox.
 % \paragrapha{Self-Inflicted Delays} Correct congestion control behavior is crucial to achieving low FCTs.
 % In Figure~\ref{fig:eval:cc} we repeat the FCT experiments in \S\ref{s:eval:fct} and now compare three congestion control protocols to the \baseline: BBR~\cite{bbr}, Nimbus~\cite{nimbus}, and Copa~\cite{copa}.

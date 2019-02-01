@@ -40,7 +40,8 @@ However, if the cross traffic includes a persistent backlogged flow that aggress
 
 \Para{Common bottleneck shared across flows in a bundle} \name's design for moving queues is \reword{most} effective when the component flows within a bundle share in-network bottlenecks. 
 \reword{This would indeed hold} \radhika{be true?} in most scenarios. 
-As discussed above, in-network congestion primarily occurs at inter-domain links. Therefore, even if an ISP does load balancing for its core, the inter-domain links are still likely to be shared by the flows having common sending and receiving domains. We evaluate the effects of non-shared bottlenecks across flows in a bundle, as well as the effects potentially different path lengths between them in \S\ref{s:eval}. \radhika{revise}
+As discussed above, in-network congestion primarily occurs at inter-domain links. Therefore, even if an ISP does load balancing for its core, the inter-domain links are still likely to be shared by the flows having common sending and receiving domains. 
+%We evaluate the effects of non-shared bottlenecks across flows in a bundle, as well as the effects potentially different path lengths between them in \S\ref{s:eval}. \radhika{revise}
 
 \vspace{0.05in}
 \noindent Hence, while there can be certain situations where \name fails to provide any benefits, there are also many scenarios where it can significantly improve performance \radhika{, and it never performs worse than status quo}. This, combined with its deployment ease, makes a strong case for deploying \name. 

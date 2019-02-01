@@ -107,6 +107,7 @@ The combination of IP ID, source port and source IP (used by our prototype imple
 Given our technique to identify epoch boundaries, it is straight-forward to measure congestion signals, as illustrated in Figure~\ref{fig:ratecalc}.
 %Given this method of marking epochs, we can now construct the procedure for computing measurements.
 For each bundle, the \inbox tracks the total number of bytes sent within this bundle, and, upon identifying an epoch boundary packet, $p_i$, it records: (i) its hash, $h(p_i)$, (ii) the time when it is sent out, $t_{\text{sent}}(p_i)$, and (iii) the total number of bytes sent thus far including this packet, $b_{sent}(p_i)$. 
+
 The \outbox similarly tracks the total number of bytes received for each bundle. Upon the arrival and identification of the epoch boundary packet $p_i$, it immediately sends a feedback message to the \inbox containing: (i) its hash, $h(p_i)$, (ii) the time when it was received, $t_{recv}(p_i)$, and (iii) the total number of bytes received thus far including this packet, $b_{recv}(p_i)$. 
 %For each bundle, the \inbox keeps track of: (i) the total number of bytes sent since the last epoch, (ii)  
 % For a given bundle, the \inbox runs the aforementioned function on each packet $p$. Each time
@@ -122,7 +123,8 @@ The \outbox similarly tracks the total number of bytes received for each bundle.
 % packet hash \hptwo\ in the epoch data structure, which represents the end of the current epoch,
 % along with the earliest boundary packet still in the data structure, \hpone\ which represents the start
 % of the current epoch. It now has all of the information necessary to calculate one sample of the following:
-Upon receiving the feedback $p_i$, the \inbox records the received information, and using its previously recorded state, it can compute the RTT and the rates at which packets are sent and received, as below:par
+
+Upon receiving the feedback $p_i$, the \inbox records the received information, and using its previously recorded state, it can compute the RTT and the rates at which packets are sent and received, as below:
 
 % \begin{subequations}
 %     \begin{align}
