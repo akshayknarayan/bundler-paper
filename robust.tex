@@ -1,4 +1,4 @@
-\subsection{Impact of Congestion Control} \label{s:robust:cross}\label{s:eval:cc}
+\subsection{Impact of Congestion Control} \label{s:eval:cc}
 
 We now evaluate the impact of a different congestion control algorithm running at the \inbox and at the endhosts.
 % We first verify that \name indeed runs congestion control algorithms appropriately.
@@ -19,6 +19,7 @@ This is primarily because in the \baseline using BBR causes endhosts to achieve 
 This shows that \name is compatible with multiple endhost congestion control algorithms.
 
 \subsection{Impact of Cross Traffic}
+\label{s:robust:cross}
 In studying the impact of cross traffic, we present results with both Nimbus and Copa being used as the congestion control algorithm at the \inbox.
 % \paragrapha{Self-Inflicted Delays} Correct congestion control behavior is crucial to achieving low FCTs.
 % In Figure~\ref{fig:eval:cc} we repeat the FCT experiments in \S\ref{s:eval:fct} and now compare three congestion control protocols to the \baseline: BBR~\cite{bbr}, Nimbus~\cite{nimbus}, and Copa~\cite{copa}.
@@ -39,7 +40,7 @@ We split the offered load (comprising of web requests described in \S\ref{s:eval
 
 \input{elastic-cross}
 \paragrapha{Buffer-filling flows} Competition from persistent backlogged flows that fill the bottleneck link's buffer, is the worst-case scenario for \name.
-As decribed in \S\ref{s:impl:prototype}, \name's congestion controller must push packets into the bottleneck queue to compete fairly, and thus it cannot retain packets at the \inbox for scheduling. As a result, we expect performance to be no better than the baseline. We indeed see this in Figure~\ref{fig:robust:cr-elastic}, as we add different numbers of buffer-filling flows as cross-traffic.
+As described in \S\ref{s:impl:prototype}, \name's congestion controller must push packets into the bottleneck queue to compete fairly, and thus it cannot retain packets at the \inbox for scheduling. As a result, we expect performance to be no better than the baseline. We indeed see this in Figure~\ref{fig:robust:cr-elastic}, as we add different numbers of buffer-filling flows as cross-traffic.
 
 % \an{In this experiment, Copa, primarily a delay-based algorithm, cannot adequately detect the presence of competing elastic traffic and ``mode-switch'' to its competitive mode. 
 % %When we modify Copa to use Nimbus's elasticity detector (Figure~\ref{fig:robust:cr-elastic}), its performance matches the baseline.
