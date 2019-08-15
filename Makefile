@@ -9,6 +9,9 @@ PDFS = $(addsuffix .pdf,$(TARGETS))
 
 all: $(PDFS)
 
+final: $(PDFS)
+	./banal -judge -paper=letter -font=10 -leader=12 -width=7 -height=9 -cols=2 -pages=12 ./bundler-nsdi20.pdf
+
 %.pdf: %.tex $(TEXFILES) $(KNITRTARGETS) usenix2019_v3.sty
 	pdflatex -shell-escape -shell-escape $*.tex
 	bibtex $*
