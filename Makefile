@@ -1,6 +1,6 @@
 ##
 
-TARGETS = bundler-sigcomm19
+TARGETS = bundler-nsdi20
 
 TEXFILES = $(wildcard *.tex)
 KNITRFILES = $(wildcard graphs/*.Rnw)
@@ -9,7 +9,7 @@ PDFS = $(addsuffix .pdf,$(TARGETS))
 
 all: $(PDFS)
 
-%.pdf: %.tex $(TEXFILES) $(KNITRTARGETS)
+%.pdf: %.tex $(TEXFILES) $(KNITRTARGETS) usenix2019_v3.sty
 	pdflatex -shell-escape -shell-escape $*.tex
 	bibtex $*
 	pdflatex -shell-escape -shell-escape $*.tex
@@ -22,8 +22,10 @@ all: $(PDFS)
 	Rscript -e "library(knitr); knit('$?')"
 
 clean:
-	/bin/rm -f $(PDFS) $(KNITRTARGETS) *.dvi *.aux *.ps *~ *.log *.out *.lot *.lof *.toc *.blg *.bbl url.sty
+	/bin/rm -f *.dvi *.aux *.ps *~ *.log *.out *.lot *.lof *.toc *.blg *.bbl url.sty
 	/bin/rm -rf cache
+	/bin/rm -rf $(PDFS) $(KNITRTARGETS)
+	/bin/rm -rf _minted-$(TARGETS)
 
 evince:
 	pdflatex -shell-escape $(TARGETS).tex

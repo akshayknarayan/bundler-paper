@@ -1,17 +1,32 @@
+
+\usepackage{subcaption}
 \usepackage{xspace}
+
+\usepackage{titlesec}
+\usepackage{titling}
+
+% use only if we need more space!
+%\titlespacing*{\section}{0pt}{1*\baselineskip}{1*\baselineskip}
+%\titlespacing*{\subsection}{0pt}{0.8*\baselineskip}{0.6*\baselineskip}
+
+\usepackage{amsmath}
+\usepackage[subtle]{savetrees}
+
+%\usepackage{geometry}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
 \usepackage{multirow}
 \usepackage{comment}
 \usepackage{fancybox, fancyvrb, calc}
-\usepackage{subcaption}
 \usepackage[inline]{enumitem}
-\usepackage{amsmath}
-\usepackage{cite,url}
+\usepackage{cite}
+\usepackage{url}
 \usepackage{pbox}
-\usepackage{balance}
 \usepackage{wrapfig}
 %
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
+%\usepackage[T1]{fontenc}
+%\usepackage[utf8]{inputenc}
 %\usepackage{mathptmx}
 \usepackage{mathtools}
 \usepackage{enumitem}
@@ -81,8 +96,8 @@
   urlcolor=blue          % color of external links
 }
 %
-\usepackage{leading}
-\leading{12pt}
+%\usepackage{leading}
+%\leading{12pt}
 %
 \usepackage{minted}
 \usepackage{listings}
@@ -94,7 +109,6 @@
   basicstyle=\ttfamily\small  
 }
 %
-%\usepackage[subtle]{savetrees}
 %\usepackage[small,compact]{titlesec}
 \usepackage{outlines}
 %
@@ -117,13 +131,22 @@
 %\newcommand{\pg}[1]{{\color{yellow}\bf PG: {#1}}}
 %\newcommand{\fc}[1]{{\color{blue}\bf FC: {#1}}}
 %\newcommand{\radhika}[1]{{\color{magenta}\bf [RM: {#1}]}}
-\newcommand{\reword}[1]{{\color{red}\emph {#1}}}
+%\newcommand{\reword}[1]{{\color{red}\emph {#1}}}
 \newcommand{\an}[1]{}
 \newcommand{\hb}[1]{}
 \newcommand{\ma}[1]{}
 \newcommand{\pg}[1]{}
 \newcommand{\fc}[1]{}
 \newcommand{\radhika}[1]{}
-%\newcommand{\reword}[1]{#1}
+\newcommand{\reword}[1]{#1}
 %
 \frenchspacing
+
+
+\newcommand{\name}{Bundler\xspace}
+\newcommand{\inbox}{sendbox\xspace}
+\newcommand{\outbox}{receivebox\xspace}
+\newcommand{\capinbox}{Sendbox\xspace}
+\newcommand{\capoutbox}{Receivebox\xspace}
+\newcommand{\pair}{\inbox-\outbox pair\xspace}
+

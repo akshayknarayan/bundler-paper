@@ -5,3 +5,4 @@
 *.log
 bundler-sigcomm19.pdf
 _minted*/
+**/.DS_Store
