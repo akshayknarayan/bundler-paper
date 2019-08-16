@@ -1,0 +1,3 @@
+[submodule "graphs/data"]
+	path = graphs/data
+	url = https://github.com/bundler-project/data.git

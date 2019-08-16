@@ -8,8 +8,8 @@ library(showtext)
 font_add_google("Lato")
 showtext_auto()
 
-thru <- read.csv("./84-10000-nimbus-sfq-62-pl-mixed-diff.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric","numeric"))
-raw <- read.csv("./84-10000-nimbus-sfq-62-pl-mixed-epochs.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric"))
+thru <- read.csv("data/84-10000-nimbus-sfq-62-pl-mixed-diff.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric","numeric"))
+raw <- read.csv("data/84-10000-nimbus-sfq-62-pl-mixed-epochs.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric"))
 colnames(raw) <- c("t", "send", "recv")
 raw$send <- raw$send / 125000.0
 raw$recv <- raw$recv / 125000.0
@@ -30,7 +30,7 @@ p1 <- ggplot() +
     coord_cartesian(xlim=c(20,25), ylim=c(0,108)) + 
     theme(text = element_text(size=17))
 
-data <- read.csv("minrtt-delay-dist.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric","numeric","numeric","numeric","numeric"))
+data <- read.csv("data/minrtt-delay-dist.data", sep=" ", header=FALSE, colClasses=c("numeric","numeric","numeric","numeric","numeric","numeric","numeric"))
 colnames(data) <- c("t", "mm_delay", "inbox_delay", "diff_delay", "mm_thru", "inbox_thru", "diff_thru")
 
 data$diff_thru <- data$diff_thru * -1

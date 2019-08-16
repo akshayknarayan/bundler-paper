@@ -5,7 +5,7 @@ library(ggplot2)
 library(showtext)
 font_add_google("Lato")
 showtext_auto()
-df <- read.csv("lowdelays.data", sep=" ")
+df <- read.csv("data/lowdelays.data", sep=" ")
 df$rtt <- (df$rtt / 1e3) - 50
 
 #ggplot(df, aes(x=rtt, colour=alg)) +

@@ -7,7 +7,7 @@ font_add_google("Lato")
 showtext_auto()
 library(patchwork)
 
-df <- read.csv("84Mbps-1bk-caidacdf.data", sep=" ")
+df <- read.csv("data/84Mbps-1bk-caidacdf.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
 bw <- 12e6
 df$ofct <- (df$Size / bw) + 0.05

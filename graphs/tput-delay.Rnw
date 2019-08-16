@@ -7,7 +7,7 @@ library(showtext)
 font_add_google("Lato")
 showtext_auto()
 
-df <- read.csv("tputdelay.data", sep=" ")
+df <- read.csv("data/tputdelay.data", sep=" ")
 
 # get the one-flow case since that is what is comparable
 df <- df[df$Scenario == "96M50ms_1flows",]
@@ -35,7 +35,7 @@ library(showtext)
 font_add_google("Lato")
 showtext_auto()
 
-df <- read.csv("tputdelay.data", sep=" ")
+df <- read.csv("data/tputdelay.data", sep=" ")
 
 # get the one-flow case since that is what is comparable
 df <- df[df$Scenario == "96M50ms_1flows",]

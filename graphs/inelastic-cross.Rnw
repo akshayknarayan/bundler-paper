@@ -5,7 +5,7 @@ library(ggplot2)
 library(showtext)
 font_add_google("Lato")
 showtext_auto()
-df <- read.csv("cr-inelastic.data", sep=" ")
+df <- read.csv("data/cr-inelastic.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
 df$ofct <- (df$Size / 12e6) + 0.05
 df$Slowdown <- df$Duration / df$ofct

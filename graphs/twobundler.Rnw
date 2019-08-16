@@ -6,7 +6,7 @@ library(showtext)
 font_add_google("Lato")
 showtext_auto()
 
-df <- read.csv("twobundler.data", sep=" ")
+df <- read.csv("data/twobundler.data", sep=" ")
 
 df$Duration <- df$Duration.usec. / 1e6
 df$ofct <- (df$Size / 12e6) + 0.05

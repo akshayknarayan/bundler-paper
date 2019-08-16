@@ -1,5 +1,5 @@
 <<robust:strict-prio,cache=TRUE,echo=FALSE,warning=FALSE>>=
-df <- read.csv("strictprio.data", sep=" ")
+df <- read.csv("data/strictprio.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
 df$ofct <- (df$Size / 12e6) + 0.05
 df$Slowdown <- df$Duration / df$ofct
