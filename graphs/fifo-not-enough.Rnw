@@ -3,6 +3,7 @@
 <<eval:fifo,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
 library(ggplot2)
 library(showtext)
+library(patchwork)
 font_add_google("Lato")
 showtext_auto()
 df <- read.csv("84Mbps-1bk-caidacdf.data", sep=" ")
