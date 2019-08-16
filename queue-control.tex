@@ -1,0 +1,35 @@
+\section{Coping with Cross Traffic}\label{s:queue-ctl}
+
+\begin{outline}
+\1 In practical deployments, \name must consider the nature of cross traffic.
+\1 \name's key trick is to use delay-minimizing congestion control algorithms from the bottleneck to the \inbox.
+\1 However, a well-known property of delay-minimizing congestion control algorithms~\cite{pantheon} is that when competing with traditional window-probing controllers, they lose throughput.
+\1 Therefore, it is important for congestion controllers at the \inbox to detect the presence of such algorithms and disable the use of delay-control in these situations.
+    \2 With delay-control disabled, the \emph{end-to-end} congestion control algorithms controlling \name's component traffic will fill buffers at the true bottleneck instead of at the \inbox.
+    \2 Because the \inbox will no longer have queueing, component traffic will fall back to status-quo performance.
+    \2 Buffer-filling cross traffic is rare~\cite{something}, so once such cross traffic goes away, \name's congestion controller will resume building queues and achieving performance benefits.
+\1 Congestion control algorithms which detect the nature of cross traffic are recent developments
+    \2 Copa~\cite{copa}
+    \2 Nimbus
+        \3 Nimbus is concurrently submitted work.
+    \2 Of the two, only Nimbus is suitable --- Copa's detection is \an{reason why copa's elasticity detection doesn't work}
+\1 Nimbus relies on pulsing the sending rate, and analyzing the resulting response to this pulse in received rate and rtt in the frequency domain.
+    \2 This poses two problems which are not present in the traditional end-host congestion control setting.
+        \3 Lack of control over input
+        \3 Dynamic number of underlying connections
+    \2 Both these problems confound the usual approach of falling back to cubic when buffer-filling cross traffic is detected.
+        \3 Lack of control over input: running Cubic at \inbox will drain the queues into the network. As a result, it will no longer be possible to overlay pulses onto the traffic pattern, and Nimbus will be unable to determine the nature of the cross traffic.
+            \4 Practically, this would mean that once \inbox switches to compete with cross traffic, it would never gain the information necessary to switch back.
+        \3 Dynamic number of underlying connections: A naive approach of running a single instance of cubic would cause unfairness to bundled traffic
+            \4 Instead of competing with the aggressiveness of $n$ cubic flows, it would only compete as one.
+            \4 Determining the number of currently-backlogged component connections can be difficult on some datapaths~\cite{heavy-hitters}
+\1 Queue-control to support nimbus pulsing
+    \2 We implement a congestion control scheme which seeks to keep a small, constant number of packets at the \inbox while letting other traffic pass through.
+        \3 This does not interfere with the nimbus pulse analysis because it appears as high-frequency noise in the frequency domain.
+        \3 Because traffic is passing through, end-to-end congestion controllers will naturally build queues at the botteneck and compete fairly with the cross traffic.
+        \3 Because \inbox maintains a small queue, component connections will experience a small degree of rtt-unfairness.
+            \4 Circumvent by using an end-to-end scheme which doesn't suffer from rtt-unfairness?
+        \3 This unfairness is somewhat offset by the scheduling within the small queue maintained at the \inbox.
+\1 Computing \inbox queue target
+    \2 We can look at the shape of the nimbus pulse to determine what the queue target should be: $A \mu \int_0^{\frac{T}{4}} sin(4 \pi \frac{t}{T}) dt$.
+\end{outline}
