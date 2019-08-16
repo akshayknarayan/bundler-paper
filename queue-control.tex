@@ -32,4 +32,10 @@
         \3 This unfairness is somewhat offset by the scheduling within the small queue maintained at the \inbox.
 \1 Computing \inbox queue target
     \2 We can look at the shape of the nimbus pulse to determine what the queue target should be: $A \mu \int_0^{\frac{T}{4}} sin(4 \pi \frac{t}{T}) dt$.
+        \3 $A$ is pulse size fraction
+        \3 $\mu$ is bottleneck bandwith estimate
+        \3 $T$ is pulse duration, depends on pulse frequency.
+\1 We implement a simple PI controller to maintain this queue at the \inbox.
+    \2 $rate = \alpha (q - q_T) + \beta (\dot{q})$
+        \3 We use $\alpha = 100$ and $\beta = 10000$.
 \end{outline}
