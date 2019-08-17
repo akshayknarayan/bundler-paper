@@ -47,19 +47,34 @@ Our technique side-steps these issues by using the contents of a packet to sampl
 % For $H$, we use the Fowler/Noll/Vo (FNV) hash function~\cite{fnv-hash}, a non-cryptographic fast hash function with a low collision rate. 
 
 
-%\paragrapha{Choosing header subset}
+\paragrapha{Choosing header subset}
 The combination of selected packet fields over which the hash is computed can vary across different deployments, but it must satisfy the following requirements: 
 
 \paragraphn{(i)} It must be the same at both the \inbox and the \outbox.
 
-\paragraphn{(ii)} Its values must remain unchanged as a packet traverses the network from the \inbox to the \outbox (so, for example, the TTL field must be excluded).\footnote{Certain fields, that are otherwise unchanged within the network, can be changed by the NATs deployed in a customer's domain. Ensuring that the \name boxes sit outside the NAT would allow them to make use of those fields.} 
+\paragraphn{(ii)} Its values must remain unchanged as a packet traverses the network from the \inbox to the \outbox (so, for example, the TTL field must be excluded).\footnote{Certain fields, that are otherwise unchanged within the network, can be changed by NATs deployed in a customer's domain. Ensuring that the \name boxes sit outside the NAT would allow them to make use of those fields.}
 
 \paragraphn{(iii)} It differentiates individual \emph{packets} (and not just flows), to allow sufficient entropy in the computed hash values.
-%, which is required for achieving the desired epoch size.  
 
-\paragraphn{(iv)} It also differentiates a retransmitted packet from the original one, to prevent spurious samples from disrupting the measurements (so, for example, just using TCP sequence numbers combined with a flow's five tuple is insufficient).
+\paragraphn{(iv)} It also differentiates a retransmitted packet from the original one, to prevent spurious samples from disrupting the measurements (this precludes, for example, the use of TCP sequence number).
 
-The combination of IP ID, source port and source IP (used by our prototype implementation in \ref{s:impl}) is one possible option that satisfies all of the above requirements.  
+The combination of IP ID, destination port and destination IP (used by our prototype implementation in \ref{s:impl}) is one possible option that satisfies all of the above requirements.
+
+\begin{outline}
+\1 footnote: we expect that the precise set of fields used will depend on specific deployment considerations.
+\1 We discuss the possible existence of on-path tunnelling separately below.
+\1 We propose the use of IP ID, destination port, and destination IP as the minimal viable set of fields.
+    \2 destination port and ip are required for correct routing behavior. They cannot be changed inside the network without compromising correctness
+    \2 Previous proposals~\cite{ip-traceback} have relied of IP ID staying constant through the path
+\1 A note on Internet architecture
+    \2 We know our proposal is a bit hacky. There are a number of potential pitfalls to this approach.
+        \3 mid-path tunnelling, NAT, etc
+            \4 IPv6 has no IP ID field
+        \3 architectural in nature
+    \2 An architectural solution to this problem could use IP tunnels (\eg IP-in-IP) to ensure that packets arrive at the \outbox without modification after leaving the \inbox.
+        \3 And provide mechanism for their unique identification
+        \3 This approach is consistent with a recent proposal~\cite{trotsky} to enable such properties from the Internet architecture
+\end{outline}
 
 %, to ensure that the same set of packets is sampled at the two boxes. 
 %This rules out hashing the entire packet, since its TTL field would change with every hop. Using TCP sequence numbers, combined with the five-tuple flow identifier is tempting. the resulting inability to distinguish TCP retransmissions from original packets would cause spurious sampling, which would throw off the RTT measurements.
