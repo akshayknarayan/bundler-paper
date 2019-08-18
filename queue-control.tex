@@ -8,11 +8,13 @@
     \2 With delay-control disabled, the \emph{end-to-end} congestion control algorithms controlling \name's component traffic will fill buffers at the true bottleneck instead of at the \inbox.
     \2 Because the \inbox will no longer have queueing, component traffic will fall back to status-quo performance.
     \2 Buffer-filling cross traffic is rare~\cite{something}, so once such cross traffic goes away, \name's congestion controller will resume building queues and achieving performance benefits.
-\1 Congestion control algorithms which detect the nature of cross traffic are recent developments
+\1 Congestion control algorithms which detect the nature of cross traffic are recent developments. Only two known algorithms exist.
     \2 Copa~\cite{copa}
     \2 Nimbus
         \3 Nimbus is concurrently submitted work.
     \2 Of the two, only Nimbus is suitable --- Copa's detection is \an{reason why copa's elasticity detection doesn't work}
+\1 Both nimbus and copa rely on active probing
+    \2 Active probing refers to changing the rate of in-band traffic (bundled traffic in this case) and observing the inferred response of the cross traffic.
 \1 Nimbus relies on pulsing the sending rate, and analyzing the resulting response to this pulse in received rate and rtt in the frequency domain.
     \2 This poses two problems which are not present in the traditional end-host congestion control setting.
         \3 Lack of control over input
