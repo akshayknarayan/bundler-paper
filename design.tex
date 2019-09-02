@@ -33,7 +33,10 @@ In this section, we first describe our key insight for moving the in-network que
 
 %The central idea behind \name is to make it a choke-point of a customer's traffic, such that queuing occurs at the \name where the customer can effectively enforce different scheduling policies, instead of occurring at the links in the middle of the network over which it has no control.  
 
-A trivial strategy for inducing queuing at the \name is to throttle its outgoing rate. However, if this rate is made smaller than the bundle's share of bandwidth at the bottleneck link in the network, it can decrease throughput. Instead, the rate needs to be set such that the bottleneck link sees a small queue while remaining fully utilized (and the bundled traffic competes fairly in the presence of cross traffic). We make a simple, but powerful, observation: existing congestion control algorithms~\cite{nimbus, copa} perform exactly this calculation. Therefore, running such an algorithm at the \inbox to set a bundle's rate would reduce its self-inflicted queue at the bottleneck, shifting it to the \inbox instead, without impacting aggregate throughput. Note that each end host would continue running its default congestion control algorithm~\cite{cubic, bbr}, as before, which would now react to the queue build up and packet drops incurred at the \inbox.
+A trivial strategy for inducing queuing at the \name is to throttle its outgoing rate. However, if this rate is made smaller than the bundle's share of bandwidth at the bottleneck link in the network, it can decrease throughput. Instead, the rate needs to be set such that the bottleneck link sees a small queue while remaining fully utilized (and the bundled traffic competes fairly in the presence of cross traffic). 
+We make a simple, but powerful, observation: existing congestion control algorithms~\cite{nimbus, copa} perform exactly this calculation. 
+Therefore, running such an algorithm at the \inbox to set a bundle's rate would reduce its self-inflicted queue at the bottleneck, shifting it to the \inbox instead, without impacting aggregate throughput. 
+Note that each end host would continue running a traditional congestion control algorithm (\eg Cubic~\cite{cubic}, BBR~\cite{bbr}), as before, which are unaware of \name, but build queues at \inbox rather than in the network.
 
 %In order to prevent under-utilization of the bottleneck links in the network, \name needs to occupy . 
 %We make a simple, but powerful, observation: many congestion control algorithms perform exactly this calculation! 
@@ -42,7 +45,7 @@ A trivial strategy for inducing queuing at the \name is to throttle its outgoing
 %Since component flows, running traditional congestion control algorithms, will probe for bandwidth until they experience loss, they build queues at the \name instead of at the bottleneck.
 %Since the \name now controls the queues corresponding to the traffic aggregate, it can schedule the packets of component flows. \radhika{needs fixing!}
 
-Figure~\ref{fig:design:shift-bottleneck} illustrates this method for a single flow traversing a bottleneck link in the network.\footnote{Details of the emulated network setup which resulted in the illustrated queue length time-series are in \S\ref{s:eval}.} Without \name, packets from the end hosts are queued in the network, while the queue at the edge is unoccupied. In contrast, a \name deployed at the edge is able to shift the queue to its \inbox.
+Figure~\ref{fig:design:shift-bottleneck} illustrates this concept for a single flow traversing a bottleneck link in the network.\footnote{Details of the emulated network setup which resulted in the illustrated queue length time-series are in \S\ref{s:eval}.} Without \name, packets from the end hosts are queued in the network, while the queue at the edge is unoccupied. In contrast, a \name deployed at the edge is able to shift the queue to its \inbox.
 
 %In the remainder of this section, we describe our design requirement and choices for \name. 
 %\radhika{transition line}
@@ -62,9 +65,7 @@ Figure~\ref{fig:design:shift-bottleneck} illustrates this method for a single fl
 %\radhika{maybe add a subsection on choice of congestion control at \name. Potential outline below.}
 \subsection{Design Choices}
 
-\fc{current wording sounds too passive?}
-Our design choices were guided by our key requirement of \emph{deployment and management ease}. They provide the following properties:
-%, resulted in the following features:
+Our key requirement of \emph{deployment and management ease} guides our design choices:
 
 \paragraphn{(i)} \name requires no changes to the endhosts or to the routers in the network, making it independently deployable. 
 
@@ -72,82 +73,45 @@ Our design choices were guided by our key requirement of \emph{deployment and ma
 
 \paragraphn{(iii)} The only persistent state maintained in the \name is the network condition (in the form of congestion signals) which can be naturally re-aquired, thus making it crash-resistant. 
 
-\paragraphn{(iv)} \name makes no changes to the headers of the packets traversing it, ensuring no interference with other networking components in a packet's path~\cite{mboxbadness, ipoptions, quic}.
+%\name makes no changes to the headers of the packets traversing it, 
+\paragraphn{(iv)} \name supports an entirely passive deployment model in which its component packets remain unmodified , 
+ensuring no interference with other networking components in a packet's path~\cite{mboxbadness, ipoptions, quic}. We discuss this further in \an{forward pointer}.
 
 \vspace{5pt}
 \noindent We discuss specific design choices in more details below. 
 
 \Para{Choice of congestion control algorithm} 
-%The congestion control algorithm that \name runs at the \inbox must satisfy the following constraints: 
 \name's congestion control algorithm must satisfy the following requirements: 
 
-\paragraphi{(1) Ability to limit network queueing} A loss-based congestion control algorithm is not a good choice for \name, since it would build up a queue at the bottleneck until a packet drop occurs, thus defeating our primary purpose. %Furthermore, it would react badly with the (unmodified) end hosts that commonly deploy loss-based algorithms~\cite{cubic}, by causing the sending rate to be reduced twice for every packet drop. 
-An ECN-based algorithm is also not an option with unmodified network routers. This makes algorithms that use round-trip time (RTT) \reword{the ideal choice}.
+\paragraphi{(1) Ability to limit network queueing} \name must limit queueing in the network to move the queues to the \inbox. Therefore, congestion control algorithms which are designed to control delays are the appropriate choice. 
+A loss-based congestion control algorithm, for example, is not a good choice for \name, since it would build up a queue at the network bottleneck and drain queues at the \inbox.
 
-\paragraphi{(2) Detection of buffer-filling cross-traffic} It is well-known that RTT-based schemes compete poorly with buffer-filling loss-based schemes~\cite{nimbus, copa, timely}. Therefore, \name's congestion control must have a mechanism to detect the presence of a competing buffer-filling flow, and fall back to status quo performance. 
+\paragraphi{(2) Detection of buffer-filling cross-traffic} Simultaneously, it is well-known that delay-controlling schemes (\eg Vegas~\cite{vegas}) compete poorly with buffer-filling loss-based schemes~\cite{nimbus, copa, timely}. Therefore, \name's congestion control must have a mechanism to detect the presence of such competing buffer-filling flows, and fall back to status quo performance. 
 
-Among the existing congestion control algorithms, Copa~\cite{copa} and Nimbus~\cite{nimbus} best satisfy the above requirements.  
-%\name's congestion control algorithm would adjust 
-
-
-% \begin{itemize}
-%     \item Is not loss-based. Two reasons (ii) Goal is to maintain small queuing delays in the network. (ii) Cannot double penalize. Delay-based CC most suited.
-%     \item Need a mechanism to shift to a loss-based scheme when cross-traffic is elastic.
-%     \item Needs to be rate-based, current implementation does not support windows (will address as future work). 
-% \end{itemize}
-% Based on these requirements, Copa and Nimbus are best choices.
-
-
-\cut{
-In this section we describe the tradeoffs in the design of a \name.
-
-Bundler is designed to be simple, scalable, and easy-to-deploy.
-- Needs to scale to high link rates since it sits on the path and traffic from many hosts will be
-passing through it
-- Should be simple and possible ot move to hardware for even more scalability
-- Must not rely on changes in end-hosts or significant changes to the middlebox in order to 
-be practical and readily deployable
-- Must be robust to failure scenarios and not cause more harm than good (i.e. if it fails, 
-it should at worst make the situation the same as it was before, not any worse)
-
-
-- To schedule flows, bundler needs to build queues and control the bottleneck
-- To control the bottleneck, it needs to perform congestion control
-- To perform congestion control, it needs to collect measurements about the state of the network
-- It needs at least the sending and receiving rates and RTT 
-- It can directly observe the send rate, but the receive rate is known to be difficult to estimate
-and an RTT estimate doesn't make much sense
-
-In order to perform congestion control, \name needs to collect and maintain measurements about 
-the current state of the network. State-of-the-art rate-based algorithms such as BBR and Nimbus use
-the sending and receiving rates as well as an estimate of the RTT. Although \name can 
-directly compute its own sending rate, it can only estimate the receive rate using the timing between received
-acknowledgements, which prior work has shown to have limited accuracy~\cite{packet-dynamics, path-properties}.
-It would also be difficult to compute a useful estimate of a single RTT representing the entire bundle as each 
-flow may experience different sources of latency after traversing the shared bottleneck. We are fundamentally
-limited in the accuracy of measurements we can obtain by only observing one side of the bottleneck.
-
-
-By rate limiting flows in a bundle, we can shift the bottleneck from an intermediate router
-to \name itself, and thus allow the queues to build at the inbox. This provides the opportunity
-for \name to schedule flows, which is one of \name's key benefits. 
-
-- Since the bottleneck must be between the inbox and outbox, it makes sense to push them as 
-close to the sender and receiver as possible to capture as many bottlenecks as possible
-- At the same time, the further they are into the network, the more senders and receivers they
-can aggregate
-- Thus the position should be balanced
-- This only works if the bottlebneck is between the inbox and outbox, but if it isn't, it doesn't do any harm
-
-The two middlebox design also allows us to sidestep the problem of determining which flows share
-the same bottleneck and thus should be bundled together.  If packets for two different flows are traversing
-both the same inbox and outbox on their way from source to destination, 
-must 
-}
+The emergence of such detection mechanisms in congestion control is recent: Copa~\cite{copa} detects whether the queue lengths it observes are consistent with its own fluctuations, and Nimbus\footnote{Nimbus is descibed in concurrently submitted work, paper \an{XX}} provides a more general mechanism which overlays a pattern on the sending rate and measures the cross traffic's crresponding response.
+\name combines the two approaches, and use Copa's delay controller with Nimbus's cross traffic detection.
+We detail the implementation of rate control at the \inbox in \an{forward pointer}.
 
 \Para{Two-sided measurement of congestion signals}\label{s:design:twosided}
-%We now look into the technique for measuring congestion signals (\ie RTT values).
-Congestion control algorithms require network feedback from the receivers to measure congestion and adjust the sending rates accordingly. Conventional endhost-based implementations have used TCP acknowledgements for this. However, this is not a good option for \name because: (i) it is incompatible with UDP, which is commonly used by video streaming applications, and (ii) it requires the reverse traffic to also pass through \name's \inbox, which may not always be the case.  
+\begin{outline}
+\1 Congestion control algorithms require network feedback from the receivers to measure congestion and adjust the sending rates accordingly. 
+    \2 Conventional endhost-based implementations have used TCP acknowledgements for this.
+    \2 However, this is not a good option for \name because: 
+(i) it is incompatible with UDP, which is commonly used by video streaming applications \an{mention QUIC encrypted header?}, 
+and (ii) it requires the reverse traffic to also pass through \name's \inbox, which may not always be the case.  
+\1 There are three strategies for dealing with this
+    \2 Proxy: terminate the connections, and collect the ACKs.
+        \3 advantages: help midsize connections ramp up (traditional use to alleviate RTT unfairness)
+        \3 disadvantages: must take responsibility for reliability. end-to-end principle violation. need to determine number of concurrently backlogged connections, in order to avoid head-of-line blocking.
+        \3 so, it is important that the tunnelling mechanism be unreliable.
+    \2 Unreliable L3 or L4(udp) tunnel. 
+        \3 L4 tunnels \eg VXLAN~\cite{vxlan}.
+        \3 L3 tunnels \eg (NV)GRE~\cite{nvgre}, IP-in-IP~\cite{ipinip}.
+    \2 Independent measurements without packet modification (null-tunnel).
+\1 We set aside terminating connections for the remainder of this discussion, but note that this approach is complementary with \name (see \S\ref{s:eval}).
+\1 For the tunnel and null-tunnel cases, we propose:
+\end{outline}
+
 %Second, there can be significant differences in the RTT values between flows that are part of the same bundle, but belong to different receiving endhosts, which would make these values an unreliable congestion signal for the aggregated bundle. 
  Instead, \name's two-sided design allows measurement of congestion signals to be conducted solely between a \pair. We highlight the key features of our two-sided measurement technique below, and describe it in more detail in \S\ref{s:measurement}. 
  %\fc{train of thought is not as clear to me here}
@@ -162,77 +126,3 @@ This out-of-band feedback mechanism is not only agnostic to the underlying proto
 \paragraphi{(3) Independent sampling} The \inbox and \outbox need to agree upon the set of sampled packets over which measurements will be conducted (to ensure overlap between the packets for which the \outbox generates feedback and the packets for which the \inbox maintains state). It is tempting to simply mark such packets at the \inbox. However, past studies~\cite{ipoptions, mboxbadness, quic} have shown how such strategies may fail in practice, as many deployed middleboxes have a tendency to drop or re-write packets with unfamiliar header fields. 
 %Another option is to explicitly exchange coordination messages, but the overhead incurred by that would defeat the purpose of sampling packets. 
 In the following section, we describe our technique to sample packets solely based on the hash computed over certain fields in the packet header, which allows the \inbox and the \outbox to independently sample the same set of packets.
-
-%By design, all flows in a bundle pass through the same \inbox and \outbox pair. The RTT is measured only between the \inbox and \outbox leading to a consistent  
-
-
-% To perform congestion control, \name must collect and maintain measurements about the current state of the network.
-% Traditionally, end-host congestion control has been tightly integrated with end-host packet transmission logic. 
-% Therefore, algorithms have been built on those measurements that are readily available on end-hosts, \eg the number of in-order packets acknowledged by the receiver.
-
-% From the vantage point of a \name, however, there are three problems with this traditional approach.
-
-% \paragraphi{Scalability} To track measurements in the same manner as an end-host, \name would need to maintain per-flow state: remembering when it sent each packet, and matching these records with the stream of incoming packet acknowledgements. 
-% This violates requirement (3): it requires stateful operations at high line rates \radhika{any citation on why stateful difficult?}. \fc{fq is keeping per-flow state}
-
-% \paragraphi{Measurement semantics} Finally, with a bundle of connections, there may not be a single meaningful end-to-end ``round-trip time'' in this scenario, as each component flow may experience different sources of latency after traversing the shared bottleneck, and thus experience different end-to-end RTTs. 
-% Rather, we want to measure the RTT between the middlebox we have shifted the bottleneck to and a fixed point (per-bundle) on the opposite site of the bottleneck.
-% \an{Further, sender-side measurements of the bottleneck rate have long been known to have limited accuracy~\cite{packet-dynamics, path-properties}.}
-% \radhika{needs more clarity / explicitness}
-
-% \paragraphi{Reliance on acknowledgements} Internet paths can be asymmetric and component traffic may be UDP-based; as a result, \name may not observe packet acknowledgements. Therefore, relying on packet acknowledgements to gather path information is a brittle approach.
-
-% To address these challenges, \name consists of a \emph{pair} of middleboxes, both on the network path: one before the bottleneck, and one after, which we refer to as the \textit{\inbox} and \textit{\outbox}, respectively. 
-% This allows for a direct calculation of the receive rate at the \outbox and a well-defined RTT: the RTT between the two middleboxes as opposed to the source and destination. 
-% As long as the bottleneck exists between the middleboxes, these measurements can sufficiently capture the important network conditions. 
-% However, if it is not, then \name will not be able to build queues and control the traffic. Thus, middlebox placement is important. The \inbox and \outbox should be placed as close to the edge near the sources and destinations as possible in order to capture the bottleneck between them.
-% \radhika{highlight trade-off} \radhika{shrink!}
-
-\cut{
-We imagine an infrastructure, as depicted in Figure~\ref{fig:overview}, where each 
-entity (a datacenter, campus, etc.) runs a \inbox and \outbox at the edge of its network. Flows passing through its \inbox are bundled based on the \outbox they will be traversing. Each bundle is treated separately and has its own queue. 
-}
-
-\cut{
-This design also allows us to sidestep the problem of determining which flows share the same bottleneck.
-Assuming the bottleneck exists between the two middleboxes, if packets for two different flows are traversing both the same \inbox and \outbox on their way from source to destination, then they must also share the same bottleneck. 
-We take advantage of this property in our approach to dynamic bundle identification, described in~\S\ref{s:impl:discovery}.
-\radhika{if you discuss this, you might require more context on why you discuss this}
-\fc{might make sense to add this to design requirements/constraints}
-}
-
-% \Para{Out-of-band Coordination}\label{s:design:oob}
-% Each paired \inbox and \outbox must communicate in order to share measurements and coordinate actions. 
-% This communication could either be in-band, \ie would encapsulate packets
-% at the \inbox with a custom header and then decapsulate them at the \outbox, or out-of-band,
-% which would not modify the packets of component flows.
-% While past approaches to network-assisted congestion control have used an in-band approach, in this scenario it would add three implementation complications without any clear benefit:
-
-% \paragraphi{Fault tolerance} Encapsulation would require the \inbox and \outbox to work together. 
-% If a decapsulating outbox were to fail, as middleboxes often do~\cite{aplomb}, encapsulated flows would also fail.
-% Rather, with an out-of-band feedback approach and a ``fail-open'' deployment model, both the \inbox and \outbox could fail with no adverse effects to component traffic (other than the loss of \name's benefits). We discuss our approach to fault tolerance in the out-of-band model in~\S\ref{s:measure:loss}.
-
-% \paragraphi{Performance overhead} Encapsulation requires rewriting each packet at both the \inbox and \outbox. 
-% This adds overhead both in terms of the CPU cycles necessary to modify the packet and in terms of the extra data sent on the wire, and therefore limits scalability compared to an out-of-band approach. 
-
-% \paragraphi{ECMP} Equal-cost multi-path routing (ECMP) load balances flows across different paths based on their 5-tuple. 
-% A naive implementation of encapsulation that chose a single 5-tuple for the decapsulator would force flows onto a single path that would have otherwise benefited from load balancing. 
-% To regain ECMP's benefits, an encapsulating \name would need to carefully set the source and destination ports such that the distribution of paths traversed by the encapsulated flows matches those that the unmodified traffic would have traversed without encapsulation. 
-
-% Therefore, we select an out-of-band approach. Flows from the senders traverse the network exactly as they otherwise would have.
-% \radhika{not all encap/decap will lead to these issues, so need to be more explicit. also, why is this interesting to discuss (e.g. is there a trade-off between in-band and out-band, or is the latter unanimously better)?}
-% \fc{we do oob for these reasons which requires solving some challenges that we discuss in the next section}
-% \radhika{also, shrink!}
-
-% \subsection{Favorable Operation Regime for \name}
-
-
-% Scheduling traffic within a \emph{bundle}, or a group of component flows for which some entity (the ``customer'') can unilaterally determine scheduling policy, is useful when the aggregate comprises enough offered load to congest the network. 
-% In one case, the queue where this congestion occurs could reside in the same domain as the customer. 
-% In this case, the customer can deploy scheduling policy in its own network. Examples of this case are private WAN networks~\cite{bwe, swan}.In the other case, the congested queue resides outside the customer's control. This scenario is where \name offers benefits.
-
-% %We argue that lack of customer control over bottleneck links is prevalent; recent work has show that inter-domain congestion occurs frequently~\cite{inferring-interdomain-congestion}.
-% %However, this case presents a challenge: 
-
-% Of course, traffic from other customers may also compete for a share of this bottleneck link. Because \name acts to enforce the policy of a single customer, it naturally can control only that customer's traffic.
-% Therefore, \name's scheduling benefits will come from the \emph{self-inflicted} queueing the component flows cause.
