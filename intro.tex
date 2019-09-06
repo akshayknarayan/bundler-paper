@@ -65,6 +65,7 @@ We make the following contributions:
 \begin{enumerate}
      \item A light-weight, scalable and deployable design of \name that does congestion control on aggregated traffic to move queues to the content provider's edge (\S\ref{s:design}).  
      \item A novel low-overhead protocol-agnostic technique for measuring signals for congestion control between the \pair, that does not make any changes to the packet headers (\S\ref{s:measurement}). We evaluate our measurement strategy across a variety of RTTs and link bandwidths in \S\ref{s:measure:microbench}. 
+     \item \an{Specification of a new aggregate congestion controller which overlays end-host congestion control \S\ref{s:queue-ctl} }
      \item A prototype implementation of \name (\S\ref{s:impl}).
      \item Evaluation of our prototype implementation on a wide variety of emulated scenarios with a demonstration of performance benefits achieved from scheduling traffic via \name (\S\ref{s:eval}).
      In a scenario with self-inflicted scheduling overhead, \name achieves 33\% lower median slowdown.
