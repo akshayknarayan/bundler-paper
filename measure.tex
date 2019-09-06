@@ -1,51 +1,15 @@
 \section{Measuring Congestion}\label{s:measurement}
 
-% In this section we describe how the \inbox and \outbox coordinate to compute accurate and robust
-% measurements of the network conditions necessary as inputs to congestion control algorithms.
+\an{shrink this section!}
 
-% Congestion control algorithms need only a small, common set of measurements~\cite{ccp}. 
-% In particular, rate-based algorithms need only three measurements: 
-% the sending rate, receiving rate, and path round-trip time.
-% A significant complication is that for accurate measurements on RTT time-scales, we must calculate send and receive rates over the same set of packets~\cite{packettrain} \radhika{one line explanation on why}.
-% This requirement drives the design of our measurement methodology.
-
-\fc{maybe explain why these signals}
 \name measures network congestion signals (RTT and packet arrival rates) over the duration (or \emph{epochs}) between infrequently sampled packets (that we call \emph{epoch boundary packets}). In this section, we describe our strategy for independently sampling the same set of epoch boundary packets at the paired \name boxes, and for measuring congestion signals using them. We end with an evaluation showing the accuracy of our approach.
 
 \subsection{Determining Epoch Boundaries}
 \label{s:measure:marking}
 
-%We now detail our technique for determining the epoch boundary packets at the \inbox and the \outbox, under the assumption that packets leave the \inbox and arrive at the \outbox in the same order.\footnote{We address re-ordering later in Section~\ref{s:measure:limitation:reorder}.} 
-
 Suppose the desired epoch size, i.e. the number of packets between two epoch boundary packets, is $N$. A naive strategy for determining common epoch boundaries at the \inbox and the \outbox, without making any changes to the packet headers, would be to simply sample a packet after every $N$ packets. However, any packet loss in the network would then desynchronize the sampling at the two boxes.\cut{\footnote{This can be avoided if the \outbox detects and accounts for packet losses, but that would require maintaining expensive per-flow state, which would break our design's simplicity and scalability.}} Another alternative is for the \inbox to explicitly send out-of-band messages to the \outbox indicating which packets are to be sampled. However, there is no guarantee that these messages would arrive at and be processed by the \outbox before the indicated packets arrive themselves. 
-%, i.e. it is required that an epoch boundary packet be sampled after every $N$ packets at the \inbox and the \outbox.
-% Consider the stream of packets $P_B$ from all flows in a bundle $B$ in the order they leave the \inbox after scheduling.
-% The \inbox and \outbox need to know how to divide this stream into sets 
-% of packets --- which we call \emph{epochs} --- over which they can calculate measurements.
-% For now, we make the simplifying assumption that packets arrive at the \outbox in the same order they 
-% left the \inbox.
-% This simplifies the problem into deciding, for all given packets in $P_B$, whether it is an epoch boundary packet at which the current epoch should end and the next should begin. 
-% Suppose for now that we wish to have a fixed epoch size of $N$ packets.
-% A naive approach would be to mark the boundary between epochs every $N$ packets. 
-% However, this strategy is brittle; a single lost packet would de-synchronize the boxes' views of the epochs. 
-% More generally, any strategy that requires packet-level synchronization of the \inbox and
-% \outbox is untenable because any coordination would race the packets themselves \radhika{i don't quite understand the last sentence}.
 
 Our technique side-steps these issues by using the contents of a packet to sample epoch boundaries. More specifically, a packet is sampled as a boundary for an epoch of size $N$, if the hash over a subset of its fields is a multiple of $N$. Therefore, given sufficient entropy in the hashed values, an epoch boundary will, in expectation, be sampled once every $N$ packets.
-
-% The key idea of our methodology is that we can avoid such a synchronization problem by determining the boundary of an epoch using only information contained in the packet.
-% Specifically, we propose the following: a packet $p$ is an epoch boundary packet if the hash 
-% of some subset of its header (see below) modulo the epoch size $N$ is equal to 0, that is:
-% Specifically, we propose the following: a packet $p$ is an epoch boundary packet if the hash 
-% of some subset of its header (see below) modulo the epoch size $N$ is equal to 0, that is:
-% \begin{algorithm}
-% def is_boundary_packet(pkt, N): # N is sample size \\
-%     return ( H(pkt.header) \% N ) == 0
-% \end{algorithm}
-% \radhika{equation not super clear}
-% Thus, an epoch boundary packet will occur (in expectation) once every $N$ packets.
-% For $H$, we use the Fowler/Noll/Vo (FNV) hash function~\cite{fnv-hash}, a non-cryptographic fast hash function with a low collision rate. 
-
 
 \paragrapha{Choosing header subset}
 The combination of selected packet fields over which the hash is computed can vary across different deployments, but it must satisfy the following requirements: 
@@ -58,34 +22,10 @@ The combination of selected packet fields over which the hash is computed can va
 
 \paragraphn{(iv)} It also differentiates a retransmitted packet from the original one, to prevent spurious samples from disrupting the measurements (this precludes, for example, the use of TCP sequence number).
 
-The combination of IP ID, destination port and destination IP (used by our prototype implementation in \ref{s:impl}) is one possible option that satisfies all of the above requirements.
-
-\begin{outline}
-\1 footnote: we expect that the precise set of fields used will depend on specific deployment considerations.
-\1 We discuss the possible existence of on-path tunnelling separately below.
-\1 We propose the use of IP ID, destination port, and destination IP as the minimal viable set of fields.
-    \2 destination port and ip are required for correct routing behavior. They cannot be changed inside the network without compromising correctness
-    \2 Previous proposals~\cite{ip-traceback} have relied of IP ID staying constant through the path
-\1 A note on Internet architecture
-    \2 We know our proposal is a bit hacky. There are a number of potential pitfalls to this approach.
-        \3 mid-path tunnelling, NAT, etc
-            \4 IPv6 has no IP ID field
-        \3 architectural in nature
-    \2 An architectural solution to this problem could use IP tunnels (\eg IP-in-IP) to ensure that packets arrive at the \outbox without modification after leaving the \inbox.
-        \3 And provide mechanism for their unique identification
-        \3 This approach is consistent with a recent proposal~\cite{trotsky} to enable such properties from the Internet architecture
-\end{outline}
-
-%, to ensure that the same set of packets is sampled at the two boxes. 
-%This rules out hashing the entire packet, since its TTL field would change with every hop. Using TCP sequence numbers, combined with the five-tuple flow identifier is tempting. the resulting inability to distinguish TCP retransmissions from original packets would cause spurious sampling, which would throw off the RTT measurements.
-
-
-% The header subset we use must remain constant as the packet traverses the network from the \inbox to the \outbox; otherwise, they would not be able to agree on epoch boundaries. This rules out simple approaches such as hashing the entire packet header, since the TTL field will decrement between the inbox and outbox.
-% Even the 5-tuple of the packet may change, since the outbox may be behind a NAT.
-% Using TCP sequence numbers is tempting, but retransmissions may confuse RTT measurements.
-
-% We use the IP ID field, which will change every packet. This is an imperfect solution, as modern NATs may rewrite the IP ID field~\cite{ipid}.
-% Ultimately, the appropriate field to use will depend on the specific deployment of \name. \fc{come back to this, mention boxes are not likely to be behind NATs therefore you can do ipid+5tuple }
+We expect that the precise set of fields used will depend on specific deployment considerations; \ie the tunnelling protocol in use.
+For example, in our prototype implementation (\S\ref{s:impl}) we use a ``null'' tunnel with a header subset of the IPv4 IP ID field and destination IP. 
+We make this choice for simplicity; it does not require tunnelling mechanisms (and is thus easily deployable); we note that previous proposals~\cite{ip-traceback} have used IP ID for unique packet identification.
+A full deployment of \name (which would have to support additional requirements, \eg component IPv6 traffic) could use dedicated fields in the tunnel header such as a VLAN tag.
 
 \subsection{Computing Measurements}
 \label{s:measure:compute}
@@ -120,24 +60,9 @@ The combination of IP ID, destination port and destination IP (used by our proto
 \end{figure}
 
 Given our technique to identify epoch boundaries, it is straight-forward to measure congestion signals, as illustrated in Figure~\ref{fig:ratecalc}.
-%Given this method of marking epochs, we can now construct the procedure for computing measurements.
 For each bundle, the \inbox tracks the total number of bytes sent within this bundle, and, upon identifying an epoch boundary packet, $p_i$, it records: (i) its hash, $h(p_i)$, (ii) the time when it is sent out, $t_{\text{sent}}(p_i)$, and (iii) the total number of bytes sent thus far including this packet, $b_{sent}(p_i)$. 
 
 The \outbox similarly tracks the total number of bytes received for each bundle. Upon the arrival and identification of the epoch boundary packet $p_i$, it immediately sends a feedback message to the \inbox containing: (i) its hash, $h(p_i)$, (ii) the time when it was received, $t_{recv}(p_i)$, and (iii) the total number of bytes received thus far including this packet, $b_{recv}(p_i)$. 
-%For each bundle, the \inbox keeps track of: (i) the total number of bytes sent since the last epoch, (ii)  
-% For a given bundle, the \inbox runs the aforementioned function on each packet $p$. Each time
-% the function returns true, the \inbox updates an epoch data structure that records the packet hash,
-% which we will call \hptwo\ for the current epoch, 
-% along with the current time \stwo\ and the \emph{cumulative} number of bytes sent so far, \senttwo. This structure
-% is sorted by the time the packet was sent, \stwo, but is indexable by the packet hash.
-% The \outbox runs the same function. Each time it observes a boundary packet, 
-% it immediately sends a feedback message to the \inbox containing the same information:
-% the packet hash \hptwo, the time at which it received the packet, \rtwo, and the cumulative number of bytes
-% \emph{received} up until that point. 
-% When the \inbox receives this feedback message at time \atwo, it looks up the
-% packet hash \hptwo\ in the epoch data structure, which represents the end of the current epoch,
-% along with the earliest boundary packet still in the data structure, \hpone\ which represents the start
-% of the current epoch. It now has all of the information necessary to calculate one sample of the following:
 
 Upon receiving the feedback $p_i$, the \inbox records the received information, and using its previously recorded state, it can compute the RTT and the rates at which packets are sent and received, as below:
 
@@ -170,16 +95,6 @@ Upon receiving the feedback $p_i$, the \inbox records the received information, 
 Finally, the \inbox clears the recorded state of all epoch boundaries preceding $p_i$.
 
 Note that our measurement technique is robust to a boundary packet being lost between the \inbox and the \outbox. In this case, the \inbox would not get a feedback for the lost boundary packet, and it would simply compute rates for the next boundary packet over a longer epoch. 
-
-%Further note, that our discussion so far has ignored re-ordering of packets between the \inbox and \outbox, in which case, they can see different number of packets between each epoch boundary, which can interfere with the rate computations. We expect such re-ordering to be rare, although computing   
-
-
-%(Note $bytes\_rcvd\_in\_epoch$ can also be interpreted as the number of bytes
-%acknowledged for that epoch, which is a common signal used by many conestion
-%control algorithms.)
-%\radhika{fix brackets!}
-%leaving \ptwo\ to be the start of the next epoch.
-
 
 % \paragrapha{Crashes \an{need better heading}} Existing work~\cite{ftmb} has studied how to design stateful middleboxes to be fault-tolerant with acceptable performance overheads. 
 % However, state-persistence is largely unnecessary for \name.
