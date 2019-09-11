@@ -24,8 +24,8 @@ The combination of selected packet fields over which the hash is computed can va
 
 We expect that the precise set of fields used will depend on specific deployment considerations; \ie the tunnelling protocol in use.
 For example, in our prototype implementation (\S\ref{s:impl}) we use a ``null'' tunnel with a header subset of the IPv4 IP ID field and destination IP. 
-We make this choice for simplicity; it does not require tunnelling mechanisms (and is thus easily deployable); we note that previous proposals~\cite{ip-traceback} have used IP ID for unique packet identification.
-A full deployment of \name (which would have to support additional requirements, \eg component IPv6 traffic) could use dedicated fields in the tunnel header such as a VLAN tag.
+We make this choice for simplicity; it does not require tunnelling mechanisms (and is thus easily deployable); we note that previous proposals~\cite{ip-traceback} have used IP ID for unique packet identification. \radhika{The two major drawbacks of this approach is that it cannot be extended to IPv6 and it is not resilient to scenarios where the \inbox and \outbox see different destination IPs for the same packet (e.g. due to sitting behing a NAT or load balancer).}
+A full deployment \radhika{better term?} of \name (which would have to support additional requirements, \eg component IPv6 traffic) could use dedicated fields in the tunnel header such as a VLAN tag \radhika{can we cite something for schemes that have used this before?}.
 
 \subsection{Computing Measurements}
 \label{s:measure:compute}
