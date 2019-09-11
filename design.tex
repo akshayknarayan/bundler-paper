@@ -31,7 +31,7 @@ Our key requirement of \emph{deployment and management ease} guides our design c
 \paragraphn{(iii)} The only persistent state maintained in the \name is the network condition (in the form of congestion signals) which can be naturally re-aquired, thus making it crash-resistant. 
 
 \paragraphn{(iv)} \name supports an entirely passive deployment model in which its component packets remain unmodified, 
-ensuring no interference with other networking components in a packet's path~\cite{mboxbadness, ipoptions, quic}. We discuss this further in \an{forward pointer}.
+ensuring no interference with other networking components in a packet's path~\cite{mboxbadness, ipoptions, quic}. \radhika{need to tone this down -- non-null tunelling will touch packets} We discuss this further in \an{forward pointer}.
 
 \vspace{5pt}
 \noindent We discuss specific design choices in more details below. 
@@ -40,10 +40,10 @@ ensuring no interference with other networking components in a packet's path~\ci
 \name's congestion control algorithm must satisfy the following requirements: 
 
 \paragraphi{(1) Ability to limit network queueing} \name must limit queueing in the network to move the queues to the \inbox. Therefore, congestion control algorithms which are designed to control delays are the appropriate choice. 
-A window-probing congestion control algorithm, for example, is not a good choice for \name, since it would build up a queue at the network bottleneck and drain queues at the \inbox.
+A window-probing congestion control algorithm \radhika{not clear what this means -- maybe also add the term buffer-filling and give examples (Cubic, NewReno etc)}, for example, is not a good choice for \name, since it would build up a queue at the network bottleneck and drain queues at the \inbox.
 
-\paragraphi{(2) Detection of buffer-filling cross-traffic} Simultaneously, it is well-known that delay-controlling schemes (\eg Vegas~\cite{vegas}) compete poorly with buffer-filling window-probing schemes, since buffer occupancy determines throughput fairness~\cite{Jacobson88}. 
-Therefore, \name must have a mechanism to detect the presence of such competing buffer-filling flows, and fall back to status quo performance (we discuss the mechanism for falling back to status quo performance in \S\ref{s:queue-ctl}).
+\paragraphi{(2) Detection of buffer-filling cross-traffic} Simultaneously, it is well-known that delay-controlling schemes (\eg Vegas~\cite{vegas}) compete poorly with buffer-filling window-probing schemes, since buffer occupancy determines throughput fairness~\cite{Jacobson88} \radhika{cut `since...' onwards -- not very clear what you mean here.}. 
+Therefore, \name must have a mechanism to detect the presence of such competing buffer-filling flows and fall back to status quo performance \radhika{, and then detect when they have left to take back its control over the network queues.} (we discuss the mechanism for falling back to status quo performance in \S\ref{s:queue-ctl}).
 
 The emergence of such detection mechanisms is recent: Copa~\cite{copa} detects whether the queue lengths it observes are consistent with its own fluctuations, and Nimbus\footnote{Nimbus is descibed in concurrently submitted work: paper \an{XX}} provides a more general mechanism which overlays a pattern on the sending rate and measures the cross traffic's response.
 \name uses the Nimbus detection mechanism and can use any delay-controlling algorithm, as shown in Figure~\ref{fig:eval:cc}.
@@ -60,12 +60,14 @@ This problem presents multiple possible solutions:
 \paragrapha{Terminate connections and proxy through TCP} This approach allows the unmodified use of existing congestion control algorithms, since a TCP tunnel can collect ACKs. Furthermore, TCP proxies can improve performance by allowing end-to-end connections to ramp up their sending rates quickly.
 The primary disadvantage of this approach is that \name must take responsibility for reliable delivery of component traffic, which in the case of UDP applications can harm application performance. 
 Indeed, from an architectural standpoint, this design runs counter to the end-to-end principle~\cite{e2e-principle}; it replicates endhost functionality in the network.
-Furthermore, from a practical standpoint, to avoid head-of-line blocking this approach requires that \name open a new proxy connection for each component end-host connection, but still determine the bottleneck rate of the traffic \emph{aggregate}. While this approach may be technically feasible~\cite{cm}, opening and managing new proxy connections may use cycles better used for packet processing.
-Thus, we set aside TCP tunnels for the remainder of this discussion, but note that this approach is complementary with \name (see \S\ref{s:eval}).
+Furthermore, from a practical standpoint, to avoid head-of-line blocking this approach requires that \name open a new proxy connection for each component end-host connection, but still determine the bottleneck rate of the traffic \emph{aggregate}. While this approach may be technically feasible~\cite{cm}, the cycles used for opening and managing new proxy connections are better used for packet processing \radhika{i edited the sentence slightly}.
+Thus, we set aside TCP tunnels for the remainder of this discussion, but note that this approach is complementary with \name (see \S\ref{s:eval}) \radhika{might need some rephrasing}.
+\radhika{we can now probably chop off the discussion of TCP proxy in related work?}
 
 Despite the shortcomings of TCP tunnels, the core idea of tunnelling to support new functionality is sound~\cite{trotsky}; we simply note that it is advantageous for the tunnels to be unreliable. We thus adopt unreliable tunnelling in \name.
 
-\paragrapha{Unreliable tunnelling mechanisms and congestion ACKs} Protocols at both L3 (\eg NVGRE~\cite{nvgre}, IP-in-IP~\cite{ipinip}) and L4 (\eg VXLAN~\cite{vxlan}) are broadly avaiable and deployed in commodity routers today. We further envision an even simpler case: a ``null'' tunnel, where packets pass through the \inbox entirely unmodified.
+\paragrapha{Unreliable tunnelling mechanisms and congestion ACKs} Protocols at both L3 (\eg NVGRE~\cite{nvgre}, IP-in-IP~\cite{ipinip}) and L4 (\eg VXLAN~\cite{vxlan}) are broadly available and deployed in commodity routers today. We further envision an even simpler case: a ``null'' tunnel, where packets pass through the \inbox entirely unmodified.
+\radhika{maybe briefly mention some pros and cons of null vs non-null tunnelling, otherwise the discussion looks incomplete. add a forward pointer if we are going to discuss it later -- see my comment in 5.1.}
 In these two cases, there is no natural stream of returning TCP ACKs with which to measure congestion information. 
 Rather, \name uses congestion-specific ACKs\footnote{The idea of a congestion ACK is similar to that in QCN~\cite{qcn}, although our goals differ.} via a two-sided design, with the following properties:
 
