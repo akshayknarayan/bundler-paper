@@ -20,7 +20,7 @@ However, packet modification is unnecessary; since the same packets pass through
 
 We expect that the precise set of fields used will depend on specific deployment considerations.
 For example, in our prototype implementation (\S\ref{s:impl}) don't encapsulate, and use a header subset of the IPv4 IP ID field and destination IP and port. 
-We make this choice for simplicity; it does not require tunnelling mechanisms (and is thus easily deployable); we note that previous proposals~\cite{ip-traceback} have used IP ID for unique packet identification. The drawback of this approach is that it cannot be extended to IPv6.
+We make this choice for simplicity; it does not require tunnelling mechanisms (and is thus easily deployable, and if \name fails connections are unaffected); we note that previous proposals~\cite{ip-traceback} have used IP ID for unique packet identification. The drawback of this approach is that it cannot be extended to IPv6.
 A full deployment \radhika{better term?} of \name could use dedicated fields in an encapsulating header such as a VLAN tag \radhika{can we cite something for schemes that have used this before?}.
 
 We defer discussion of how often to sample epoch boundary packets to Appendix~\ref{app:epochs}.
