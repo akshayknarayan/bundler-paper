@@ -1,10 +1,23 @@
-\section{Design Overview}\label{s:design}
-
+\section{Design}\label{s:design}
+%
 \begin{figure*}
     \centering
     \includegraphics[width=\textwidth]{img/shift-bottleneck-combined}
     \caption{This illustrative example with a single flow shows how \name can take control of queues in the network. The plots show the trend in measured queueing delays at the relevant queue over time. The queue where delays build up can best make scheduling decisions, since it has the most choice between packets to send. Therefore, the \inbox \emph{shifts} the queues to itself to gain scheduling power.}\label{fig:design:shift-bottleneck}
 \end{figure*}
+%
+\cut{
+\an{maybe move to ``bundler's utility regime''/Overview/``Traffic Bundles'': 
+What is the best way to take advantage of the existence of traffic bundles?
+Broadly, there are two approaches: congestion control and in-network scheduling. 
+Today, congestion control is a distributed concern: each end-host performs its own optimization to achieve the highest throughput and lowest latency.
+Indeed, end-host rate control is a deployed method to enforce domain-wide scheduling policy in private WANs~\cite{bwe}.
+On the other hand, scheduling is an in-network concern; existing proposals such as DiffServ~\cite{diffserv} observe that the network is uniquely positioned to differentiate between different flows according to some domain-wide policy.
+Scheduling presents its own challenge: because the Internet is a federated system, the link with queue build-up (and thus with the opportunity to re-order packets according to a scheduling policy) will likely be outside the sending domain's purview.
+
+\an{don't know what to say next}
+}
+}
 
 Recall that in order to do scheduling, we need to move the queues from the network to the \name. 
 In this section, we first describe our key insight for moving the in-network queues, and then explain our specific design choices. 
@@ -12,15 +25,15 @@ Our overriding design principle is simplicity; at various points in the design, 
 Recall that each domain deploys one \name middlebox which we logically partition into sender-side (\inbox) and receiver-side (\outbox) functionality.
 
 \subsection{Key Insight}
-A trivial strategy for inducing queuing at \name is to set a low outgoing rate. 
+One strategy for inducing queuing at \name would be to set a low outgoing rate. 
 However, if this rate is made smaller than the bundle's fair share of bandwidth at the bottleneck link in the network, it will decrease throughput. 
 Instead, the rate needs to be set such that the bottleneck link sees a small queue while remaining fully utilized (and the bundled traffic competes fairly in the presence of cross traffic). 
-We make a simple, but powerful, observation: existing congestion control algorithms perform exactly this calculation~\cite{Jacobson88}. 
+We make a simple, but powerful, observation: existing congestion control algorithms calculate exactly this rate~\cite{Jacobson88}. 
 Therefore, running such an algorithm to set a bundle's rate would reduce its self-inflicted queue at the bottleneck, causing packets to queue at \name instead, without reducing the bundle's throughput.
 Note that end hosts would continue running a traditional congestion control algorithm as before (\eg Cubic~\cite{cubic}, BBR~\cite{bbr}) which is unaware of \name.
 
-Figure~\ref{fig:design:shift-bottleneck} illustrates this concept for a single flow traversing a bottleneck link in the network.
-\footnote{Details of the emulated network setup which resulted in the illustrated queue length time-series are in \S\ref{s:eval}.} 
+Figure~\ref{fig:design:shift-bottleneck} illustrates this concept for a single flow traversing a bottleneck link in the network
+\footnote{Details of the emulated network setup which resulted in the illustrated queue length time-series are in \S\ref{s:eval}.}.
 Without \name, packets from the end hosts are queued in the network, while the queue at the edge is unoccupied. 
 In contrast, a \name deployed at the edge is able to shift the queue to its \inbox.
 
@@ -38,7 +51,7 @@ If there is no \inbox on the path, this message will be ignored.
 Otherwise, an \inbox will observe this message and can opt-in by initializing a new traffic bundle corresponding to the \outbox's destination prefix.
 
 \subsection{Implementing Congestion Control}\label{s:design:twosided}
-Congestion control algorithms require network feedback from the receivers to measure congestion and adjust the sending rates accordingly. 
+Congestion control algorithms we wish to run at the \inbox require network feedback from the receivers to measure congestion and adjust the sending rates accordingly. 
 
 This problem presents multiple possible solutions:
 
@@ -49,7 +62,8 @@ it is specific to TCP and thus incompatible with alternate protocols, \ie UDP fo
 
 \paragrapha{Terminate connections and proxy through TCP} This approach allows the unmodified use of existing congestion control algorithms, since a TCP tunnel can collect ACKs. Furthermore, TCP proxies can improve performance by allowing end-to-end connections to ramp up their sending rates quickly.
 The primary disadvantage of this approach is that \name must take responsibility for reliable delivery of component traffic, which requires large amounts of queueing and, in the case of UDP applications, can harm application performance. 
-Furthermore, from a practical standpoint, to avoid head-of-line blocking this approach requires that \name open a new proxy connection for each component end-host connection, but still determine the bottleneck rate of the traffic \emph{aggregate}. While this approach may be technically feasible~\cite{cm}, the cycles used for opening and managing new proxy connections are better used for packet processing.
+Furthermore, proxying TCP connections introduces a new potential point of failure at \name; if \name crashes, connections will be lost.
+Finally, from a practical standpoint, to avoid head-of-line blocking this approach requires that \name open a new proxy connection for each component end-host connection, but still determine the bottleneck rate of the traffic \emph{aggregate}. While this approach may be technically feasible~\cite{cm}, the cycles used for opening and managing new proxy connections are better used for packet processing.
 Thus, we set aside TCP tunnels for the remainder of this discussion, but note that this approach is complementary with \name (see \S\ref{s:eval}) \radhika{might need some rephrasing}.
 \footnote{\an{If anyone still cares, from an architectural standpoint this design runs counter to the end-to-end principle~\cite{e2e-principle}; it replicates endhost functionality in the network.}}.
 \radhika{we can now probably chop off the discussion of TCP proxy in related work?}
@@ -70,18 +84,18 @@ We detail the sampling mechanism and contents of congestion ACKs in \S\ref{s:mea
 \subsection{Choice of congestion control algorithm}
 \name's congestion control algorithm must satisfy the following requirements: 
 
-\paragraphi{(1) Ability to limit network queueing} \name must limit queueing in the network to move the queues to the \inbox. Therefore, congestion control algorithms which are designed to control delays are the appropriate choice. 
+\paragraphi{(1) Ability to limit network queueing} \name must limit queueing in the network to move the queues to the \inbox. Therefore, congestion control algorithms which are designed to control delays, and thus queueing, are the appropriate choice. 
 A window-probing congestion control algorithm which fills buffers (\eg Cubic, NewReno), for example, is not a good choice for \name, since it would build up a queue at the network bottleneck and drain queues at the \inbox.
 
 \paragraphi{(2) Detection of buffer-filling cross-traffic} Simultaneously, it is well-known that delay-controlling schemes (\eg Vegas~\cite{vegas}) compete poorly with buffer-filling window-probing schemes~\cite{copa}.
 Therefore, \name must have a mechanism to detect the presence of such competing buffer-filling flows and fall back to status quo performance, and then detect when they have left to take back its control over the network queues. 
 
 The emergence of such detection mechanisms is recent: Copa~\cite{copa} detects whether the queue lengths it observes are consistent with its own fluctuations, and Nimbus\footnote{Nimbus is descibed in concurrently submitted work: paper \an{XX}} provides a more general mechanism which overlays a pattern on the sending rate and measures the cross traffic's response.
-\name uses the Nimbus detection mechanism because (1) it is more robust than Copa's and (2) it is compatible with any delay-controlling algorithm, as shown in Figure~\ref{fig:eval:cc}.
+\name uses the Nimbus detection mechanism because (1) it is more robust than Copa's and (2) it is compatible with any delay-controlling algorithm, including Copa, as shown in Figure~\ref{fig:eval:cc}.
 
 We discuss the mechanism for falling back to status quo performance in \S\ref{s:queue-ctl}.
 
-\subsection{Overview}
+\subsection{Overview/Summary}
 \an{Mohammad's block diagram}
 
 \cut{

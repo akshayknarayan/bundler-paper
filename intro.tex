@@ -5,10 +5,6 @@ Examples include large amounts of traffic between a content provider (\eg Amazon
 We propose viewing a set of component flows, or \emph{bundle}, of traffic between a given sender's domain and destined for the same receiving domain, as a single, aggregate entity.
 The flows within such a bundle are likely to share common bottlenecks in the network connecting the two domains.
 
-Bundles of traffic are 
-(1) \emph{composable}: \eg a department within an institute may bundle its traffic to a collaborating department, while the parent institute bundles its traffic to a peer institute and
-(2) \emph{heavyweight}: a bundle's aggregate sending rate is a significant fraction of the interposing network's bottleneck capacity.
-
 Our goal is to take advantage of the presence of traffic bundles by scheduling the traffic within them;
 Internet content providers may want to specify scheduling policies for their traffic. 
 For example, a video streaming company might benefit from weighted fair queueing across its video traffic to its many different users sharing a bottleneck, and web sites might want to prioritize interactive web traffic (e.g., e-commerce) over the bulk file transfers. 
@@ -17,7 +13,7 @@ Currently, however, content providers and end users have been unable to enjoy th
 providers~\cite{inferring-interdomain-congestion, isp-throttle-1, isp-throttle-2, isp-throttle-3}. 
 
 ISPs, on the other hand, do control the bottleneck links in their carrier networks to enforce different scheduling and queue management policies. 
-However, they neither have enough visibility into their customers' traffic bundle to choose desired policies, nor enough incentives to enforce them.\footnote{The case for private WANs is different, since they are owned by a single entity, and have, thus, been successful in exploiting the benefits of scheduling~\cite{swan, b4, bwe}. Our focus is public networks.} 
+However, they neither have enough visibility into their customers' traffic bundle to choose desired policies, nor enough incentives to enforce them\footnote{The case for private WANs is different, since they are owned by a single entity, and have, thus, been successful in exploiting the benefits of scheduling~\cite{swan, b4, bwe}. Our focus is public networks.}.
 Large customers might be able to negotiate deals with certain carriers to enforce specific policies~\cite{att-qos} \an{at significant expense}. 
 However, it might not be possible to negotiate such deals with \emph{all} carriers in the bundle's path, and content providers may wish to keep their policies confidential from downstream ISPs.
 
@@ -29,9 +25,7 @@ The natural question that arises is, how can the queues be ``moved''? This is th
     \centering
     \includegraphics[width=\textwidth]{img/deployment-arch.pdf}
     \caption{An example deployment scenario for \name. 
-    The \inbox sits at the sending domain's egress and \outbox sits at the receiving domain's ingress. All traffic between the two boxes is aggregated into a single bundle. The \inbox schedules the traffic within the bundle according to the policy the sending domain specifies (\S\ref{s:design}).
-    %Bottleneck links between the \inbox and the \outbox are shown in red.
-    %The solid lines depict links used by the traffic in the bundle, while the dotted lines represent other possible links. 
+    \name sits at each domain's edge. Traffic between the two boxes is aggregated into a single unidirectional bundle, shown as shaded boxes. The \inbox schedules the traffic within the bundle according to the policy the sending domain specifies (\S\ref{s:design}).
     }\label{fig:deploy:arch}
 \end{figure*}
 
@@ -52,7 +46,7 @@ Despite these limitations, we believe that our work, provides a deployable solut
  
 We make the following contributions:
 \begin{enumerate}
-     \item A light-weight, scalable and deployable design of \name that does congestion control on aggregated traffic to move queues to the content provider's edge (\S\ref{s:design}).
+    \item A ligh-weight, scalable, and deployable architecture that enables content providers to perform scheduling across traffic with a common destination domain. In this architecture, content providers perform congestion control over bundles of traffic with a common destination domain in order to move queueing to the content provider's edge (\S\ref{s:design}).
      \item A novel low-overhead protocol-agnostic technique for measuring signals for congestion control between the \pair, that does not make any changes to the packet headers (\S\ref{s:measurement}). We evaluate our measurement strategy across a variety of RTTs and link bandwidths in \S\ref{s:measure:microbench}. 
      \item \an{Specification of a new aggregate congestion controller which overlays end-host congestion control \S\ref{s:queue-ctl} }
      %\item The design and implementation of a \name, including a novel method of collecting congestion control information and enforcing the decisions of a rate control algorithm on traffic aggregates, which \emph{moves} the queues from the bottleneck in the network to the customer's edge.

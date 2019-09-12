@@ -6,42 +6,14 @@ Our work is at the intersection of congestion control, scheduling, and middlebox
 %We identify the most relevant related work in each of these areas below. 
 
 \Para{Aggregating congestion information} A recent proposal~\cite{fivecomps} observes that the majority of today's traffic is owned by a few entities.
-%, and that a single entity might have a large number of flows traversing the same bottleneck link. 
-This observation implies that we can expect to have a small number of bundles across the Internet, each with large amounts of traffic, resulting in greater scheduling opportunities within a bundle. Note that the proposal uses its observation to highlight the benefits of sharing information across a given customer's traffic when configuring congestion control algorithms at the endhosts. This is orthogonal to our goal of scheduling such traffic by introducing a middlebox without modifying end hosts.
-
+This observation implies that we can there are large bundles in practice, resulting in greater scheduling opportunities within a bundle. Note that the proposal uses its observation to highlight the benefits of sharing information across a given customer's traffic when configuring congestion control algorithms at the endhosts. This is orthogonal to our goal of scheduling such traffic by introducing a middlebox without modifying end hosts.
 
 \Para{Packet scheduling} There have been some recent efforts towards enabling the benefits of packet scheduling. PIFO~\cite{pifo} is a programmable priority queue that can be configured to express different scheduling policies at routers. However, not only does it require changing the in-network routers, but it also suffers from the issue of an ISP's limited visibility into the traffic to choose desired policies (and limited incentives to enforce them). UPS~\cite{ups} allows different scheduling policies to be expressed from the edge via header initialization, but also requires a change to the routers.
 %However, since queuing still occurs in the middle of the network, it relies on the customers targeting a common global objective, or on the network operators isolating different customers' traffic, both of which are difficult to realize. 
 \name provides a solution that does not require any cooperation from downstream networks in other organizations.
 
-In that spirit, \name is closer to OverQoS~\cite{overqos}. Proposed more than a decade ago, OverQoS aimed to provide QoS benefits in the Internet by aggregating and managing traffic at the nodes of an overlay network~\cite{ron}. Given the aggregation opportunities today, where a few content providers generate a majority of the Internet traffic~\cite{fivecomps}, we observe that the time for reaping benefits from such designs may have arrived. Recent trends enable a simpler and more deployable approach; instead of deploying an overlay network, \name{} proposes deploying a middlebox at the sending and the receiving domains to aggregate sufficient traffic. In addition, \name provides a novel mechanism to \emph{move} the in-network queues, and gain the power to schedule the bundled traffic. 
-
-
-%\Para{Overlays} OverQoS~\cite{overqos} proposed an extension to overlay-based network architectures~\cite{ron} to deploy QoS independently of endhosts, a mechanism for packet scheduling.
-%OverQoS uses loss-based congestion control and therefore cannot shift queues; our approach is complementary.
-
-\Para{Split TCP Proxy} This middlebox splits the TCP connections traversing it, such that the senders observe a smaller round-trip time and can increase their sending rate faster. Since it terminates and re-establishes TCP connections, it requires implementing a full TCP stack, managing per-connection state and intrusively changing the packet headers. Again, \name has orthogonal goals, which allow for a lightweight design without requiring any per-connection state (unless needed for a specific scheduling algorithm) or any modifications to the packets traversing it. We show how combining \name's features with a TCP Proxy could lead to further improvements in performance in \S\ref{s:eval:proxy}. 
-
-%\Para{VPN tunneling} 
-
-% \begin{itemize}
-%     \item PIFO and UPS
-%     \item Rethinking networking for five computers
-%     %\item use of priority queuing in private WANs
-%     \item TCP Proxy
-%     \begin{outline}
-%     \1 An existing approach which could fulfill these design objectives is a TCP Proxy.
-%     \2 TCP proxies are popular in cellular networks
-%     \2 They are usually used to shorten the observed round-trip time of a connection, so it can quickly ramp up its sending rate.
-%     \2 They do this by sending acknowledgements to the sender.  
-%         \3 This means they must take responsibility for reliable delivery.
-%     \2 Because TCP proxies take responsibility for reliability, they must implement full TCP stacks.
-%         \3 As a result, they are difficult to implement in hardware and difficult to scale. \an{maybe mention this later, once it's more clear our design is hardware-compatible?}
-%     \2 They furthermore remain limited by one-sided measurements.
-%     \2 They do not allow fate-sharing:
-%         \3 If a TCP proxy fails, as middleboxes often do~\cite{aplomb}, the underlying connection is broken.
-% \1 We describe in \S\ref{s:measurement} how a \name can perform precise congestion control measurements without implementing a TCP proxy
-%     \2 and how to perform these measurements in a fault-tolerant way that preserves fate-sharing.
-%     \end{outline}
-%     \item anything else?
-% \end{itemize}
+In that spirit, \name is closer to OverQoS~\cite{overqos}. Proposed more than a decade ago, OverQoS aimed to provide QoS benefits in the Internet by aggregating and managing traffic at the nodes of an already-deployed overlay network~\cite{ron}. 
+Given the aggregation opportunities today, where a few content providers generate a majority of the Internet traffic~\cite{fivecomps}, we observe that the time for reaping benefits from such designs may have arrived. 
+Recent trends enable a simpler and more deployable approach; instead of deploying an overlay network, \name{} proposes deploying a middlebox at the sending and the receiving domains to aggregate sufficient traffic. 
+This simplifies the ``rezendezvous'' problem, since \name initializes bundles dynamically (\S\ref{s:design}).
+In addition, \name provides a novel mechanism to \emph{move} the in-network queues, and gain the power to schedule the bundled traffic. 
