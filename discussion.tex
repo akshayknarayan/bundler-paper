@@ -21,10 +21,6 @@
 \paragrapha{Bundle Initialization}\label{s:impl:discovery}
 In most cases, it is practical to statically configure a \pair. This is trivial if the sending and receiving domains belong to the same entity. In the case where the sending domain is a large content providers, it can advertise its \inbox address, with which a local \outbox can establish pairing. 
 %or use the DNS to globally coordinate \name coverage across IP subnets.
-It may also be possible to dynamically discover bundles. 
-In such an approach, the \inbox would first assume that all packets which traverse it are not bundled.
-When the \outbox receives a packet, it could send feedback back along the same path, including its IP subnet.
-The \inbox could intercept these messages and configure the new bundle appropriately.
 %Different bundles may have different rates; recent work~\cite{carousel, eifel} has shown it is possible to implement such multi-rate, multi-scheduler datapaths efficiently.
 
 
