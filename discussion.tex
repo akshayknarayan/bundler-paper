@@ -1,5 +1,12 @@
 \section{Discussion}\label{s:discussion}
 
+\paragrapha{Multipath}
+An interesting scenario is load-balancing in the core, a widely used technique for reducing the congestion on any one path.
+Here, we make two observations: 
+(1) while bundle traffic may traverse multiple intermediate paths, it necessarily must converge on the receiving domain (and the \outbox). If the bottleneck is near the receiving domain, the bundled traffic will still build queues.
+(2) from the bundle's perspective, multiple paths appear as multiple queues, with some aggregate bandwidth capacity (\ie the max-flow of the network paths between the sending and receiving domains). While queueing may be unevenly distributed among the paths, the distribution of flows onto paths is currently random (\eg with ECMP). With \name, all these queues are moved to the \inbox, so it can schedule bundled flows deliberately rather than randomly.
+In \S\ref{s:eval}, we show that \name still controls queueing on bundles in the presence of multipath.
+
 \paragrapha{Scheduling across different bundles at a \inbox} We evaluate benefits of scheduling \emph{within} a bundle. In practice, a given \inbox will see traffic from multiple bundles. Extending different scheduling policies to multiple such bundles can be done trivially.
 
 \paragrapha{Rate allocation across different competing bundles} When multiple bundles, belonging to different sending domains, compete at the same bottleneck, \name's congestion control would ensure a fair rate allocation across each of these bundles, irrespective of the amount of traffic in them. It, therefore, provides fairness on per-sending domain basis, as opposed to a per-flow basis, making it more robust to strategies like opening multiple connections for increasing bandwidth share. 
@@ -18,24 +25,7 @@
 % In the case where a sending domain controls multiple bundles (to different destination domains) it could apply scheduling policies across them.
 % \fc{We should say something somewhere about sched across bundles and in-bundle/out-of-bundle}
  
-\paragrapha{Bundle Initialization}\label{s:impl:discovery}
-In most cases, it is practical to statically configure a \pair. This is trivial if the sending and receiving domains belong to the same entity. In the case where the sending domain is a large content providers, it can advertise its \inbox address, with which a local \outbox can establish pairing. 
-%or use the DNS to globally coordinate \name coverage across IP subnets.
 %Different bundles may have different rates; recent work~\cite{carousel, eifel} has shown it is possible to implement such multi-rate, multi-scheduler datapaths efficiently.
-
-
-
-%The \outbox does one of two things for each potential epoch boundary packet:
-%\begin{enumerate}
-%    \item If the packet is in a known bundle, the \outbox sends a message to the corresponding \inbox.
-%    \item If the packet is not in a known bundle, the \outbox sends a message to the source IP address of that packet.
-%\end{enumerate}
-
-%The \inbox receives (and intercepts) the \outbox feedback.  
-%The \inbox at this time updates its flow tables to add the destination IP of the epoch boundary packet either to an existing bundle (in the case of a new flow from a previously-unseen source subnet joining a bundle) or instantiates a new bundle.
-%The \inbox then sends a response containing an epoch size to use and the hash of the epoch boundary packet.
-%The \outbox receives this message, initializes a byte counter for the newly discovered bundle, and remembers the \inbox IP address for future feedback. If there is no \inbox on the path, the packet will simply be ignored at its destination. 
-
 
 \paragrapha{Benefits of delay-based congestion control} A delay-based congestion control allows maintaining low packet delays in the network. Deploying such algorithms at each individual endhosts is difficult. \name provides a way to reap benefits of such algorithms, by simply deploying a middlebox, without changing individual endpoints.
 

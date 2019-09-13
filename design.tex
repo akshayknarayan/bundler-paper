@@ -50,6 +50,17 @@ When the \outbox observes an unbundled packet, it opts-in by sending a message c
 If there is no \inbox on the path, this message will be ignored.
 Otherwise, an \inbox will observe this message and can opt-in by initializing a new traffic bundle corresponding to the \outbox's destination prefix.
 
+%The \outbox does one of two things for each potential epoch boundary packet:
+%\begin{enumerate}
+%    \item If the packet is in a known bundle, the \outbox sends a message to the corresponding \inbox.
+%    \item If the packet is not in a known bundle, the \outbox sends a message to the source IP address of that packet.
+%\end{enumerate}
+
+%The \inbox receives (and intercepts) the \outbox feedback.  
+%The \inbox at this time updates its flow tables to add the destination IP of the epoch boundary packet either to an existing bundle (in the case of a new flow from a previously-unseen source subnet joining a bundle) or instantiates a new bundle.
+%The \inbox then sends a response containing an epoch size to use and the hash of the epoch boundary packet.
+%The \outbox receives this message, initializes a byte counter for the newly discovered bundle, and remembers the \inbox IP address for future feedback. If there is no \inbox on the path, the packet will simply be ignored at its destination. 
+
 \subsection{Implementing Congestion Control}\label{s:design:twosided}
 Congestion control algorithms we wish to run at the \inbox require network feedback from the receivers to measure congestion and adjust the sending rates accordingly. 
 
@@ -96,22 +107,10 @@ The emergence of such detection mechanisms is recent: Copa~\cite{copa} detects w
 We discuss the mechanism for falling back to status quo performance in \S\ref{s:queue-ctl}.
 
 \subsection{Overview/Summary}
-\an{Mohammad's block diagram}
-
-\cut{
-\subsection{Design Choices}
-
-Our key requirement of \emph{deployment and management ease} guides our design choices:
-
-\paragraphn{(i)} \name requires no changes to the endhosts or to the routers in the network, making it independently deployable. 
-
-\paragraphn{(ii)} \name maintains only per-bundle state, and no per-connection state (unless needed by a specific scheduling algorithm), allowing it to scale trivially with the number of in-bundle connections. 
-
-\paragraphn{(iii)} The only persistent state maintained in the \name is the network condition (in the form of congestion signals) which can be naturally re-aquired, thus making it crash-resistant. 
-
-\paragraphn{(iv)} \name supports an entirely passive deployment model in which its component packets remain unmodified, 
-ensuring no interference with other networking components in a packet's path~\cite{mboxbadness, ipoptions, quic}. \radhika{need to tone this down -- non-null tunelling will touch packets} We discuss this further in \an{forward pointer}.
-
-\vspace{5pt}
-\noindent We discuss specific design choices in more details below. 
-}
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{img/arch-block-diag}
+    \caption{\name comprises of five sub-systems: four (in green) implement \inbox functionality, one (in blue) implements \outbox functionality, and the datapath (orange) is shared between the two. \name's architecture supports multiple compatible implementations (listed in the ``Impl'' section of each block).}\label{fig:design:block-diag}
+\end{figure}
+As Figure~\ref{fig:design:block-diag} shows, the necessary components of any \name are: (1) a means of determining bundle membership; (2) a rate enforcement mechanism; (3) a measurement strategy; (4) a delay-controller; and (5) a fairness-controller.
+Throughout this section we have discussed design options for determining Bundle membership, observing feedback, and congestion control: for other aspects of the design, \name is compatible with a variety of options. For example, domains can implement \name using any modern middlebox datapath, \eg P4~\cite{p4}, BESS~\cite{bess}, or as in our prototype implementation (\S\ref{s:impl}), Linux tc qdiscs.
