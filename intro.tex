@@ -17,8 +17,8 @@ However, they neither have enough visibility into their customers' traffic bundl
 Large customers might be able to negotiate deals with certain carriers to enforce specific policies~\cite{att-qos} \an{at significant expense}. 
 However, it might not be possible to negotiate such deals with \emph{all} carriers in the bundle's path, and content providers may wish to keep their policies confidential from downstream ISPs.
 
-To reduce a content provider's dependence on the ISPs with respect to how its bundle is managed, we attempt to bring the provider's traffic under its own control by \emph{building the queues at the provider's edge rather than the in-network bottleneck}.
-Our approach allows the content provider to enforce its desired traffic management policies on its traffic bundle(s).
+To reduce a content provider's dependence on the ISPs with respect to how its bundle is managed, we attempt to bring the provider's traffic under its own control by \emph{queueing packets at the provider's edge rather than the in-network bottleneck}.
+This approach allows the content provider to enforce its desired traffic management policies on its traffic bundle(s).
 The natural question that arises is, how can the queues be ``moved''? This is the primary focus of our work. 
 
 \begin{figure*}[t]
@@ -32,17 +32,17 @@ The natural question that arises is, how can the queues be ``moved''? This is th
 %We further note that middleboxes are now prevalent in the Internet architecture~\cite{aplomb}. They are often deployed at the egress and ingress of a network domain, to ensure traffic transits them for intrusion detection, packet inspection, filtering etc. They thus provide an effective vantage point for aggregating and managing traffic. 
 To move the queues and schedule traffic bundles, we propose a new type of middlebox, called \name, that (1) dynamically aggregates the traffic at the content provider's egress into appropriate bundles, (2) does rate control for each bundle to move the corresponding queues from within the network to itself, and (3) applies scheduling and AQM policies within each bundle. 
 
-Each domain must deploy one middlebox, which is logically composed of sender-side (\inbox) and receiver-side (\outbox) functionality:
-A \emph{bundle} is a group of flows traversing the same \inbox{}-\outbox{} pair.
+Each domain must deploy one middlebox, which is logically composed of sender-side (\inbox) and receiver-side (\outbox) functionality;
+a \emph{bundle} is a group of flows traversing the same \inbox{}-\outbox{} pair.
 The bulk of \name's functionality resides at the \inbox, which coordinates with the \outbox to identify bundles and measure congestion signals such as the round-trip time and the rate at which packets are received.
 \inbox passes these signals to a congestion control algorithm (requiring certain properties described in \S\ref{s:design}) which computes appropriate sending rates for each bundle. 
 By varying the sending rate, the \inbox ensures that the queuing induced by the bundled traffic within the network is low and is incurred at the \inbox instead, while maintaing high utilization at the bottleneck link.
  
-We introduce a lightweight method for the coordination between the \inbox and the \outbox, which does not require any per-flow state and can be deployed in a mode that forwards packets without modification. Our approach requires no changes to the end hosts or to the routers in the network.
+We introduce a lightweight method for the coordination between the \inbox and the \outbox, which does not require any per-flow state and can be deployed in a mode that forwards packets without modification. \name requires no changes to the end hosts or to the routers in the network.
  
 Note that our goal is to perform scheduling and queue management only on the traffic within the same bundle. We do not currently attempt to control traffic across different bundles. 
-Furthermore, as we will discuss in \S\ref{s:deploy}, there may be instances where \name can not improve performance for the bundled traffic, and falls back to the status quo performance. 
-Despite these limitations, we believe that our work, provides a deployable solution for enabling some of the benefits of scheduling and queue management in the Internet from the edge of the content provider's network.
+Furthermore, as we will discuss in \S\ref{s:deploy}, there may be instances where \name cannot improve performance for the bundled traffic, and falls back to the status quo performance. 
+Despite these limitations, we believe that our work provides a deployable solution for enabling some of the benefits of scheduling and queue management in the Internet from the edge of the content provider's network.
  
 We make the following contributions:
 \begin{enumerate}
