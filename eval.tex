@@ -27,7 +27,7 @@ Throughout our experiments, CPU utilization on the machines remained below $10$\
 Unless otherwise specified, we emulate the following scenario.
 A many-threaded client generates requests from a request size CDF drawn from an Internet core router~\cite{caida-dataset}, and assigns them to one of $200$ server processes on the traffic generator.
 The workload is heavy-tailed: 97.6\% of requests are 10KB or shorter, and the largest 0.002\% of requests are between $5$MB and $100$MB.
-Each server then sends the requested amount of data to the client and we measure the flow completion time of each such request. \reword{In addition, the server also generates a persistently backlogged connection to the client.}
+Each server then sends the requested amount of data to the client and we measure the flow completion time of each such request. \an{In addition, the server also generates a persistently backlogged connection to the client.}
 %We use multiple server processes to emulate multiple machines behind the \name at the customer's edge.
 The link bandwidth at the mahimahi link is set to 96Mbps, and the one-way delay is set to 25ms. The requests result in an offered load of 84Mbps. 
 

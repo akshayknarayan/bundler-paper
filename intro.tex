@@ -47,8 +47,8 @@ Despite these limitations, we believe that our work provides a deployable soluti
 We make the following contributions:
 \begin{enumerate}
     \item A ligh-weight, scalable, and deployable architecture that enables content providers to perform scheduling across traffic with a common destination domain. In this architecture, content providers perform congestion control over bundles of traffic with a common destination domain in order to move queueing to the content provider's edge (\S\ref{s:design}).
-     \item A novel low-overhead protocol-agnostic technique for measuring signals for congestion control between the \pair, that does not make any changes to the packet headers (\S\ref{s:measurement}). We evaluate our measurement strategy across a variety of RTTs and link bandwidths in \S\ref{s:measure:microbench}. 
-     \item \an{Specification of a new aggregate congestion controller which overlays end-host congestion control \S\ref{s:queue-ctl} }
+     \item A novel low-overhead protocol-agnostic technique for measuring signals for congestion control between the \pair, that need not make any changes to the packet headers (\S\ref{s:measurement}).
+     \item A new congestion controller, synthesized from existing building blocks in congestion control (delay-control, AQM, and cross-traffic inference) for use with traffic bundles (\S\ref{s:queue-ctl}).
      %\item The design and implementation of a \name, including a novel method of collecting congestion control information and enforcing the decisions of a rate control algorithm on traffic aggregates, which \emph{moves} the queues from the bottleneck in the network to the customer's edge.
      %\item An evaluation of the benefits of scheduling and queue management for traffic aggregates, compared to both the status quo (FIFO) and an idealized deployment where bottleneck queues deploy the desired policy.
 \end{enumerate}
