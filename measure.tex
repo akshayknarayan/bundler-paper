@@ -12,18 +12,18 @@ However, where in the header should this flag bit be?
 Evolving packet headers has proved impractical~\cite{trotsky}, so perhaps we could use an encapsulation mechanism.
 Protocols at both L3 (\eg NVGRE~\cite{nvgre}, IP-in-IP~\cite{ipinip}) and L4 (\eg VXLAN~\cite{vxlan}) are broadly available and deployed in commodity routers today.
 
-However, packet modification is unnecessary; since the same packets pass through \inbox and \outbox, uniquely identifying a given pattern of packets is sufficient to meet our requirements. In this scheme, we hash a subset of the packet header with the following properties:
+However, packet modification is unnecessary; since the same packets pass through \inbox and \outbox, uniquely identifying a given pattern of packets is sufficient to meet our requirements. In this scheme, we hash a subset of the packet header and check if the hash is a multiple of the desired sampling period. Thus, the packet header subset must have the following properties:
 (i) It must be the same at both the \inbox and the \outbox.
 (ii) Its values must remain unchanged as a packet traverses the network from the \inbox to the \outbox (so, for example, the TTL field must be excluded).\footnote{Certain fields, that are otherwise unchanged within the network, can be changed by NATs deployed in a customer's domain. Ensuring that the \name boxes sit outside the NAT would allow them to make use of those fields.}
 (iii) It differentiates individual \emph{packets} (and not just flows), to allow sufficient entropy in the computed hash values.
 (iv) It also differentiates a retransmitted packet from the original one, to prevent spurious samples from disrupting the measurements (this precludes, for example, the use of TCP sequence number).
 
 We expect that the precise set of fields used will depend on specific deployment considerations.
-For example, in our prototype implementation (\S\ref{s:impl}) don't encapsulate, and use a header subset of the IPv4 IP ID field and destination IP and port. 
+For example, in our prototype implementation (\S\ref{s:impl}) we don't encapsulate, and use a header subset of the IPv4 IP ID field and destination IP and port. 
 We make this choice for simplicity; it does not require tunnelling mechanisms (and is thus easily deployable, and if \name fails connections are unaffected); we note that previous proposals~\cite{ip-traceback} have used IP ID for unique packet identification. The drawback of this approach is that it cannot be extended to IPv6.
 A full deployment \radhika{better term?} of \name could use dedicated fields in an encapsulating header such as a VLAN tag \radhika{can we cite something for schemes that have used this before?}.
 
-We defer discussion of how often to sample epoch boundary packets to Appendix~\ref{app:epochs}.
+We defer discussion of how often to sample epoch boundary packets (4 packets per RTT in expectation) to Appendix~\ref{app:epochs}.
 
 \subsection{Contents of Congestion ACKs}
 \label{s:measure:compute}
@@ -41,7 +41,7 @@ We defer discussion of how often to sample epoch boundary packets to Appendix~\r
 \newcommand{\senttwo}{$sent_{i}$}
 \newcommand{\recvdtwo}{$rcvd_{i}$}
 
-Congestion ACKs simply contain the hash of the epoch boundary packet header they matched on and the running count of the total number of bytes received for that bundle (so, the \outbox must maintain 8 bytes of state per bundle, which need not be persistent).
+Congestion ACKs simply contain the hash of the epoch boundary packet header they matched on and the running count of the total number of bytes received for that bundle (so, the \outbox must maintain a single counter per bundle, which need not be persistent).
 
 For each bundle, the \inbox tracks the total number of bytes sent within this bundle, and, upon identifying an epoch boundary packet, $p_i$, it records: (i) its hash, $h(p_i)$, (ii) the time when it is sent out, $t_{\text{sent}}(p_i)$, and (iii) the total number of bytes sent thus far including this packet, $b_{sent}(p_i)$. 
 Upon receiving the feedback $p_i$, the \inbox records the received information, and using its previously recorded state, it can compute the RTT (using the elapsed time) and the rates at which packets are sent and received (using the byte counters), as in Figure~\ref{fig:ratecalc}.
