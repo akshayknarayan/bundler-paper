@@ -117,7 +117,9 @@ A window-probing congestion control algorithm which fills buffers (\eg Cubic, Ne
 \paragraphi{(2) Detection of buffer-filling cross-traffic} Simultaneously, it is well-known that delay-controlling schemes (\eg Vegas~\cite{vegas}) compete poorly with buffer-filling window-probing schemes~\cite{copa}.
 Therefore, \name must have a mechanism to detect the presence of such competing buffer-filling flows and fall back to status quo performance, and then detect when they have left to take back its control over the network queues. 
 
-The emergence of such detection mechanisms is recent: Copa~\cite{copa} detects whether the queue lengths it observes are consistent with its own fluctuations, and Nimbus\footnote{Nimbus is descibed in concurrently submitted work: paper \an{XX}} provides a more general mechanism which overlays a pattern on the sending rate and measures the cross traffic's response.
-\name uses the Nimbus detection mechanism because (1) it is more robust than Copa's and (2) it is compatible with any delay-controlling algorithm, including Copa, as shown in Figure~\ref{fig:eval:cc}.
+The emergence of such detection mechanisms is recent: Copa~\cite{copa} detects whether it is able to empty the queues, and Nimbus\footnote{Concurrently submitted work: paper \an{XX} describes Nimbus.} provides a more general mechanism which overlays a pattern on the sending rate and measures the cross traffic's response.
 
-We discuss the mechanism for falling back to status quo performance in \S\ref{s:queue-ctl}.
+Copa's detection mechanism does not work for \name, because it relies on emptying the queues; since a bundle may itself be comprised of buffer-filling traffic, the queues will not empty! Therefore, while Copa would be able to switch modes to compete with buffer-filling cross traffic, it would not be able to re-assert control over the queues once the cross traffic leaves.
+Therefore, we use the more general Nimbus mechanism, which uses \emph{active probing} to differentiate between \name's own traffic and cross traffic in the bottleneck queue.
+
+We discuss active probing in \S\ref{s:queue-ctl}.
