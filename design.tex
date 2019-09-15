@@ -18,7 +18,7 @@ In this section, we first describe our key insight for moving the in-network que
 Our overriding design principle is simplicity; at various points in the design, there exists a more complex approach which we discard \an{rephrase}.
 Recall that each domain deploys one \name middlebox which we logically partition into sender-side (\inbox) and receiver-side (\outbox) functionality.
 
-\subsection{Key Insight}
+\subsection{Key Insight}\label{s:design:key}
 One strategy for inducing queuing at the \inbox would be to set a low outgoing rate limit on outgoing traffic. 
 However, if this rate is made smaller than the bundle's fair share of bandwidth at the bottleneck link in the network, it will decrease throughput. 
 Conversely, if the rate is too high, packets will pass through the \inbox without queueing.
