@@ -18,7 +18,10 @@ However, where in the header should this flag bit be?
 Evolving packet headers has proved impractical~\cite{trotsky}, so perhaps we could use an encapsulation mechanism.
 Protocols at both L3 (\eg NVGRE~\cite{nvgre}, IP-in-IP~\cite{ipinip}) and L4 (\eg VXLAN~\cite{vxlan}) are broadly available and deployed in commodity routers today.
 
-However, packet modification is unnecessary; since the same packets pass through \inbox and \outbox, uniquely identifying a given pattern of packets is sufficient to meet our requirements. In this scheme, we hash a subset of the packet header and check if the hash is a multiple of the desired sampling period. Thus, the packet header subset must have the following properties:
+However, packet modification is unnecessary; since the same packets pass through \inbox and \outbox, uniquely identifying a given pattern of packets is sufficient to meet our requirements. In this scheme, the \inbox and \outbox both hash a subset of every packet header and check if the hash is a multiple of the desired sampling period. 
+The \inbox records the matching hashes, and when the \outbox observes a matching hash, it sends a congestion ACK, described in \S\ref{s:measurem:compute}, back to the \inbox. The \inbox can then compute measurements to pass to the congestion control algorithm.
+
+Thus, the packet header subset must have the following properties:
 (i) It must be the same at both the \inbox and the \outbox.
 (ii) Its values must remain unchanged as a packet traverses the network from the \inbox to the \outbox (so, for example, the TTL field must be excluded).\footnote{Certain fields, that are otherwise unchanged within the network, can be changed by NATs deployed in a customer's domain. Ensuring that the \name boxes sit outside the NAT would allow them to make use of those fields.}
 (iii) It differentiates individual \emph{packets} (and not just flows), to allow sufficient entropy in the computed hash values.
