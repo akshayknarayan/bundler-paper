@@ -1,23 +1,31 @@
 \section{Introduction}\label{s:intro}
 
+% scheduling is good
 Internet content providers often want to specify scheduling policies for their traffic. 
-For example, a video streaming company might benefit from weighted fair queueing across its video traffic to its many different users sharing a bottleneck, and web sites might want to prioritize interactive web traffic (e.g., e-commerce) over the bulk file transfers. 
+For example, a video streaming company might benefit from weighted fair queueing across its video traffic to its many different users sharing a bottleneck, and web sites might want to prioritize interactive web traffic (e.g., e-commerce) over bulk file transfers. 
 There exists a vast literature on mechanisms for such scheduling and queue management policies~\cite{diffserv, fair-queueing, sfq, pie, CoDel, fifoplus, virtualClocks, csfq, drr, red, ecn}.
-Currently, however, content providers and end users have been unable to enjoy these benefits because such policies are effective only when enforced on bottleneck links that experience a queue build-up, and such links are often outside the control of individual content 
+These mechanisms can decrease average flow-completion times, ensure low packet delays, isolate classes of traffic from each other, and more.
+
+% can't scehdule today
+The most effective place to enforce a scheduling policy is where queue buildup occurs; where there is queueing, there is the opportunity to reorder packets.
+As a result, content providers and end users have been unable to enjoy the benefits of scheduling policies because such links with queue build-up are often outside the control of individual content 
 providers~\cite{inferring-interdomain-congestion, isp-throttle-1, isp-throttle-2, isp-throttle-3}. 
 
+% ISP's cant solve problem (e.g. with CSFQ)
 ISPs, on the other hand, do control the bottleneck links in their carrier networks to enforce different scheduling and queue management policies. 
-However, simply isolating each customer (\eg with fair queueing~\cite{fair-queueing}) is not enough; to see why, note that cellular networks provide isolation~\cite{sprout}, but users must still cope with self-inflicted queueing.
+However, simply isolating each customer (\eg with fair queueing~\cite{fair-queueing}) is not enough; to see why, note that cellular networks provide isolation~\cite{sprout}, but users must still cope with self-inflicted queueing \an{need cripser explanation}.
 ISPs thus neither have enough visibility into their customers' traffic bundle to choose desired policies on their queues, nor enough incentives to enforce them\footnote{The case for private WANs is different, since they are owned by a single entity, and have, thus, been successful in exploiting the benefits of scheduling~\cite{swan, b4, bwe}. Our focus is public networks.}.
 Large customers might be able to negotiate deals with certain carriers to enforce specific policies~\cite{att-qos} \an{at significant expense}. 
 However, it might not be possible to negotiate such deals with \emph{all} carriers in the bundle's path, and content providers may wish to keep their policies confidential from downstream ISPs.
 
+% introduce concept of bundles
 Meanwhile, traffic in the contemporary Internet is steadily aggregating amongst a small number of entities~\cite{fivecomps}. 
 Examples include large amounts of traffic between a content provider (\eg Amazon, Google, etc.) and a network with many clients (\eg an enterprise), between two different campuses of an organization, between collaborating institutes, and so on.
 We propose viewing a set of component flows, or \emph{bundle}, of traffic between a given sender's domain and destined for the same receiving domain, as a single, aggregate entity.
 The flows within such a bundle are likely to share common bottlenecks in the network connecting the two domains.
 
-To reduce a content provider's dependence on the ISPs with respect to how its bundle is managed, we attempt to bring the provider's traffic under its own control by \emph{queueing packets at the provider's edge rather than the in-network bottleneck}.
+% move the queues
+To reduce a content provider's dependence on the ISPs with respect to how its bundle is managed, we propose to bring the provider's traffic under its own control by \emph{queueing packets at the provider's edge rather than the in-network bottleneck}.
 This approach allows the content provider to enforce its desired traffic management policies on its traffic bundle(s).
 The natural question that arises is, how can the queues be ``moved''? This is the primary focus of our work. 
 

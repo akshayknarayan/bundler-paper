@@ -12,7 +12,7 @@ all: $(PDFS)
 final: $(PDFS)
 	./banal -judge -paper=letter -font=10 -leader=12 -width=7 -height=9 -cols=2 -pages=12 ./bundler-nsdi20.pdf
 
-%.pdf: %.tex $(TEXFILES) $(KNITRTARGETS) usenix2019_v3.sty ref.bib
+%.pdf: %.tex $(TEXFILES) $(KNITRTARGETS) usenix2019_v3.sty ref.bib imgs
 	pdflatex -shell-escape -shell-escape $*.tex
 	bibtex $*
 	pdflatex -shell-escape -shell-escape $*.tex
@@ -23,6 +23,8 @@ final: $(PDFS)
 %.tex: graphs/%.Rnw
 	$(info $?)
 	Rscript -e "library(knitr); knit('$?')"
+
+imgs: $(wildcard imgs/*.pdf)
 
 clean:
 	/bin/rm -f *.dvi *.aux *.ps *~ *.log *.out *.lot *.lof *.toc *.blg *.bbl url.sty
