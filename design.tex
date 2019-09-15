@@ -93,13 +93,6 @@ Thus, we set aside TCP tunnels for the remainder of this discussion, but note th
 \paragrapha{Out-of-band feedback} Having eliminated the options for using in-band feedback, we adopt out-of-band feedback in the form of congestion-specific ACKs: the \outbox sends out-of-band feedback to the \inbox.
 This decouples congestion-specific ACKs from traditional ACKs used for reliability\footnote{The idea of a congestion ACK is similar to that in QCN~\cite{qcn}, although our goals differ.} and is thus indifferent to the underlying protocol (be it TCP, UDP, or QUIC).
 
-\an{move to ``measuring congestion''?}
-When should the \outbox send these feedback messages? 
-Sending an out-of-band feedback message for every packet arriving at the \outbox would result in high communication overhead. 
-Furthermore, conducting measurements on every outgoing packet at the \inbox would require maintaining state for each of them, which can be expensive, especially at high bandwidth-delay products. 
-This overhead is unnecessary; reacting once per RTT is sufficient for congestion control algorithms~\cite{ccp}. 
-We therefore sample a subset of the packets for which to receive congestion ACKs.
-
 We detail the sampling mechanism and contents of congestion ACKs in \S\ref{s:measurement}.
 
 \subsection{Choice of congestion control algorithm}\label{s:design:whichcc}

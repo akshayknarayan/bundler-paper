@@ -1,10 +1,8 @@
 \begin{abstract}
-We observe a phenomenon in today's Internet: large amounts of traffic between two domains, which we refer to as \emph{bundles}.
-Bundles represent a missed opportunity today; it is difficult for sending domains to schedule their traffic because the traffic, viewed as an aggregate, builds queues outside the sender's network.
-To take advantage of the existence of bundles, we propose a new kind of middlebox, called \name.
-\name sits at the edge of a sender's domain and bundles together groups of flows that share a common destination domain. 
+We propose a new kind of middlebox, called \name.
+\name sits at the edge of a sender's domain and \emph{bundles} together groups of flows that share a common destination domain. 
 It does rate control for each bundle, such that the queuing induced by its traffic is moved from the bottleneck (wherever it might be in the network) to \name itself. 
 This allows the sender to enforce its desired scheduling policy across the bundled traffic. 
 \name has an immediately deployable, light-weight design, which we implement in only $\sim1500$ lines of code. 
-Our evaluation, on a variety of emulated scenarios, shows that in a scenario with self-inflicted scheduling overhead, \name achieves 33\% lower median slowdown than the status quo.
+Our evaluation, on real Internet paths and on a variety of emulated scenarios, shows that in a scenario with self-inflicted scheduling overhead, \name achieves 33\% lower median slowdown than the status quo.
 \end{abstract}
