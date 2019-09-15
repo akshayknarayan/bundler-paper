@@ -40,7 +40,9 @@ The natural question that arises is, how can the queues be ``moved''? This is th
 %We further note that middleboxes are now prevalent in the Internet architecture~\cite{aplomb}. They are often deployed at the egress and ingress of a network domain, to ensure traffic transits them for intrusion detection, packet inspection, filtering etc. They thus provide an effective vantage point for aggregating and managing traffic. 
 To move the queues and schedule traffic bundles, we propose a new type of middlebox, called \name, that (1) dynamically aggregates the traffic at the content provider's egress into appropriate bundles, (2) does rate control for each bundle to move the corresponding queues from within the network to itself, and (3) applies scheduling and AQM policies within each bundle. 
 
-Each domain must deploy one middlebox , which is logically composed of sender-side (\inbox) and receiver-side (\outbox) functionality (as in Figure~\ref{fig:deploy:arch});
+Our key insight (discussed in \S\ref{s:design:key}) is the bundle rate control mechanism: to move the queues, we can simply use a delay-controlling congestion control algorithm.
+
+Each domain must deploy one middlebox, which is logically composed of sender-side (\inbox) and receiver-side (\outbox) functionality (as in Figure~\ref{fig:deploy:arch});
 a \emph{bundle} is a group of flows traversing the same \inbox{}-\outbox{} pair.
 The bulk of \name's functionality resides at the \inbox, which coordinates with the \outbox to identify bundles and measure congestion signals such as the round-trip time and the rate at which packets are received.
 The \inbox passes these signals to a congestion control algorithm (requiring certain properties described in \S\ref{s:design}) which computes appropriate sending rates for each bundle. 
@@ -54,7 +56,7 @@ Despite these limitations, we believe that our work provides a deployable soluti
  
 We make the following contributions:
 \begin{enumerate}
-    \item A ligh-weight, scalable, and deployable architecture that enables content providers to perform scheduling across traffic with a common destination domain. In this architecture, content providers perform congestion control over bundles of traffic with a common destination domain in order to move queueing to the content provider's edge (\S\ref{s:design}).
+    \item A light-weight, scalable, and deployable architecture that enables content providers to perform scheduling across traffic with a common destination domain. In this architecture, content providers perform congestion control over bundles of traffic with a common destination domain in order to move queueing to the content provider's edge (\S\ref{s:design}).
      \item A novel low-overhead protocol-agnostic technique for measuring signals for congestion control between the \pair, that need not make any changes to the packet headers (\S\ref{s:measurement}).
      \item A new congestion controller, synthesized from existing building blocks in congestion control (delay-control, AQM, and cross-traffic inference) for use with traffic bundles (\S\ref{s:queue-ctl}).
      %\item The design and implementation of a \name, including a novel method of collecting congestion control information and enforcing the decisions of a rate control algorithm on traffic aggregates, which \emph{moves} the queues from the bottleneck in the network to the customer's edge.

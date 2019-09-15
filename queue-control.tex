@@ -37,8 +37,8 @@ We thus configure the \inbox to hold back $8$ms of queueing for active probing.
 Note that this extra queueing is in addition to queueing in the network. As a result, the end-to-end Cubic connections will see RTT inflation, and experience slightly lower throughput due to RTT unfairness. In \an{forward pointer to eval} we show that \name still achieves status quo performance.
 
 How should we achieve this target queueing delay? 
-This problem is similar to the role of the PIe AQM mechanism~\cite{pie}.
-Thus, we implement a PI controller at the \inbox as part of the fairness control module. 
+This problem is similar to the role of the PIE AQM mechanism~\cite{pie}, which also seeks to maintain a queueing delay target.
+Correspondingly, we implement a PI controller at the \inbox as part of the fairness control module. 
 It overlays a rate $r$ corresponding to $\dot{r}(t) = \alpha (q - q_T) + \beta (\dot{q})$, where $q$ is the queue size and $q_T$ is the target queue size computed above.
 We pick $\alpha = 10$ and $\beta = 10$ as per \S\ref{s:qctl:pi}.
 
