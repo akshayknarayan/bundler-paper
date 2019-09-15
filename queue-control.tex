@@ -3,8 +3,9 @@
 Recall that \name's key trick is to use delay-minimizing congestion control algorithms from the bottleneck to the \inbox.
 However, a well-known property of delay-minimizing congestion control algorithms is that when competing with traditional window-probing controllers, they lose throughput~\cite{copa}.
 Therefore, it is important for congestion controllers at the \inbox to detect the presence of such algorithms and disable the use of delay-control in these situations.
+Once the buffer-filling cross traffic leaves, the \inbox should resume delay control.
 
-\subsection{Fairness Control}\label{s:qctl:fair}
+\paragrapha{Fairness Control}
 What should the \inbox do when Nimbus indicates the presence of buffer-filling cross traffic?
 A naive approach would be to emulate the end-host behaviour and run Cubic. This approach has two shortcomings.
 First, it must solve the MulTCP~\cite{multcp} problem: a bundle may comprise of multiple Cubic connections, and to achieve a fair bandwidth share it should therefore compete as aggressively as the number of component flows. 
@@ -12,9 +13,9 @@ On some high-performance datapaths, it may be difficult to measure this number~\
 
 We propose a simpler solution.
 Recall that bundles comprise of traditional end-host connections, with their own congestion controllers. 
-If we simply \emph{let the traffic pass}, these end-host congestion controllers will naturally compete fairly with cross traffic, just as traffic in the Internet does today. 
+If we simply \emph{let the traffic pass}, \ie increase the pacing rate at the \inbox to stop controlling queues as described in \S\ref{s:design:key}, these end-host congestion controllers will naturally compete fairly with cross traffic, just as traffic in the Internet does today. 
 
-\subsection{Active Probing}\label{s:qctl:nimbus}
+\paragrapha{Active Probing}
 When does the \inbox know it is safe to resume delay-control and scheduling?
 Because bundles include buffer-filling cross traffic, it is important to distinguish between \emph{self-inflicted} queueing delay and queueing delay due to cross traffic.
 When the queueing delay is purely self-inflicted, it is safe to resume control over the queues at the \inbox.
@@ -27,24 +28,57 @@ The \inbox can use the Nimbus algorithm to detect when to relinquish control ove
 However, this implies that we must be careful when letting the traffic pass; if the \inbox entirely drains its queues into the network, it will no longer be possible for Nimbus to overlay pulses onto the traffic pattern, and it will be unable to determine the nature of the cross traffic.
 Practically, this would mean that once \inbox switches to compete with cross traffic, it would never gain the information necessary to switch back.
 
-\subsection{Queue Controller}\label{s:qctl:ctl}
-To support active probing while also letting the traffic pass, the \inbox should hold back some packets while letting the remainder pass.
+\paragrapha{Queue Controller}
+Instead, to support active probing while also letting the traffic pass, the \inbox should \emph{hold back} some packets while letting the remainder pass.
 How many packets should this be? The \inbox should be able to generate enough packets for a Nimbus up-pulse, \ie the area under the up-pulse curve: 
 $A \int_0^{\frac{T}{4}} sin(\frac{4\pi{}t}{T}) dt = \frac{AT}{2\pi}$.
 From Nimbus, we use $T = 0.2$ seconds and $A$ is as above, one-fourth the bottleneck bandwidth. By Little's law, we can calculate the amount of extra queueing: $\frac{T}{8\pi}$, or $8$ms.
 We thus configure the \inbox to hold back $8$ms of queueing for active probing.
 Note that this extra queueing is in addition to queueing in the network. As a result, the end-to-end Cubic connections will see RTT inflation, and experience slightly lower throughput due to RTT unfairness. In \an{forward pointer to eval} we show that \name still achieves status quo performance.
 
-To control the queue to $8$ms, we implement a PI controller at the \inbox as part of the fairness control module. 
+How should we achieve this target queueing delay? 
+This problem is similar to the role of the PIe AQM mechanism~\cite{pie}.
+Thus, we implement a PI controller at the \inbox as part of the fairness control module. 
 It overlays a rate $r$ corresponding to $\dot{r}(t) = \alpha (q - q_T) + \beta (\dot{q})$, where $q$ is the queue size and $q_T$ is the target queue size computed above.
-This form of delay
 We pick $\alpha = 10$ and $\beta = 10$ as per \S\ref{s:qctl:pi}.
 
 \begin{Appendix}
 \section{Queue Controller Stability}\label{s:qctl:pi}
 
+We control the queues with the update function 
+    
+    $\dot{r}(t) = \alpha (q - q_T) + \beta (\dot{q})$.
 
+How should we set $\alpha$ and $\beta$? This decision is related to the size of the Nimbus pulse. 
+If the queue controller is too aggressive (\ie it reacts quickly to maintain the queue target), it will nullify the Nimbus pulse with its overlaid rate control.
+If it is too timid, it will not be able to effectively control the queues.
 
+Therefore, we want the target queue length to be $A sin(\frac{2\pi{}t}{T})$. 
+We can write how the queue length varies with time as 
+    
+    $\dot{q}(t) = \mu - r(t) - A sin(\frac{2\pi{}t}{T})$, where $\mu$ is the link bandwidth.
+
+\noindent Thus, 
+    
+    $\ddot{q}(t) = - \dot{r}(t) - A \frac{2\pi{}t}{T} cos(\frac{2\pi{}t}{T})$.
+
+\noindent Combining with the rate update rule:
+
+$\ddot{q}(t) - \beta \dot{q}(t) + \alpha (q(t) - q_T) = A \frac{2\pi{}t}{T} cos(\frac{2\pi{}t}{T})$.
+
+\noindent Substituting the pulse parameters from Nimbus and using $y(t) = q(t) - q_T$, we write a second-order ordinary differential equation (ODE) with sinusoidal input:
+
+$\ddot{y}(t) - \beta \dot{y}(t) + \alpha y(t) = 10\pi{}A cos(10\pi{}t)$.
+
+This has the standard-form solution:
+
+$y(t) = c_1 e^{r_1 t} + c_2 e^{r_2 t} + \frac{10\pi{}A}{|P(10\pi{}i|} cos(10\pi{}i + \phi)$ where $P$ is the characteristic polynomial and $r_1, r_2$ are its roots.
+
+\noindent We want: (1) the $r_1$, $r_2$ to be large, so the queue converges quickly, and (2) the pulse amplitude to be approximately the Nimbus pulse amplitude, so:
+
+$\frac{10\pi{}A}{|P(10\pi{}i|} = \frac{A}{5\pi}$.
+
+$\alpha = 10, \beta = 10$ satisfy these constraints.
 \end{Appendix}
 
 \cut{
