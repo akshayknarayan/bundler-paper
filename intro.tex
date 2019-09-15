@@ -40,7 +40,7 @@ The natural question that arises is, how can the queues be ``moved''? This is th
 %We further note that middleboxes are now prevalent in the Internet architecture~\cite{aplomb}. They are often deployed at the egress and ingress of a network domain, to ensure traffic transits them for intrusion detection, packet inspection, filtering etc. They thus provide an effective vantage point for aggregating and managing traffic. 
 To move the queues and schedule traffic bundles, we propose a new type of middlebox, called \name, that (1) dynamically aggregates the traffic at the content provider's egress into appropriate bundles, (2) does rate control for each bundle to move the corresponding queues from within the network to itself, and (3) applies scheduling and AQM policies within each bundle. 
 
-Each domain must deploy one middlebox , which is logically composed of sender-side (\inbox) and receiver-side (\outbox) functionality (as in Figure~\ref{s:deploy:arch});
+Each domain must deploy one middlebox , which is logically composed of sender-side (\inbox) and receiver-side (\outbox) functionality (as in Figure~\ref{fig:deploy:arch});
 a \emph{bundle} is a group of flows traversing the same \inbox{}-\outbox{} pair.
 The bulk of \name's functionality resides at the \inbox, which coordinates with the \outbox to identify bundles and measure congestion signals such as the round-trip time and the rate at which packets are received.
 The \inbox passes these signals to a congestion control algorithm (requiring certain properties described in \S\ref{s:design}) which computes appropriate sending rates for each bundle. 
