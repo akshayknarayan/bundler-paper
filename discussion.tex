@@ -1,6 +1,7 @@
 \section{Discussion}\label{s:discussion}
 
 \paragrapha{Multipath}
+\an{move this inline to eval?}
 An interesting scenario is load-balancing in the core, a widely used technique for reducing the congestion on any one path.
 Here, we make two observations: 
 (1) while bundle traffic may traverse multiple intermediate paths, it necessarily must converge on the receiving domain (and the \outbox). If the bottleneck is near the receiving domain, the bundled traffic will still build queues.
@@ -28,15 +29,3 @@ In \S\ref{s:eval}, we show that \name still controls queueing on bundles in the 
 %Different bundles may have different rates; recent work~\cite{carousel, eifel} has shown it is possible to implement such multi-rate, multi-scheduler datapaths efficiently.
 
 \paragrapha{Benefits of delay-based congestion control} A delay-based congestion control allows maintaining low packet delays in the network. Deploying such algorithms at each individual endhosts is difficult. \name provides a way to reap benefits of such algorithms, by simply deploying a middlebox, without changing individual endpoints.
-
-\cut{
-\paragrapha{Endhost Congestion Control}
-We note in \S\ref{s:eval:cc} that \name's performance changes when the endhost congestion control algorithm changes.
-If the endhost uses a delay-based congestion controller, it will not build queues at \name.
-If \emph{all} such endhosts deploy delay-control schemes---an unlikely scenario, as endhost congestion control is difficult to evolve~\cite{quic}---\name may have limited ability to schedule packets.
-However, we note that using delay-based congestion controllers is an expression of a desired scheduling policy: namely, low packet delays.
-\name is thus compatible with this method of enforcing endhost scheduling policy, while additionally enabling isolation of the delay-sensitive traffic (via scheduling) from other flows.
-Furthermore, \name can realize the benefits of recent developments in congestion control, as it can use AQM at the \inbox to achieve similar goals. 
-}
-%
-\cut{}
