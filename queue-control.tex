@@ -39,7 +39,7 @@ Note that this extra queueing is in addition to queueing in the network. As a re
 
 To control the queue to $8$ms, we implement a PI controller at the \inbox as part of the fairness control module. 
 It overlays a rate $r(t) = \alpha (q - q_T) + \beta (\dot{q})$, where $q$ is the queue size and $q_T$ is the target queue size computed above.
-\an{We experimentally determine $\alpha = 100$ and $\beta = 10000$.}
+\an{We somehow determined $\alpha = 100$ and $\beta = 10000$.}
 
 \cut{
 \begin{outline}

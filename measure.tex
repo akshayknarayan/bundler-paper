@@ -7,7 +7,13 @@ We answer the following questions: (1) How are epoch boundary packets selected? 
 \subsection{Selecting Epoch Boundary Packets}
 \label{s:measure:marking}
 
-The simplest way to select an epoch boundary packet would be for the \inbox to modify it (\ie set a flag bit in the header) and the \outbox to match on this flag bit.
+When should the \outbox send these feedback messages? 
+Sending an out-of-band feedback message for every packet arriving at the \outbox would result in high communication overhead. 
+Furthermore, conducting measurements on every outgoing packet at the \inbox would require maintaining state for each of them, which can be expensive, especially at high bandwidth-delay products. 
+This overhead is unnecessary; reacting once per RTT is sufficient for congestion control algorithms~\cite{ccp}. 
+We therefore sample a subset of the packets for which to receive congestion ACKs.
+
+The simplest way to sample an epoch boundary packet would be for the \inbox to modify it (\ie set a flag bit in the header) and the \outbox to match on this flag bit.
 However, where in the header should this flag bit be?
 Evolving packet headers has proved impractical~\cite{trotsky}, so perhaps we could use an encapsulation mechanism.
 Protocols at both L3 (\eg NVGRE~\cite{nvgre}, IP-in-IP~\cite{ipinip}) and L4 (\eg VXLAN~\cite{vxlan}) are broadly available and deployed in commodity routers today.
