@@ -36,7 +36,7 @@ In contrast, a \name deployed at the edge is able to shift the queue to its \inb
 \begin{figure}
     \centering
     \includegraphics[width=\columnwidth]{img/arch-block-diag}
-    \caption{\name comprises of five sub-systems: four (in green) implement \inbox functionality, one (in blue) implements \outbox functionality, and the datapath (orange) is shared between the two. \name's architecture supports multiple compatible implementations (listed in the ``Impl'' section of each block).}\label{fig:design:block-diag}
+    \caption{\name comprises of six sub-systems: four (in green) implement \inbox functionality, one (in blue) implements \outbox functionality, and the datapath (orange) is shared between the two. \name's architecture supports multiple compatible implementations (listed in the ``Impl'' section of each block).}\label{fig:design:block-diag}
 \end{figure}
 Figure~\ref{fig:design:block-diag} shows the necessary components of any \name: (1) a means of determining bundle membership; (2) a rate enforcement mechanism; (3) a measurement strategy; (4) a delay-controller; and (5) a fairness-controller.
 Throughout this section we discuss design options for determining Bundle membership (\S\ref{s:design:membership}), observing feedback (\S\ref{s:design:twosided}), and congestion control (\S\ref{s:design:whichcc}): for other aspects of the design, \name is compatible with a variety of options. For example, domains can implement \name using any modern middlebox datapath, \eg P4~\cite{p4}, BESS~\cite{bess}, or as in our prototype implementation (\S\ref{s:impl}), Linux tc qdiscs.
