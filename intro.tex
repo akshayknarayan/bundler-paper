@@ -7,27 +7,36 @@ There exists a vast literature on mechanisms for such scheduling and queue manag
 These mechanisms can decrease average flow-completion times, ensure low packet delays, isolate classes of traffic from each other, and more.
 
 % can't scehdule today
-The most effective place to enforce a scheduling policy is where queue buildup occurs; where there is queueing, there is the opportunity to reorder packets.
-As a result, content providers and end users have been unable to enjoy the benefits of scheduling policies because such links with queue build-up are often outside the control of individual content 
-providers~\cite{inferring-interdomain-congestion, isp-throttle-1, isp-throttle-2, isp-throttle-3}. 
+The most effective place to enforce a scheduling policy is where queue buildup occurs; where there is queueing, there is the opportunity to reorder packets. Such links with queue build-up are often outside the control of individual content 
+providers~\cite{inferring-interdomain-congestion, isp-throttle-1, isp-throttle-2, isp-throttle-3}, which disables them from enjoying the benefits of scheduling.
+%content providers and end users have been unable to enjoy the benefits of scheduling policies. 
 
 % ISP's cant solve problem (e.g. with CSFQ)
-ISPs, on the other hand, do control the bottleneck links in their carrier networks to enforce different scheduling and queue management policies. 
-However, simply isolating each customer (\eg with fair queueing~\cite{fair-queueing}) is not enough; to see why, note that cellular networks provide isolation~\cite{sprout}, but users must still cope with self-inflicted queueing \an{need cripser explanation}.
-ISPs thus neither have enough visibility into their customers' traffic bundle to choose desired policies on their queues, nor enough incentives to enforce them\footnote{The case for private WANs is different, since they are owned by a single entity, and have, thus, been successful in exploiting the benefits of scheduling~\cite{swan, b4, bwe}. Our focus is public networks.}.
-Large customers might be able to negotiate deals with certain carriers to enforce specific policies~\cite{att-qos} \an{at significant expense}. 
-However, it might not be possible to negotiate such deals with \emph{all} carriers in the bundle's path, and content providers may wish to keep their policies confidential from downstream ISPs.
+ISPs, on the other hand, do control the bottleneck links in their carrier networks where different scheduling and queue management policies can be effectively enforced. 
+However, ISPs neither have enough visibility into their customers' traffic to choose desired policies on their queues, nor enough incentives to enforce them\footnote{The case for private WANs is different, since they are owned by a single entity, and have, thus, been successful in exploiting the benefits of scheduling~\cite{swan, b4, bwe}. Our focus is public networks.}. Even if an ISP isolates each its customers' traffic (\eg with fair queueing~\cite{fair-queueing}), that still does not serve a customer's desire to enforce different scheduling policies within its own traffic.  
+Large customers might be able to negotiate expensive deals with certain carriers to enforce specific policies~\cite{att-qos}. 
+However, it might not be possible to negotiate such deals with \emph{all} carriers in the traffic's path, and content providers may wish to keep some of their policies confidential from downstream ISPs. 
+
+
+%Note that simply isolating each customer (\eg with fair queueing~\cite{fair-queueing}) is not enough;  but users must still cope with self-inflicted queueing.
 
 % introduce concept of bundles
 Meanwhile, traffic in the contemporary Internet is steadily aggregating amongst a small number of entities~\cite{fivecomps}. 
 Examples include large amounts of traffic between a content provider (\eg Amazon, Google, etc.) and a network with many clients (\eg an enterprise), between two different campuses of an organization, between collaborating institutes, and so on.
-We propose viewing a set of component flows, or \emph{bundle}, of traffic between a given sender's domain and destined for the same receiving domain, as a single, aggregate entity.
+We view the traffic that flows between a given sender's domain and destined for the same receiving domain, as a single, aggregate entity or a \emph{bundle}.
 The flows within such a bundle are likely to share common bottlenecks in the network connecting the two domains.
 
 % move the queues
-To reduce a content provider's dependence on the ISPs with respect to how its bundle is managed, we propose to bring the provider's traffic under its own control by \emph{queueing packets at the provider's edge rather than the in-network bottleneck}.
-This approach allows the content provider to enforce its desired traffic management policies on its traffic bundle(s).
-The natural question that arises is, how can the queues be ``moved''? This is the primary focus of our work. 
+We leverage this trend to reduce a content provider's dependence on the ISPs with respect to how its traffic is managed. In particular, we propose controlling the aggregate outgoing rate of the traffic bundle(s) at the sender's domain edge to match its bottleneck rate in the network. This effectively \emph{moves}
+the queues built by the traffic in the bundle from the bottleneck within the network to within the sender’s domain, thus allowing the sender to enforce its desired traffic management policies on it. 
+
+%Developing such an aggregate rate controller is the primary focus of our work. 
+
+%bringing the content provider's traffic bundle(s) under its own control by \emph{moving the packet queues from the in-network bottleneck to the provider's edge}. 
+%The natural question that arises is, how can the queues be ``moved''? 
+
+
+
 
 \begin{figure*}[t]
     \centering
@@ -38,17 +47,18 @@ The natural question that arises is, how can the queues be ``moved''? This is th
 \end{figure*}
 
 %We further note that middleboxes are now prevalent in the Internet architecture~\cite{aplomb}. They are often deployed at the egress and ingress of a network domain, to ensure traffic transits them for intrusion detection, packet inspection, filtering etc. They thus provide an effective vantage point for aggregating and managing traffic. 
-To move the queues and schedule traffic bundles, we propose a new type of middlebox, called \name, that (1) dynamically aggregates the traffic at the content provider's egress into appropriate bundles, (2) does rate control for each bundle to move the corresponding queues from within the network to itself, and (3) applies scheduling and AQM policies within each bundle. 
 
-Our key insight (discussed in \S\ref{s:design:key}) is the bundle rate control mechanism: to move the queues, we can simply use a delay-controlling congestion control algorithm.
+We develop a new type of middlebox, called \name, that (1) aggregates the traffic at the content provider's egress into appropriate bundles, (2) does rate control for each bundle to move the corresponding queues from within the network to itself, and (3) applies scheduling and AQM policies within each bundle. 
+
+Our key insight (discussed in \S\ref{s:design}) is the bundle rate control mechanism: to move the queues, we can simply use a delay-controlling congestion control algorithm. \radhika{can i chop this?}
+\an{shouldn't we keep the key insight in the intro?}
 
 Each domain must deploy one middlebox, which is logically composed of sender-side (\inbox) and receiver-side (\outbox) functionality (as in Figure~\ref{fig:deploy:arch});
-a \emph{bundle} is a group of flows traversing the same \inbox{}-\outbox{} pair.
+we define a \emph{bundle} to be a group of flows traversing the same \inbox{}-\outbox{} pair \radhika{this now gets confusing}.
 The bulk of \name's functionality resides at the \inbox, which coordinates with the \outbox to identify bundles and measure congestion signals such as the round-trip time and the rate at which packets are received.
-The \inbox passes these signals to a congestion control algorithm (requiring certain properties described in \S\ref{s:design}) which computes appropriate sending rates for each bundle. 
-By varying the sending rate, the \inbox ensures that the queuing induced by the bundled traffic within the network is low and is incurred at the \inbox instead, while maintaing high utilization at the bottleneck link.
+The \inbox passes these signals to a delay-based congestion control algorithm (as described in \S\ref{s:design}) which computes appropriate sending rates for each bundle, such that the queuing induced by the bundled traffic within the network is low and is incurred at the \inbox instead, while still maintaining high utilization at the bottleneck link.
  
-We introduce a lightweight method for the coordination between the \inbox and the \outbox which does not require any per-flow state and can be deployed in a mode that forwards packets without modification. \name requires no changes to the end hosts or to the routers in the network.
+We introduce a lightweight method for the coordination between the \inbox and the \outbox which does not require any per-flow state and can be deployed in a mode that forwards packets without modification.  \name requires no changes to the end hosts or to the routers in the network.
  
 Note that our goal is to perform scheduling and queue management only on the traffic within the same bundle. We do not currently attempt to control traffic across different bundles. 
 Furthermore, as we will discuss in \S\ref{s:deploy}, there may be instances where \name cannot improve performance for the bundled traffic, and falls back to the status quo performance; \ie the performance achieved today when queues build in the network instead of the edge. 
@@ -58,7 +68,7 @@ We make the following contributions:
 \begin{enumerate}
     \item A light-weight, scalable, and deployable architecture that enables content providers to perform scheduling across traffic with a common destination domain. In this architecture, content providers perform congestion control over bundles of traffic with a common destination domain in order to move queueing to the content provider's edge (\S\ref{s:design}).
      \item A novel low-overhead protocol-agnostic technique for measuring signals for congestion control between the \pair, that need not make any changes to the packet headers (\S\ref{s:measurement}).
-     \item A new congestion controller, synthesized from existing building blocks in congestion control (delay-control, AQM, and cross-traffic inference) for use with traffic bundles (\S\ref{s:queue-ctl}).
+     \item A new congestion controller, synthesized from existing building blocks in congestion control (delay-control, AQM, and cross-traffic inference) for use with traffic bundles (\S\ref{s:queue-ctl}) \radhika{AQM? add cites as well?}.
      %\item The design and implementation of a \name, including a novel method of collecting congestion control information and enforcing the decisions of a rate control algorithm on traffic aggregates, which \emph{moves} the queues from the bottleneck in the network to the customer's edge.
      %\item An evaluation of the benefits of scheduling and queue management for traffic aggregates, compared to both the status quo (FIFO) and an idealized deployment where bottleneck queues deploy the desired policy.
 \end{enumerate}
