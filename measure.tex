@@ -19,7 +19,7 @@ Evolving packet headers has proved impractical~\cite{trotsky}, so perhaps we cou
 Protocols at both L3 (\eg NVGRE~\cite{nvgre}, IP-in-IP~\cite{ipinip}) and L4 (\eg VXLAN~\cite{vxlan}) are broadly available and deployed in commodity routers today.
 
 However, packet modification is unnecessary; since the same packets pass through \inbox and \outbox, uniquely identifying a given pattern of packets is sufficient to meet our requirements. In this scheme, the \inbox and \outbox both hash a subset of every packet header and check if the hash is a multiple of the desired sampling period. 
-The \inbox records the matching hashes, and when the \outbox observes a matching hash, it sends a congestion ACK, described in \S\ref{s:measurem:compute}, back to the \inbox. The \inbox can then compute measurements to pass to the congestion control algorithm.
+The \inbox records the matching hashes, and when the \outbox observes a matching hash, it sends a congestion ACK, described in \S\ref{s:measure:compute}, back to the \inbox. The \inbox can then compute measurements to pass to the congestion control algorithm.
 
 Thus, the packet header subset must have the following properties:
 (i) It must be the same at both the \inbox and the \outbox.
@@ -71,7 +71,7 @@ The \inbox then clears the recorded state of all epoch boundaries preceding $p_i
     }\label{fig:ratecalc}
 \end{figure}
 
-Note that our measurement technique is robust to a boundary packet being lost between the \inbox and the \outbox. In this case, the \inbox would not get a feedback for the lost boundary packet, and it would simply compute rates for the next boundary packet over a longer epoch. 
+Note that our measurement technique is robust to a boundary packet being lost between the \inbox and the \outbox. In this case, the \inbox would not get a feedback for the lost boundary packet, and it would simply compute rates for the next boundary packet over a longer epoch once the next congestion ACK arrives. 
 
 We present microbenchmarks evaluating the fidelity of our measurements in Appendix~\ref{app:epochs}.
 

@@ -105,9 +105,41 @@ A window-probing congestion control algorithm which fills buffers (\eg Cubic, Ne
 \paragraphi{(2) Detection of buffer-filling cross-traffic} Simultaneously, it is well-known that delay-controlling schemes (\eg Vegas~\cite{vegas}) compete poorly with buffer-filling window-probing schemes~\cite{copa}.
 Therefore, \name must have a mechanism to detect the presence of such competing buffer-filling flows and fall back to status quo performance, and then detect when they have left to take back its control over the network queues. 
 
-The emergence of such detection mechanisms is recent: Copa~\cite{copa} detects whether it is able to empty the queues, and Nimbus\footnote{Concurrently submitted work: paper \an{XX} describes Nimbus.} provides a more general mechanism which overlays a pattern on the sending rate and measures the cross traffic's response.
+The emergence of such detection mechanisms is recent: Copa~\cite{copa} detects whether it is able to empty the queues, and Nimbus (see \S\ref{s:app:nimbus}) provides a more general mechanism which overlays a pattern on the sending rate and measures the cross traffic's response.
 
 Copa's detection mechanism does not work for \name, because it relies on emptying the queues; since a bundle may itself be comprised of buffer-filling traffic, the queues will not empty! Therefore, while Copa would be able to switch modes to compete with buffer-filling cross traffic, it would not be able to re-assert control over the queues once the cross traffic leaves.
 Therefore, we use the more general Nimbus mechanism, which uses \emph{active probing} to differentiate between \name's own traffic and cross traffic in the bottleneck queue.
 
 We discuss active probing in \S\ref{s:queue-ctl}.
+
+\begin{Appendix}
+\section{Nimbus}\label{s:app:nimbus}
+
+Nimbus is described in Anonymous Reference 1.
+We briefly summarize it here for reference.
+
+Nimbus detects \emph{elastic} cross traffic which reacts to changes in the available bandwidth. Its core observation is that the absence of such elastic cross traffic, \ie competition with only \emph{inelastic} traffic, is a sufficient (but not necessary) condition to use a delay-control algorithm.
+Nimbus thus measures whether cross traffic reacts to changes in available bandwidth by pulsing its sending rate at a predetermined frequency.
+If the cross traffic's rate responds to these pulses at the same frequency, Nimbus can conclude that it is elastic, because it has reacted to changes in the available bandwidth.
+
+A natural method of measuring the cross traffic's frequency response is to compare Nimbus's pulses with the cross traffic's rate in the frequency domain.
+Thus, Nimbus an asynmmetric sinusoidal pulse (as we have noted in \S\ref{s:queue-ctl}) which has a straightforward representation in the frequency domain while maximizing the sender's ability to influence the available bandwidth.
+
+How can Nimbus know the cross traffic's response? It develops an estimator for the cross traffic's sending rate:
+\begin{equation}
+    \hat{z}(t) = \mu\frac{S(t)}{R(t)} - S(t)
+\end{equation}
+
+$\hat{z}(t)i$ is the estimated cross traffic rate, $\mu$ is the estimated bottleneck bandwidth, $S(t)$ is the sending rate, and $R(t)$ is the receiving rate. 
+\name measures $R(t)$ using congestion ACKs from the \outbox and $\mu$ using the maximum receive rate, as in Nimbus and BBR~\cite{bbr}.
+
+Then, Nimbus searches for a peak in the neighborhood of its pulsing frequency $f_p$ to determine the elasticity metric $\eta$:
+
+\begin{equation}
+    \eta = \frac{|\text{FFT}_{\hat{z}}(f_p)|}{\text{max}_{f \in (f_p, 2f_p)} |\text{FFT}_{\hat{z}}(f)|}
+\end{equation}
+
+If $\eta$ is larger, the cross traffic is more elastic.
+Nimbus then uses a hard-decision rule $\eta \ge 1$ to decide when to switch to cross-traffic competitive mode as described in \S\ref{s:queue-ctl}.
+
+\end{Appendix}
