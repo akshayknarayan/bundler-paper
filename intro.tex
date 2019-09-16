@@ -23,12 +23,11 @@ However, it might not be possible to negotiate such deals with \emph{all} carrie
 % introduce concept of bundles
 Meanwhile, traffic in the contemporary Internet is steadily aggregating amongst a small number of entities~\cite{fivecomps}. 
 Examples include large amounts of traffic between a content provider (\eg Amazon, Google, etc.) and a network with many clients (\eg an enterprise), between two different campuses of an organization, between collaborating institutes, and so on.
-We view the traffic that flows between a given sender's domain and destined for the same receiving domain, as a single, aggregate entity or a \emph{bundle}.
+We view the traffic that flows between a given sender's domain and destined for the same receiving domain, as a single, aggregate entity, that we call a \emph{bundle}.
 The flows within such a bundle are likely to share common bottlenecks in the network connecting the two domains.
 
 % move the queues
-We leverage this trend to reduce a content provider's dependence on the ISPs with respect to how its traffic is managed. In particular, we propose controlling the aggregate outgoing rate of the traffic bundle(s) at the sender's domain edge to match its bottleneck rate in the network. This effectively \emph{moves}
-the queues built by the traffic in the bundle from the bottleneck within the network to within the sender’s domain, thus allowing the sender to enforce its desired traffic management policies on it. 
+We leverage this trend to reduce a content provider's dependence on the ISPs with respect to how its traffic is managed. In particular, we propose deploying a delay-based congestion controller at the edge of the sender's domain that controls the aggregate outgoing rate of each traffic bundle to match its bottleneck rate in the network. This effectively \emph{moves} the queues built by the traffic in the bundle from the bottleneck within the network to the sender’s domain itself, thus allowing the sender to enforce its desired traffic management policies on it. 
 
 %Developing such an aggregate rate controller is the primary focus of our work. 
 
@@ -48,13 +47,13 @@ the queues built by the traffic in the bundle from the bottleneck within the net
 
 %We further note that middleboxes are now prevalent in the Internet architecture~\cite{aplomb}. They are often deployed at the egress and ingress of a network domain, to ensure traffic transits them for intrusion detection, packet inspection, filtering etc. They thus provide an effective vantage point for aggregating and managing traffic. 
 
-We develop a new type of middlebox, called \name, that (1) aggregates the traffic at the content provider's egress into appropriate bundles, (2) does rate control for each bundle to move the corresponding queues from within the network to itself, and (3) applies scheduling and AQM policies within each bundle. 
+We hence develop a new type of middlebox, called \name, that (1) aggregates the traffic leaving a sender's domain and destined to the same receiver's domain into appropriate bundles, (2) uses a delay-based congestion control algorithm to compute and enforce a sending rate for each bundle to move the corresponding queues from within the network to itself, and (3) applies scheduling and AQM policies within each bundle. 
 
-Our key insight (discussed in \S\ref{s:design}) is the bundle rate control mechanism: to move the queues, we can simply use a delay-controlling congestion control algorithm. \radhika{can i chop this?}
-\an{shouldn't we keep the key insight in the intro?}
+%Our key insight (discussed in \S\ref{s:design}) is the bundle rate control mechanism: to move the queues, we can simply use a delay-controlling congestion control algorithm. \radhika{can i chop this?}
+%\an{shouldn't we keep the key insight in the intro?}
 
-Each domain must deploy one middlebox, which is logically composed of sender-side (\inbox) and receiver-side (\outbox) functionality (as in Figure~\ref{fig:deploy:arch});
-we define a \emph{bundle} to be a group of flows traversing the same \inbox{}-\outbox{} pair \radhika{this now gets confusing}.
+\name consists of sender-side (\inbox) and receiver-side (\outbox) functionality, as in Figure~\ref{fig:deploy:arch}.
+We define a \emph{bundle} to be a group of flows that share the same \inbox in their sending domain and the same \outbox in their receiving domain (what we call a \inbox-\outbox pair).
 The bulk of \name's functionality resides at the \inbox, which coordinates with the \outbox to identify bundles and measure congestion signals such as the round-trip time and the rate at which packets are received.
 The \inbox passes these signals to a delay-based congestion control algorithm (as described in \S\ref{s:design}) which computes appropriate sending rates for each bundle, such that the queuing induced by the bundled traffic within the network is low and is incurred at the \inbox instead, while still maintaining high utilization at the bottleneck link.
  
@@ -68,7 +67,7 @@ We make the following contributions:
 \begin{enumerate}
     \item A light-weight, scalable, and deployable architecture that enables content providers to perform scheduling across traffic with a common destination domain. In this architecture, content providers perform congestion control over bundles of traffic with a common destination domain in order to move queueing to the content provider's edge (\S\ref{s:design}).
      \item A novel low-overhead protocol-agnostic technique for measuring signals for congestion control between the \pair, that need not make any changes to the packet headers (\S\ref{s:measurement}).
-     \item A new congestion controller, synthesized from existing building blocks in congestion control (delay-control, AQM, and cross-traffic inference) for use with traffic bundles (\S\ref{s:queue-ctl}) \radhika{AQM? add cites as well?}.
+     \item A new congestion controller, synthesized from existing building blocks in congestion control (delay-control~\cite{copa}, AQM~\cite{pie}, and cross-traffic inference\footnote{See Appendix \S\ref{s:app:nimbus}.}) for use with traffic bundles (\S\ref{s:queue-ctl}).
      %\item The design and implementation of a \name, including a novel method of collecting congestion control information and enforcing the decisions of a rate control algorithm on traffic aggregates, which \emph{moves} the queues from the bottleneck in the network to the customer's edge.
      %\item An evaluation of the benefits of scheduling and queue management for traffic aggregates, compared to both the status quo (FIFO) and an idealized deployment where bottleneck queues deploy the desired policy.
 \end{enumerate}
