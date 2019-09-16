@@ -52,8 +52,7 @@ We hence develop a new type of middlebox, called \name, that (1) aggregates the 
 %Our key insight (discussed in \S\ref{s:design}) is the bundle rate control mechanism: to move the queues, we can simply use a delay-controlling congestion control algorithm. \radhika{can i chop this?}
 %\an{shouldn't we keep the key insight in the intro?}
 
-\name consists of sender-side (\inbox) and receiver-side (\outbox) functionality, as in Figure~\ref{fig:deploy:arch}.
-We define a \emph{bundle} to be a group of flows that share the same \inbox in their sending domain and the same \outbox in their receiving domain (what we call a \inbox-\outbox pair).
+\name consists of sender-side (\inbox) and receiver-side (\outbox) functionality, as in Figure~\ref{fig:deploy:arch}. As detailed in \S\ref{sec:desing}, the \inbox of one domain establishes a pairing with the \outbox of another domain when sending traffic to it. We define a \emph{bundle} to be a group of flows that share the same \inbox-\outbox pair.
 The bulk of \name's functionality resides at the \inbox, which coordinates with the \outbox to identify bundles and measure congestion signals such as the round-trip time and the rate at which packets are received.
 The \inbox passes these signals to a delay-based congestion control algorithm (as described in \S\ref{s:design}) which computes appropriate sending rates for each bundle, such that the queuing induced by the bundled traffic within the network is low and is incurred at the \inbox instead, while still maintaining high utilization at the bottleneck link.
  
