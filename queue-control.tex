@@ -22,7 +22,7 @@ When the queueing delay is purely self-inflicted, it is safe to resume control o
 Passive probing is insufficient to determine this state, since passive measurements of the bottleneck will be identical in the case of self-inflicted queueing and queueing driven by cross traffic.
 Therefore, it is important to \emph{actively probe}, that is, change the rate of in-band traffic and observe the response of the cross traffic. 
 This is what the Nimbus mechanism does.
-At a high level\footnote{A full description and evaluation of Nimbus is in concurrently submitted work, Paper \an{XX}}, 
+At a high level (see Appendix \S\ref{s:app:nimbus}),
 Nimbus sinusoidally varies the sending rate $r(t) = A sin(\frac{4\pi{}t}{T})$ during the up-pulse, where $A$ is the pulse amplitude (set to one-fourth of the estimated bottleneck bandwidth) and $T$ is the pulse duration, and measures the cross traffic's response in the frequency domain.
 The \inbox can use the Nimbus algorithm to detect when to relinquish control over the queue by interposing this sending pattern over the delay-controller's rate decisions.
 However, this implies that we must be careful when letting the traffic pass; if the \inbox entirely drains its queues into the network, it will no longer be possible for Nimbus to overlay pulses onto the traffic pattern, and it will be unable to determine the nature of the cross traffic.
