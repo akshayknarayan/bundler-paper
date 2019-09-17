@@ -51,8 +51,6 @@ This scenario highlights the benefits of using \name when the congestion on the 
 \newcommand{\baseline}{Status Quo\xspace}
 \newcommand{\optimal}{In-Network\xspace}
 
-
-
 %\paragrapha{Comparison with \baseline and \optimal Scheduling} 
 \Para{Using \name for fair queueing}
 %On a $96$Mbps link, we generate  from the CDF described above.
@@ -98,6 +96,22 @@ Indeed, the packets endhost Cubic sends beyond those that the link can transmit 
 % We can see this by measuring the relative performance of using FIFO scheduling at the \name instead of the SFQ scheduling in Figure~\ref{fig:eval:best}.
 % The results are in Figure~\ref{fig:eval:fifo}. 
 % Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a median slowdown of \overviewBenefitsFifoMedian, it is \overviewBenefitsFifoWorse higher than the \baseline. 
+
+\subsection{Real Internet Paths}\label{s:eval:realworld}
+\input{realworld}
+Is there queueing on real Internet paths, and if so, can \name effectively control those queues?
+An interesting real-Internet scenario to consider is load-balancing, a widely used technique for reducing the congestion on any one path.
+Here, we make two observations: 
+(1) while bundle traffic may traverse multiple intermediate paths, it will converge on the receiving domain (and the \outbox). If the bottleneck is near the receiving domain, the bundled traffic will still build queues.
+(2) from the bundle's perspective, multiple paths appear as multiple queues, with some aggregate bandwidth capacity (\ie the max-flow of the network paths between the sending and receiving domains). While queueing may be unevenly distributed among the paths, the distribution of flows onto paths is currently random (\eg via ECMP). With \name, all these queues are moved to the \inbox, so it can schedule bundled flows deliberately rather than randomly.
+
+To measure this effect, we measure the latency of 10 parallel, closed-loop UDP senders with 40-byte requests. Each UDP sender uses a different port, to gain visibility across multiple paths, if applicable.
+We gather baseline latency measurements on five bundles sent from a GCP datacenter in Iowa to GCP datacenters in Belgium, Frankfurt, Oregon, South Carolina, and Tokyo and measure queueing\footnote{We use GCP's ``Standard Networking'' option, since our focus is the public Internet.}
+by comparing this baseline to the same scenario with 20 backlogged senders.
+Figure~\ref{fig:eval:realworld} shows one set of box-plots for each 5-tuple, for each of the five bundles. ``Base RTT'' bars show the latency without backlogged senders and ``Status Quo'' bars represent, as above, the latency with the backlogged senders but without \name.
+We observe multipath effects for all five bundles; while, as a result, some paths experience no queueing, all five bundles also experience queueing on at least half of the available paths.
+
+On the paths with queueing, becase \name can prioritize the latency-sensitive requests, the latency those requests observe is significantly reduced. As a result, across the bundle as a whole, \name achieves \realworldMedianLatencyImprovement lower latencies than the status quo scenario over the 5 paths.
 
 \subsection{Applying Different Scheduling Policies}\label{s:eval:policies}
 %Per \S\ref{s:impl}, our \name implementation can implement any scheduling discipline available in Linux. 
@@ -173,5 +187,3 @@ The result is in Figure~\ref{fig:eval:proxy}. As expected, combining \name with 
 %
 %For the short requests which never leave TCP slow start, terminating TCP connections does not yield additional benefits: with or without termination, they finish in a few RTTs.
 %For medium-to-long requests, terminating TCP connections yields benefits since they no longer incur the penalty of window growth.
-
-\input{realworld}
