@@ -1,4 +1,4 @@
-\section{Design}\label{s:design}
+\section{Design Choices}\label{s:design}
 %
 \cut{
 \an{maybe move to ``bundler's utility regime''/Overview/``Traffic Bundles'': 
@@ -15,7 +15,6 @@ Scheduling presents its own challenge: because the Internet is a federated syste
 
 Recall that in order to do scheduling, we need to move the queues from the network to the \name. 
 In this section, we first describe our key insight for moving the in-network queues, and then explain our specific design choices. 
-Our overriding design principle is simplicity; at various points in the design, there exists a more complex approach which we discard \an{rephrase} \radhika{lets just chop this line? space is too precious}.
 Recall that each domain deploys one \name middlebox which we logically partition into sender-side (\inbox) and receiver-side (\outbox) functionality.
 
 \subsection{Key Insight}\label{s:design:key}
@@ -43,27 +42,30 @@ Figure~\ref{fig:design:block-diag} shows the necessary components of \name: (1) 
 Throughout this section we discuss design options for determining Bundle membership (\S\ref{s:design:membership}), observing feedback (\S\ref{s:design:twosided}), and congestion control (\S\ref{s:design:whichcc}): for other aspects of the design, \name is compatible with a variety of options. For example, domains can implement \name using any modern middlebox datapath, \eg P4~\cite{p4}, BESS~\cite{bess}, or as in our prototype implementation (\S\ref{s:impl}), Linux tc qdiscs.
 \radhika{maybe we can chop this subsection off -- let's discuss.}
 
-\an{maybe move congestion control choice before measurement?} \radhika{yes. done}
-
-In the rest of this section, we discuss some of the key design elements of \name.
+In the rest of this section, we discuss some of our key design choices.
+Our overarching design principle is simplicity; at various points in the design, there exists a more complex approach which we discard.
 
 \subsection{Identifying Bundle Membership}\label{s:design:membership}
 \name must first identify which packets (or flows) are part of the same traffic bundle.
 To compute and enforce correct sending rates for a traffic bundle, it is important to only bundle those flows that share the same bottleneck.
 %; otherwise, \name may send a component flow at the wrong rate for its bottleneck.
-This has traditionally been a difficult problem; multipath TCP~\cite{mptcp} sidesteps it with a weighted window increase-decrease protocol, \radhika{how is multipath TCP related to shared bottleneck?}
-and Rubenstein \etal~\cite{active-sharedbottlenecks} use a ``poisson-probing'' mechanism to probabilistically identify shared bottlenecks under a limited network model.
+This has traditionally been a difficult problem; 
+Rubenstein \etal~\cite{active-sharedbottlenecks} use a ``poisson-probing'' mechanism to probabilistically identify shared bottlenecks under a limited network model, and
+multipath TCP~\cite{mptcp} sidesteps it with a weighted window increase-decrease protocol.
 
-\an{better transition?} \radhika{how about this?}
 Deploying \name boxes close to both endpoints allows us to adopt a more direct (and accurate) approach based on a \emph{two-way opt-in}.
 In this approach, a domain must agree to bundle traffic on both the sending and receiving sides.
 The first step, of course, is to place a \name middlebox at the domain's edge.
 Initially, the \inbox assumes all component traffic is unbundled.
-When the \outbox observes an unbundled packet, it opts-in by sending a message \an{clarify not on every packet} containing the IP prefix it covers, addressed to the source IP of the packet
+When the \outbox observes an unbundled packet, it opts-in by sending an initialization message
+\footnote{To avoid sending an initialization message for every unbundled packet, the \outbox samples the unbundled packets using the same mechanism as in \S\ref{s:measurement}.} 
+(analogous to TCP's SYN) 
+containing the IP prefixes it covers, addressed to the source IP of the packet
 \footnote{Addressing to the source IP of the packet is not strictly necessary; domains may also advertise \inbox{}es via \eg DNS.}.
 If there is no \inbox on the path, this message will be ignored.
-Otherwise, a \inbox will observe this message and can opt-in by initializing a new traffic bundle corresponding to the \outbox's destination prefix.
-\radhika{how is bundled vs unbundled identified?}
+Otherwise, a \inbox will observe this message and can opt-in by initializing a new traffic bundle corresponding to the \outbox's destination prefixes and sending a message (analogous to TCP's SYNACK) notifying the \outbox of the source IP prefixes it covers, so the \outbox can initialize a bundle corresponding to that sending domain.
+Now, the \inbox and \outbox can identify packets belonging to initialized bundles by matching the corresponding IP prefixes.
+Any subsequent packets the \outbox observes from that sending domain are treated as part of the bundle.
 
 %The \outbox does one of two things for each potential epoch boundary packet:
 %\begin{enumerate}
@@ -80,21 +82,16 @@ Otherwise, a \inbox will observe this message and can opt-in by initializing a n
 \name's congestion control algorithm must satisfy the following requirements: 
 
 \paragraphi{(1) Ability to limit network queueing} \name must limit queueing in the network to move the queues to the \inbox. Therefore, congestion control algorithms which are designed to control delays, and thus queueing, are the appropriate choice. 
-A window-probing \radhika{aren't all algos window-probing? say loss-based instead?} congestion control algorithm which fills buffers (\eg Cubic, NewReno), for example, is not a good choice for \name, since it would build up a queue at the network bottleneck and drain queues at the \inbox.
+A loss-based congestion control algorithm which fills buffers (\eg Cubic, NewReno), for example, is not a good choice for \name, since it would build up a queue at the network bottleneck and drain queues at the \inbox.
 
-\paragraphi{(2) Detection of buffer-filling cross-traffic} It is well-known that delay-controlling schemes (\eg Vegas~\cite{vegas}) compete poorly with buffer-filling window-probing schemes~\cite{copa}.
+\paragraphi{(2) Detection of buffer-filling cross-traffic} It is well-known that delay-controlling schemes (\eg Vegas~\cite{vegas}) compete poorly with buffer-filling loss-based schemes~\cite{copa}.
 Therefore, \name must have a mechanism to detect the presence of such competing buffer-filling flows and fall back to status quo performance, and then detect when they have left to take back its control over the network queues. 
 
-The emergence of such detection mechanisms is recent: Copa~\cite{copa} detects whether it is able to empty the queues, and Nimbus \radhika{add cite} provides a more general mechanism which overlays a pattern on the sending rate and measures the cross traffic's response  (see \S\ref{s:app:nimbus}).
+The emergence of such detection mechanisms is recent: Copa~\cite{copa} detects whether it is able to empty the queues, and Nimbus~\cite{nimbus} provides a more general mechanism which overlays a pattern on the sending rate and measures the cross traffic's response  (see \S\ref{s:app:nimbus}).
+Copa is not designed for aggregate congestion control (see \S\ref{s:queue-ctl}); thus, we use the more general Nimbus mechanism.
 
-%Copa's detection mechanism does not work for \name, because it relies on emptying the queues; since a bundle may itself be comprised of buffer-filling traffic, the queues will not empty! Therefore, 
-
-While Copa's detection mechanism would allow \name to detect the arrival of buffer-filling cross traffic, it would not be able to detect the cross-traffic's departure, since it relies on emptying the queues and a bundle comprising of buffer-filling traffic will not empty the queues. \radhika{don't follow. need to discuss.}
-Therefore, we use the more general Nimbus mechanism, which uses \emph{active probing} to differentiate between \name's own traffic and cross traffic in the bottleneck queue. We discuss active probing in \S\ref{s:queue-ctl}.
-
-
-\subsection{Signalling Congestion}\label{s:design:twosided}
-A congestion control algorithm at the \inbox would require network feedback from the receivers to measure congestion and adjust the sending rates accordingly. We dicuss multiple options for obtaining this. 
+\subsection{Congestion Feedback Mechanism}\label{s:design:twosided}
+A congestion control algorithm at the \inbox would require network feedback from the receivers to measure congestion and adjust the sending rates accordingly. We discuss multiple options for obtaining this. 
 
 %This problem presents multiple possible solutions:
 
@@ -122,15 +119,14 @@ We detail the congestion measurement strategy and contents of congestion ACKs in
 \begin{Appendix}
 \section{Nimbus}\label{s:app:nimbus}
 
-Nimbus is described in Anonymous Reference 1.
-We briefly summarize it here for reference.
+We briefly summarize Nimbus~\cite{nimbus} for reference.
 
 Nimbus detects \emph{elastic} cross traffic which reacts to changes in the available bandwidth. Its core observation is that the absence of such elastic cross traffic, \ie competition with only \emph{inelastic} traffic, is a sufficient (but not necessary) condition to use a delay-control algorithm.
 Nimbus thus measures whether cross traffic reacts to changes in available bandwidth by pulsing its sending rate at a predetermined frequency.
 If the cross traffic's rate responds to these pulses at the same frequency, Nimbus can conclude that it is elastic, because it has reacted to changes in the available bandwidth.
 
 A natural method of measuring the cross traffic's frequency response is to compare Nimbus's pulses with the cross traffic's rate in the frequency domain.
-Thus, Nimbus an asynmmetric sinusoidal pulse (as we have noted in \S\ref{s:queue-ctl}) which has a straightforward representation in the frequency domain while maximizing the sender's ability to influence the available bandwidth.
+Thus, Nimbus an asymmetric sinusoidal pulse (as we have noted in \S\ref{s:queue-ctl}) which has a straightforward representation in the frequency domain while maximizing the sender's ability to influence the available bandwidth.
 
 How can Nimbus know the cross traffic's response? It develops an estimator for the cross traffic's sending rate:
 \begin{equation}
