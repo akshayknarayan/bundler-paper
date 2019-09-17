@@ -1,7 +1,7 @@
 \section{Coping with Cross Traffic}\label{s:queue-ctl}
 
 Recall that \name's key trick is to use delay-minimizing congestion control algorithms from the bottleneck to the \inbox.
-However, a well-known property of delay-minimizing congestion control algorithms is that when competing with traditional window-probing \radhika{loss-based} controllers, they lose throughput~\cite{copa}.
+However, a well-known property of delay-minimizing congestion control algorithms is that when competing with traditional loss-based  controllers, they lose throughput~\cite{copa}.
 Therefore, it is important for congestion controllers at the \inbox to detect the presence of such algorithms and disable the use of delay-control in these situations.
 Once the buffer-filling cross traffic leaves, the \inbox should resume delay control.
 
@@ -9,11 +9,12 @@ Once the buffer-filling cross traffic leaves, the \inbox should resume delay con
 What should the \inbox do when it detects the presence of buffer-filling cross traffic?
 A naive approach would be to emulate the end-host behaviour and run Cubic. This approach has two shortcomings.
 First, it must solve the MulTCP~\cite{multcp} problem: a bundle may comprise of multiple Cubic connections, and to achieve a fair bandwidth share it should therefore compete as aggressively as the number of component flows. 
-On some high-performance datapaths, it may be difficult to measure this number~\cite{heavy-hitters}. \radhika{fix cite}
+On some high-performance datapaths, it may be difficult to measure this number~\cite{heavy-hitters}.
 
 We propose a simpler solution.
 Recall that bundles comprise of traditional end-host connections, with their own congestion controllers. 
-If we simply \emph{let the traffic pass}, \ie increase the pacing rate at the \inbox to stop controlling queues as described in \S\ref{s:design:key}, these end-host congestion controllers will naturally compete fairly with cross traffic, just as traffic in the Internet does today. 
+If we simply \emph{let the traffic pass}, \ie increase the pacing rate at the \inbox to stop controlling queues as described in \S\ref{s:design:key}, these end-host congestion controllers will naturally compete fairly with cross traffic, just as traffic in the Internet does today.
+\an{Copa is not compatible with this approach because its TCP-compatible mode is designed for the context of a single connection. Therefore, we must use Nimbus for elasticity detection.}
 
 \radhika{chop the above paragraph?}
 
