@@ -15,12 +15,12 @@ Scheduling presents its own challenge: because the Internet is a federated syste
 
 Recall that in order to do scheduling, we need to move the queues from the network to the \name. 
 In this section, we first describe our key insight for moving the in-network queues, and then explain our specific design choices. 
-Our overriding design principle is simplicity; at various points in the design, there exists a more complex approach which we discard \an{rephrase}.
+Our overriding design principle is simplicity; at various points in the design, there exists a more complex approach which we discard \an{rephrase} \radhika{lets just chop this line? space is too precious}.
 Recall that each domain deploys one \name middlebox which we logically partition into sender-side (\inbox) and receiver-side (\outbox) functionality.
 
 \subsection{Key Insight}\label{s:design:key}
-One strategy for inducing queuing at the \inbox would be to set a low outgoing rate limit on outgoing traffic. 
-However, if this rate is made smaller than the bundle's fair share of bandwidth at the bottleneck link in the network, it will decrease throughput. 
+We adopt the natural strategy for inducing queuing at the \inbox by rate limiting the outgoing traffic. 
+If this rate limit is made smaller than the bundle's fair share of bandwidth at the bottleneck link in the network, it will decrease throughput. 
 Conversely, if the rate is too high, packets will pass through the \inbox without queueing.
 Instead, the rate needs to be set such that the bottleneck link sees a small queue while remaining fully utilized (and the bundled traffic competes fairly in the presence of cross traffic). 
 We make a simple, but powerful, observation: existing congestion control algorithms calculate exactly this rate~\cite{Jacobson88}. 
@@ -39,19 +39,23 @@ In contrast, a \name deployed at the edge is able to shift the queue to its \inb
     \includegraphics[width=\columnwidth]{img/arch-block-diag}
     \caption{\name comprises of six sub-systems: four (in green) implement \inbox functionality, one (in blue) implements \outbox functionality, and the datapath (orange) is shared between the two. \name's architecture supports multiple compatible implementations (listed in the ``Impl'' section of each block).}\label{fig:design:block-diag}
 \end{figure}
-Figure~\ref{fig:design:block-diag} shows the necessary components of any \name: (1) a means of determining bundle membership; (2) a rate enforcement mechanism; (3) a measurement strategy; (4) a delay-controller; and (5) a fairness-controller.
+Figure~\ref{fig:design:block-diag} shows the necessary components of \name: (1) a means of determining bundle membership; (2) a rate enforcement mechanism; (3) a measurement strategy; (4) a delay-controller; and (5) a fairness-controller.
 Throughout this section we discuss design options for determining Bundle membership (\S\ref{s:design:membership}), observing feedback (\S\ref{s:design:twosided}), and congestion control (\S\ref{s:design:whichcc}): for other aspects of the design, \name is compatible with a variety of options. For example, domains can implement \name using any modern middlebox datapath, \eg P4~\cite{p4}, BESS~\cite{bess}, or as in our prototype implementation (\S\ref{s:impl}), Linux tc qdiscs.
+\radhika{maybe we can chop this subsection off -- let's discuss.}
 
-\an{maybe move congestion control choice before measurement?}
+\an{maybe move congestion control choice before measurement?} \radhika{yes. done}
 
-\subsection{Indentifying Bundle Membership}\label{s:design:membership}
-\name must identify which packets (or flows) are part of the same traffic bundle.
-It is important to only bundle those flows which share the same bottleneck; otherwise, \name may send a component flow at the wrong rate for its bottleneck.
-This has traditionally been a difficult problem; multipath TCP~\cite{mptcp} sidesteps it with a weighted window increase-decrease protocol, 
+In the rest of this section, we discuss some of the key design elements of \name.
+
+\subsection{Identifying Bundle Membership}\label{s:design:membership}
+\name must first identify which packets (or flows) are part of the same traffic bundle.
+To compute and enforce correct sending rates for a traffic bundle, it is important to only bundle those flows that share the same bottleneck.
+%; otherwise, \name may send a component flow at the wrong rate for its bottleneck.
+This has traditionally been a difficult problem; multipath TCP~\cite{mptcp} sidesteps it with a weighted window increase-decrease protocol, \radhika{how is multipath TCP related to shared bottleneck?}
 and Rubenstein \etal~\cite{active-sharedbottlenecks} use a ``poisson-probing'' mechanism to probabilistically identify shared bottlenecks under a limited network model.
 
-\an{better transition?}
-We instead adopt a simple, direct, and more accurate approach: \emph{two-way opt-in}.
+\an{better transition?} \radhika{how about this?}
+Deploying \name boxes close to both endpoints allows us to adopt a more direct (and accurate) approach based on a \emph{two-way opt-in}.
 In this approach, a domain must agree to bundle traffic on both the sending and receiving sides.
 The first step, of course, is to place a \name middlebox at the domain's edge.
 Initially, the \inbox assumes all component traffic is unbundled.
@@ -59,6 +63,7 @@ When the \outbox observes an unbundled packet, it opts-in by sending a message \
 \footnote{Addressing to the source IP of the packet is not strictly necessary; domains may also advertise \inbox{}es via \eg DNS.}.
 If there is no \inbox on the path, this message will be ignored.
 Otherwise, a \inbox will observe this message and can opt-in by initializing a new traffic bundle corresponding to the \outbox's destination prefix.
+\radhika{how is bundled vs unbundled identified?}
 
 %The \outbox does one of two things for each potential epoch boundary packet:
 %\begin{enumerate}
@@ -71,46 +76,48 @@ Otherwise, a \inbox will observe this message and can opt-in by initializing a n
 %The \inbox then sends a response containing an epoch size to use and the hash of the epoch boundary packet.
 %The \outbox receives this message, initializes a byte counter for the newly discovered bundle, and remembers the \inbox IP address for future feedback. If there is no \inbox on the path, the packet will simply be ignored at its destination. 
 
-\subsection{Implementing Congestion Control}\label{s:design:twosided}
-Congestion control algorithms we wish to run at the \inbox require network feedback from the receivers to measure congestion and adjust the sending rates accordingly. 
-
-This problem presents multiple possible solutions:
-
-\paragrapha{Passively observe in-band acknowledgements}
-Conventional endhost-based implementations have used TCP acknowledgements to gather congestion control measurements.
-However, this is not a good option for \name because 
-it is specific to TCP and thus incompatible with alternate protocols, \ie UDP for video streaming or QUIC's encrypted transport header~\cite{quic}.
-
-\paragrapha{Terminate connections and proxy through TCP} With this approach, one would terminate end-host TCP connections at the \inbox and open new connections to the \outbox, allowing the \inbox to control the rate of traffic in these connections.
-This approach allows the unmodified use of existing congestion control algorithms, since a TCP tunnel can collect ACKs. Furthermore, TCP proxies can improve performance by allowing end-to-end connections to ramp up their sending rates quickly.
-The primary disadvantage of this approach is that \name must take responsibility for reliable delivery of component traffic, which requires large amounts of queueing and, in the case of UDP applications, can harm application performance. 
-Furthermore, proxying TCP connections introduces a new potential point of failure at \name; if \name crashes, connections will be lost.
-Finally, from a practical standpoint, to avoid head-of-line blocking this approach requires that \name open a new proxy connection for each component end-host connection, but still determine the bottleneck rate of the traffic \emph{aggregate}. While this approach may be technically feasible~\cite{cm}, the cycles used for opening and managing new proxy connections are better used for packet processing.
-Thus, we set aside TCP tunnels for the remainder of this discussion, but note that this approach is complementary with \name (see \S\ref{s:eval}) \radhika{might need some rephrasing}.
-\footnote{\an{If anyone still cares, from an architectural standpoint this design runs counter to the end-to-end principle~\cite{e2e-principle}; it replicates endhost functionality in the network.}}.
-
-\an{discuss non-terminating tcp tunnels?}
-
-\paragrapha{Out-of-band feedback} Having eliminated the options for using in-band feedback, we adopt out-of-band feedback in the form of congestion-specific ACKs: the \outbox sends out-of-band feedback to the \inbox.
-This decouples congestion-specific ACKs from traditional ACKs used for reliability\footnote{The idea of a congestion ACK is similar to that in QCN~\cite{qcn}, although our goals differ.} and is thus indifferent to the underlying protocol (be it TCP, UDP, or QUIC).
-
-We detail the sampling mechanism and contents of congestion ACKs in \S\ref{s:measurement}.
-
 \subsection{Choice of congestion control algorithm}\label{s:design:whichcc}
 \name's congestion control algorithm must satisfy the following requirements: 
 
 \paragraphi{(1) Ability to limit network queueing} \name must limit queueing in the network to move the queues to the \inbox. Therefore, congestion control algorithms which are designed to control delays, and thus queueing, are the appropriate choice. 
-A window-probing congestion control algorithm which fills buffers (\eg Cubic, NewReno), for example, is not a good choice for \name, since it would build up a queue at the network bottleneck and drain queues at the \inbox.
+A window-probing \radhika{aren't all algos window-probing? say loss-based instead?} congestion control algorithm which fills buffers (\eg Cubic, NewReno), for example, is not a good choice for \name, since it would build up a queue at the network bottleneck and drain queues at the \inbox.
 
-\paragraphi{(2) Detection of buffer-filling cross-traffic} Simultaneously, it is well-known that delay-controlling schemes (\eg Vegas~\cite{vegas}) compete poorly with buffer-filling window-probing schemes~\cite{copa}.
+\paragraphi{(2) Detection of buffer-filling cross-traffic} It is well-known that delay-controlling schemes (\eg Vegas~\cite{vegas}) compete poorly with buffer-filling window-probing schemes~\cite{copa}.
 Therefore, \name must have a mechanism to detect the presence of such competing buffer-filling flows and fall back to status quo performance, and then detect when they have left to take back its control over the network queues. 
 
-The emergence of such detection mechanisms is recent: Copa~\cite{copa} detects whether it is able to empty the queues, and Nimbus (see \S\ref{s:app:nimbus}) provides a more general mechanism which overlays a pattern on the sending rate and measures the cross traffic's response.
+The emergence of such detection mechanisms is recent: Copa~\cite{copa} detects whether it is able to empty the queues, and Nimbus \radhika{add cite} provides a more general mechanism which overlays a pattern on the sending rate and measures the cross traffic's response  (see \S\ref{s:app:nimbus}).
 
-Copa's detection mechanism does not work for \name, because it relies on emptying the queues; since a bundle may itself be comprised of buffer-filling traffic, the queues will not empty! Therefore, while Copa would be able to switch modes to compete with buffer-filling cross traffic, it would not be able to re-assert control over the queues once the cross traffic leaves.
-Therefore, we use the more general Nimbus mechanism, which uses \emph{active probing} to differentiate between \name's own traffic and cross traffic in the bottleneck queue.
+%Copa's detection mechanism does not work for \name, because it relies on emptying the queues; since a bundle may itself be comprised of buffer-filling traffic, the queues will not empty! Therefore, 
 
-We discuss active probing in \S\ref{s:queue-ctl}.
+While Copa's detection mechanism would allow \name to detect the arrival of buffer-filling cross traffic, it would not be able to detect the cross-traffic's departure, since it relies on emptying the queues and a bundle comprising of buffer-filling traffic will not empty the queues. \radhika{don't follow. need to discuss.}
+Therefore, we use the more general Nimbus mechanism, which uses \emph{active probing} to differentiate between \name's own traffic and cross traffic in the bottleneck queue. We discuss active probing in \S\ref{s:queue-ctl}.
+
+
+\subsection{Signalling Congestion}\label{s:design:twosided}
+A congestion control algorithm at the \inbox would require network feedback from the receivers to measure congestion and adjust the sending rates accordingly. We dicuss multiple options for obtaining this. 
+
+%This problem presents multiple possible solutions:
+
+\paragrapha{Passively observe in-band TCP acknowledgements}
+Conventional endhost-based implementations have used TCP acknowledgements to gather congestion control measurements. A simple strategy for \name is to passively observe the receiver generated TCP acknowledgements at the \inbox. However, we discard this option as it is specific to TCP and thus incompatible with alternate protocols, \ie UDP for video streaming or QUIC's encrypted transport header~\cite{quic}.
+
+\paragrapha{Terminate connections and proxy through TCP} With this approach, one would terminate end-host TCP connections at the \inbox and open new connections to the \outbox, allowing the \inbox to control the rate of traffic in these connections.
+This approach allows the unmodified use of existing congestion control algorithms, since a TCP tunnel can collect ACKs. This approach provides an added advantage: TCP proxies can improve performance by allowing end-to-end connections to ramp up their sending rates quickly. \radhika{unclear} \radhika{also, wouldn't this approach have the same disadvantage as previous one?}
+The primary disadvantage of this approach is that \name must take responsibility for reliable delivery of component traffic, which requires large amounts of queueing and, in the case of UDP applications, can harm application performance. 
+Furthermore, proxying TCP connections introduces a new potential point of failure at \name; if \name crashes, connections will be lost.
+Finally, from a practical standpoint, to avoid head-of-line blocking this approach requires that \name open a new proxy connection for each component end-host connection, but still determine the bottleneck rate of the traffic \emph{aggregate}. While this approach may be technically feasible~\cite{cm}, it would result in high overhead. 
+%the cycles used for opening and managing new proxy connections are better used for packet processing.
+Thus, we set aside TCP proxies for the remainder of this discussion. 
+%We but note that this approach is complementary with \name (see \S\ref{s:eval}).
+\footnote{\an{If anyone still cares, from an architectural standpoint this design runs counter to the end-to-end principle~\cite{e2e-principle}; it replicates endhost functionality in the network.}}.
+
+\an{discuss non-terminating tcp tunnels?}
+
+\paragrapha{Out-of-band feedback} Having eliminated the options for using in-band feedback, we adopt an out-of-band feedback mechanism: the \outbox sends out-of-band congestion ACKs to the \inbox.
+This decouples congestion signalling from traditional ACKs used for reliability\footnote{The idea of an out-of-band congestion notification is similar to that in QCN~\cite{qcn}, although our goals differ.} and is thus indifferent to the underlying protocol (be it TCP, UDP, or QUIC).
+
+We detail the congestion measurement strategy and contents of congestion ACKs in \S\ref{s:measurement}.
+
 
 \begin{Appendix}
 \section{Nimbus}\label{s:app:nimbus}

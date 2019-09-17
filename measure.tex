@@ -1,60 +1,61 @@
 \section{Measuring Congestion}\label{s:measurement}
 
-\name uses congestion ACKs for a sample of packets to measure available bandwidth and congestion between the \inbox and \outbox. 
-We refer to the period between two successively sampled packets as an ``epoch'', and each sampled packet as an ``epoch boundary packet''.
-We answer the following questions: (1) How are epoch boundary packets selected? (2) What information should the congestion ACKs contain?
+% \name uses out-of-band congestion ACKs to signal congestion between the \inbox and \outbox. 
+% %Sending these congestion ACKs up on every packet is not just unnecessary, but also incurs high overhead. The \outbox instead sends congestion ACKs only for a few sampled packets. We refer to the period between two successively sampled packets as an \emph{epoch}, and each sampled packet as an \emph{epoch boundary packet}.
+% We answer the following questions: (1) When should the \outbox send congestion ACKs? (2) What information should the congestion ACKs contain?
 
-\subsection{Selecting Epoch Boundary Packets}
-\label{s:measure:marking}
+% \subsection{Timing of Congestion ACKs}
+% \label{s:measure:marking}
+% \newcommand{\pone}{$p_{i-1}$}
+% \newcommand{\hpone}{$h(p_{i-1})$}
+% \newcommand{\sone}{$s_{i-1}$}
+% \newcommand{\rone}{$r_{i-1}$}
+% \newcommand{\ptwo}{$p_{i}$}
+% \newcommand{\hptwo}{$h(p_{i})$}
+% \newcommand{\stwo}{$s_{i}$}
+% \newcommand{\rtwo}{$r_{i}$}
+% \newcommand{\atwo}{$a_{i}$}
+% \newcommand{\sentone}{$sent_{i-1}$}
+% \newcommand{\recvdone}{$rcvd_{i-1}$}
+% \newcommand{\senttwo}{$sent_{i}$}
+% \newcommand{\recvdtwo}{$rcvd_{i}$}
 
-When should the \outbox send these feedback messages? 
+
 Sending an out-of-band feedback message for every packet arriving at the \outbox would result in high communication overhead. 
 Furthermore, conducting measurements on every outgoing packet at the \inbox would require maintaining state for each of them, which can be expensive, especially at high bandwidth-delay products. 
 This overhead is unnecessary; reacting once per RTT is sufficient for congestion control algorithms~\cite{ccp}. 
-We therefore sample a subset of the packets for which to receive congestion ACKs.
+The \inbox therefore samples a subset of the packets for which the \outbox sends congestion ACKs.
+We refer to the period between two successively sampled packets as an \emph{epoch}, and each sampled packet as an \emph{epoch boundary packet}.
 
-The simplest way to sample an epoch boundary packet would be for the \inbox to modify it (\ie set a flag bit in the header) and the \outbox to match on this flag bit.
+The simplest way to sample an epoch boundary packet would be for the \inbox to probabilistically modify a packet (\ie set a flag bit in the packet header) and the \outbox to match on this flag bit.
 However, where in the header should this flag bit be?
 Evolving packet headers has proved impractical~\cite{trotsky}, so perhaps we could use an encapsulation mechanism.
 Protocols at both L3 (\eg NVGRE~\cite{nvgre}, IP-in-IP~\cite{ipinip}) and L4 (\eg VXLAN~\cite{vxlan}) are broadly available and deployed in commodity routers today.
 
-However, packet modification is unnecessary; since the same packets pass through \inbox and \outbox, uniquely identifying a given pattern of packets is sufficient to meet our requirements. In this scheme, the \inbox and \outbox both hash a subset of every packet header and check if the hash is a multiple of the desired sampling period. 
-The \inbox records the matching hashes, and when the \outbox observes a matching hash, it sends a congestion ACK, described in \S\ref{s:measure:compute}, back to the \inbox. The \inbox can then compute measurements to pass to the congestion control algorithm.
+However, packet modification is unnecessary; since the same packets pass through \inbox and \outbox, uniquely identifying a given pattern of packets is sufficient to meet our requirements. In this scheme, the \inbox and \outbox both hash a subset of header for every packet, and mark a packet as an epoch boundary if its hash is a multiple of the desired \emph{sampling period}. The \inbox computes the sampling period to produce about 4 samples per RTT and communicates it to the \outbox. We defer the details of sampling period computation to Appendix~\ref{app:epochs}. 
 
-Thus, the packet header subset must have the following properties:
+Upon identifying a packet $p_i$ as an epoch boundary packet the \inbox records: (i) its hash, $h(p_i)$, (ii) the time when it is sent out, $t_{\text{sent}}(p_i)$, and (iii) the total number of bytes sent thus far including this packet, $b_{sent}(p_i)$. When the \outbox sees $p_i$, it also identifies it as an epoch boundary and sends a congestion ACK back to the \inbox. The congestion ACK contains $h(p_i)$ and the running count of the total number of bytes received for that bundle. Upon receiving the congestion ACK for $p_i$, the \inbox records the received information, and using its previously recorded state, computes the RTT and the rates at which packets are sent and received, as in Figure~\ref{fig:ratecalc}. \radhika{don't think the figure helps much now}
+
+The packet header subset that is used for identifying epoch boundaries must have the following properties:
 (i) It must be the same at both the \inbox and the \outbox.
 (ii) Its values must remain unchanged as a packet traverses the network from the \inbox to the \outbox (so, for example, the TTL field must be excluded).\footnote{Certain fields, that are otherwise unchanged within the network, can be changed by NATs deployed in a customer's domain. Ensuring that the \name boxes sit outside the NAT would allow them to make use of those fields.}
 (iii) It differentiates individual \emph{packets} (and not just flows), to allow sufficient entropy in the computed hash values.
 (iv) It also differentiates a retransmitted packet from the original one, to prevent spurious samples from disrupting the measurements (this precludes, for example, the use of TCP sequence number).
 
 We expect that the precise set of fields used will depend on specific deployment considerations.
-For example, in our prototype implementation (\S\ref{s:impl}) we don't encapsulate, and use a header subset of the IPv4 IP ID field and destination IP and port. 
+For example, in our prototype implementation (\S\ref{s:impl}) we use a header subset of the IPv4 IP ID field and destination IP and port. 
 We make this choice for simplicity; it does not require tunnelling mechanisms (and is thus easily deployable, and if \name fails connections are unaffected); we note that previous proposals~\cite{ip-traceback} have used IP ID for unique packet identification. The drawback of this approach is that it cannot be extended to IPv6.
 A full deployment \radhika{better term?} of \name could use dedicated fields in an encapsulating header such as a VLAN tag \radhika{can we cite something for schemes that have used this before?}.
 
-We defer discussion of how often to sample epoch boundary packets (4 packets per RTT in expectation) to Appendix~\ref{app:epochs}.
 
-\subsection{Contents of Congestion ACKs}
-\label{s:measure:compute}
-\newcommand{\pone}{$p_{i-1}$}
-\newcommand{\hpone}{$h(p_{i-1})$}
-\newcommand{\sone}{$s_{i-1}$}
-\newcommand{\rone}{$r_{i-1}$}
-\newcommand{\ptwo}{$p_{i}$}
-\newcommand{\hptwo}{$h(p_{i})$}
-\newcommand{\stwo}{$s_{i}$}
-\newcommand{\rtwo}{$r_{i}$}
-\newcommand{\atwo}{$a_{i}$}
-\newcommand{\sentone}{$sent_{i-1}$}
-\newcommand{\recvdone}{$rcvd_{i-1}$}
-\newcommand{\senttwo}{$sent_{i}$}
-\newcommand{\recvdtwo}{$rcvd_{i}$}
+Note that our congestion measurement technique is robust to a boundary packet being lost between the \inbox and the \outbox. In this case, the \inbox would not get a feedback for the lost boundary packet, and it would simply compute rates for the next boundary packet over a longer epoch once the next congestion ACK arrives. We present microbenchmarks evaluating the fidelity of our measurements in Appendix~\ref{app:epochs}.
 
-Congestion ACKs simply contain the hash of the epoch boundary packet header they matched on and the running count of the total number of bytes received for that bundle (so, the \outbox must maintain a single counter per bundle, which need not be persistent).
 
-For each bundle, the \inbox tracks the total number of bytes sent within this bundle, and, upon identifying an epoch boundary packet, $p_i$, it records: (i) its hash, $h(p_i)$, (ii) the time when it is sent out, $t_{\text{sent}}(p_i)$, and (iii) the total number of bytes sent thus far including this packet, $b_{sent}(p_i)$. 
-Upon receiving the feedback $p_i$, the \inbox records the received information, and using its previously recorded state, it can compute the RTT (using the elapsed time) and the rates at which packets are sent and received (using the byte counters), as in Figure~\ref{fig:ratecalc}.
-The \inbox then clears the recorded state of all epoch boundaries preceding $p_i$.
+
+% \subsection{Contents of Congestion ACKs}
+% \label{s:measure:compute}
+
+
 
 \begin{figure}
     \centering
@@ -71,9 +72,7 @@ The \inbox then clears the recorded state of all epoch boundaries preceding $p_i
     }\label{fig:ratecalc}
 \end{figure}
 
-Note that our measurement technique is robust to a boundary packet being lost between the \inbox and the \outbox. In this case, the \inbox would not get a feedback for the lost boundary packet, and it would simply compute rates for the next boundary packet over a longer epoch once the next congestion ACK arrives. 
 
-We present microbenchmarks evaluating the fidelity of our measurements in Appendix~\ref{app:epochs}.
 
 \begin{Appendix}
 \section{Epoch Selection Details}\label{app:epochs}
