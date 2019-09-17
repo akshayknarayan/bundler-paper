@@ -37,7 +37,7 @@ We validated that our implementation of these congestion control schemes at the 
 Figure~\ref{fig:bundler} provides an overview of how our \name implementation operates on an already-established bundle.
 
 (1) In the datapath, packets arrive at the \inbox qdisc.
-(2) The qdisc determines whether a packet matches the epoch boundary condition (\S\ref{s:measure:marking}). 
+(2) The qdisc determines whether a packet matches the epoch boundary condition (\S\ref{s:measurement}). 
 If so, it sends a netlink message to the control plane process running in user-space, and then forwards the packet normally (note the datapath does not send packets to user-space). 
 (3) The \outbox observes the same epoch boundary packet via \texttt{libpcap}.
 (4) It sends an out-of-band UDP message to the \inbox that contains the hash of the packet and its current state. 

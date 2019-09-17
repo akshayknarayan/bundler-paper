@@ -1,19 +1,21 @@
 \section{Coping with Cross Traffic}\label{s:queue-ctl}
 
 Recall that \name's key trick is to use delay-minimizing congestion control algorithms from the bottleneck to the \inbox.
-However, a well-known property of delay-minimizing congestion control algorithms is that when competing with traditional window-probing controllers, they lose throughput~\cite{copa}.
+However, a well-known property of delay-minimizing congestion control algorithms is that when competing with traditional window-probing \radhika{loss-based} controllers, they lose throughput~\cite{copa}.
 Therefore, it is important for congestion controllers at the \inbox to detect the presence of such algorithms and disable the use of delay-control in these situations.
 Once the buffer-filling cross traffic leaves, the \inbox should resume delay control.
 
-\paragrapha{Fairness Control}
-What should the \inbox do when Nimbus indicates the presence of buffer-filling cross traffic?
+\paragrapha{Competing Fairly}
+What should the \inbox do when it detects the presence of buffer-filling cross traffic?
 A naive approach would be to emulate the end-host behaviour and run Cubic. This approach has two shortcomings.
 First, it must solve the MulTCP~\cite{multcp} problem: a bundle may comprise of multiple Cubic connections, and to achieve a fair bandwidth share it should therefore compete as aggressively as the number of component flows. 
-On some high-performance datapaths, it may be difficult to measure this number~\cite{heavy-hitters}.
+On some high-performance datapaths, it may be difficult to measure this number~\cite{heavy-hitters}. \radhika{fix cite}
 
 We propose a simpler solution.
 Recall that bundles comprise of traditional end-host connections, with their own congestion controllers. 
 If we simply \emph{let the traffic pass}, \ie increase the pacing rate at the \inbox to stop controlling queues as described in \S\ref{s:design:key}, these end-host congestion controllers will naturally compete fairly with cross traffic, just as traffic in the Internet does today. 
+
+\radhika{chop the above paragraph?}
 
 \paragrapha{Active Probing}
 When does the \inbox know it is safe to resume delay-control and scheduling?
@@ -22,14 +24,13 @@ When the queueing delay is purely self-inflicted, it is safe to resume control o
 Passive probing is insufficient to determine this state, since passive measurements of the bottleneck will be identical in the case of self-inflicted queueing and queueing driven by cross traffic.
 Therefore, it is important to \emph{actively probe}, that is, change the rate of in-band traffic and observe the response of the cross traffic. 
 This is what the Nimbus mechanism does.
-At a high level (see Appendix \S\ref{s:app:nimbus}),
+At a high level (see Appendix \S\ref{s:app:nimbus} for details),
 Nimbus sinusoidally varies the sending rate $r(t) = A sin(\frac{4\pi{}t}{T})$ during the up-pulse, where $A$ is the pulse amplitude (set to one-fourth of the estimated bottleneck bandwidth) and $T$ is the pulse duration, and measures the cross traffic's response in the frequency domain.
 The \inbox can use the Nimbus algorithm to detect when to relinquish control over the queue by interposing this sending pattern over the delay-controller's rate decisions.
 However, this implies that we must be careful when letting the traffic pass; if the \inbox entirely drains its queues into the network, it will no longer be possible for Nimbus to overlay pulses onto the traffic pattern, and it will be unable to determine the nature of the cross traffic.
 Practically, this would mean that once \inbox switches to compete with cross traffic, it would never gain the information necessary to switch back.
 
-\paragrapha{Queue Controller}
-Instead, to support active probing while also letting the traffic pass, the \inbox should \emph{hold back} some packets while letting the remainder pass.
+Instead, to support active probing while also letting the traffic pass, the \inbox must \emph{hold back} some packets.
 How many packets should this be? The \inbox should be able to generate enough packets for a Nimbus up-pulse, \ie the area under the up-pulse curve: 
 $A \int_0^{\frac{T}{4}} sin(\frac{4\pi{}t}{T}) dt = \frac{AT}{2\pi}$.
 From Nimbus, we use $T = 0.2$ seconds and $A$ is as above, one-fourth the bottleneck bandwidth. By Little's law, we can calculate the amount of extra queueing: $\frac{T}{8\pi}$, or $8$ms.

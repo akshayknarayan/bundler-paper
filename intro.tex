@@ -24,7 +24,7 @@ However, it might not be possible to negotiate such deals with \emph{all} carrie
 Meanwhile, traffic in the contemporary Internet is steadily aggregating amongst a small number of entities~\cite{fivecomps}. 
 Examples include large amounts of traffic between a content provider (\eg Amazon, Google, etc.) and a network with many clients (\eg an enterprise), between two different campuses of an organization, between collaborating institutes, and so on.
 We view the traffic that flows between a given sender's domain and destined for the same receiving domain, as a single, aggregate entity, that we call a \emph{bundle}.
-The flows within such a bundle are likely to share common bottlenecks in the network connecting the two domains (as illutrated in Figure~\ref{fig:deploy:arch}). %\an{maybe refer to figure 1/example scenario? or cite something? as is, this seems like a point reviewers might complain about.}
+The flows within such a bundle are likely to share common bottlenecks in the network connecting the two domains (as illustrated in Figure~\ref{fig:deploy:arch}). %\an{maybe refer to figure 1/example scenario? or cite something? as is, this seems like a point reviewers might complain about.}
 
 % move the queues
 We leverage this trend to reduce a content provider's dependence on the ISPs with respect to how its traffic is managed. In particular, we propose deploying a delay-based congestion controller at the edge of the sender's domain that controls the aggregate outgoing rate of each traffic bundle to match its bottleneck rate in the network. This effectively \emph{moves} the queues built by the traffic in the bundle from the bottleneck within the network to the sender’s domain itself, thus allowing the sender to enforce its desired traffic management policies on it. 
@@ -42,7 +42,10 @@ We leverage this trend to reduce a content provider's dependence on the ISPs wit
     \includegraphics[width=\textwidth]{img/deployment-arch.pdf}
     \caption{An example deployment scenario for \name. 
     \name sits at each domain's edge. Traffic between the two boxes is aggregated into a single unidirectional bundle, shown as shaded boxes. The \inbox schedules the traffic within the bundle according to the policy the sending domain specifies (\S\ref{s:design}).
-    \radhika{maybe remove the term `interdomain'? add a key for `A to B bundle' and `B to A bundle'.}}\label{fig:deploy:arch}
+    \radhika{maybe remove the term `interdomain'? add a key for `A to B bundle' and `B to A bundle'.}
+    \fc{nit: if domains are A and B, carriers should be something else (1 and 2?) so its clear they're not connected}
+    }
+    \label{fig:deploy:arch}
 \end{figure*}
 
 %We further note that middleboxes are now prevalent in the Internet architecture~\cite{aplomb}. They are often deployed at the egress and ingress of a network domain, to ensure traffic transits them for intrusion detection, packet inspection, filtering etc. They thus provide an effective vantage point for aggregating and managing traffic. 
@@ -52,7 +55,7 @@ We develop a new type of middlebox for this, called \name, that (1) aggregates t
 %Our key insight (discussed in \S\ref{s:design}) is the bundle rate control mechanism: to move the queues, we can simply use a delay-controlling congestion control algorithm. \radhika{can i chop this?}
 %\an{shouldn't we keep the key insight in the intro?}
 
-As shown in Figure~\ref{fig:deploy:arch}, a \name middlebox implements sender-side and receiver-side functionality in a \emph{\inbox} and \emph{\outbox} respectively. The \inbox of one domain establishes a pairing with the \outbox of another domain when sending traffic to it. We thus define a \emph{bundle} to be a group of flows that share the same \inbox-\outbox pair.
+As shown in Figure~\ref{fig:deploy:arch}, a \name middlebox implements sender-side and receiver-side functionality in a \emph{\inbox} and \emph{\outbox} respectively. The \inbox of one domain establishes a pairing with the \outbox of another domain when sending traffic to it. \footnote{One \inbox can pair with multiple {\outbox}es and vice-versa.} We thus define a \emph{bundle} to be a group of flows that share the same \inbox-\outbox pair.
 The bulk of \name's functionality resides at the \inbox, which coordinates with the \outbox to identify bundles and measure congestion signals such as the round-trip time and the rate at which packets are received, and passes these signals to a delay-based congestion control algorithm (as described in \S\ref{s:design}) which computes appropriate sending rates.
 %The \inbox passes these signals to a delay-based congestion control algorithm (as described in \S\ref{s:design}) which computes appropriate sending rates for each bundle, such that the queuing induced by the bundled traffic within the network is low and is incurred at the \inbox instead, while still maintaining high utilization at the bottleneck link.
 We introduce a lightweight method for the coordination between the \inbox and the \outbox which does not require any per-flow state and can be deployed in a mode that forwards packets without modification.  \name requires no changes to the end hosts or to the routers in the network.
