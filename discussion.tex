@@ -2,14 +2,6 @@
 
 \paragrapha{Composability} Bundles are naturally \emph{composable}: a subdomain of domain A could deploy its own \name to take control of its fraction of the in-network queues. 
 
-\paragrapha{Multipath}
-\an{move this inline to eval?}
-An interesting scenario is load-balancing in the core, a widely used technique for reducing the congestion on any one path.
-Here, we make two observations: 
-(1) while bundle traffic may traverse multiple intermediate paths, it necessarily must converge on the receiving domain (and the \outbox). If the bottleneck is near the receiving domain, the bundled traffic will still build queues.
-(2) from the bundle's perspective, multiple paths appear as multiple queues, with some aggregate bandwidth capacity (\ie the max-flow of the network paths between the sending and receiving domains). While queueing may be unevenly distributed among the paths, the distribution of flows onto paths is currently random (\eg with ECMP). With \name, all these queues are moved to the \inbox, so it can schedule bundled flows deliberately rather than randomly.
-In \S\ref{s:eval}, we show that \name still controls queueing on bundles in the presence of multipath.
-
 \paragrapha{Scheduling across different bundles at a \inbox} We evaluate benefits of scheduling \emph{within} a bundle. In practice, a given \inbox will see traffic from multiple bundles. Extending different scheduling policies to multiple such bundles can be done trivially.
 
 \paragrapha{Rate allocation across different competing bundles} When multiple bundles, belonging to different sending domains, compete at the same bottleneck, \name's congestion control would ensure a fair rate allocation across each of these bundles, irrespective of the amount of traffic in them. It, therefore, provides fairness on per-sending domain basis, as opposed to a per-flow basis, making it more robust to strategies like opening multiple connections for increasing bandwidth share. 

@@ -28,13 +28,13 @@ ggplot(df_iowa, aes(
     facet_grid(src ~ dst, labeller=as_labeller(regions)) +
     coord_cartesian(ylim=c(0, 200)) +
     ylab("Latency") +
-    xlab("Port") +
+    xlab("5-Tuples (ECMP Path)") +
     scale_fill_brewer(type="qual", palette=2, aesthetics=c("colour", "fill"),
         limit=c("control", "iperf", "bundler"),
         labels=c(
             "control" = "Base RTT",
-            "iperf" = "Status Quo", 
-            "bundler" = "Bundler"
+            "bundler" = "Bundler",
+            "iperf" = "Status Quo"
         )
     ) +
     theme_minimal() + 
@@ -46,10 +46,30 @@ ggplot(df_iowa, aes(
         plot.title = element_text(size=18, family="Lato", face="bold", hjust = 0.5)
     )
 
-bw <- read.csv("data/bmon_results.out", sep=" ")
+median_iperf_latency <- quantile(df_iowa[df_iowa$Latency == "iperf",]$rtt, c(0.5))
+median_bundler_latency <- quantile(df_iowa[df_iowa$Latency == "bundler",]$rtt, c(0.5))
 
+bw <- read.csv("data/bmon_results.out", sep=" ")
+bw_iowa <- subset(bw, src=="gcp_iowa" & grepl("^gcp", dst))
+
+bw_ratio <- function(dst_region) {
+    peak_iperf_tput <- quantile(bw_iowa[bw_iowa$Throughput == "iperf" & bw_iowa$dst == dst_region,]$bw, c(0.99))[1]
+    peak_bundler_tput <- quantile(bw_iowa[bw_iowa$Throughput == "bundler" & bw_iowa$dst == dst_region,]$bw, c(0.99))[1]
+    return(peak_bundler_tput / peak_iperf_tput)
+}
+#
+tokyo_bw_ratio <- bw_ratio("gcp_tokyo")
+southcarolina_bw_ratio <- bw_ratio("gcp_southcarolina")
+oregon_bw_ratio <- bw_ratio("gcp_oregon")
+frankfurt_bw_ratio <- bw_ratio("gcp_frankfurt")
+belgium_bw_ratio <- bw_ratio("gcp_belgium")
+avg_bw_ratio <- (tokyo_bw_ratio + southcarolina_bw_ratio + oregon_bw_ratio + frankfurt_bw_ratio + belgium_bw_ratio) / 5
 @
-    \caption{On 5 real-Internet paths from the GCP datacenter in Iowa, \name achieves close to the Base RTT for latency-sensitive traffic. Each bar depicts an individual 5-tuple. On some paths, load-balancing in the Internet causes only some 5-tuples to experience queueing. \name offers scheduling for those paths while achieving similar throughput as in the Status Quo scenario.}
+\newcommand{\realworldMedianLatencyImprovement}{\Sexpr{round(100*(1-(median_bundler_latency[1] / median_iperf_latency[1])), 0)}\%\xspace}
+\newcommand{\realworldAvgBwRatio}{\Sexpr{round(100*(1-(avg_bw_ratio)), 0)}\%\xspace}
+\caption{On 5 real-Internet paths, \name achieves close to the Base RTT for latency-sensitive traffic. Each bar depicts an individual 5-tuple. Load-balancing in the Internet prevents queueing for some 5-tuples. \name still offers scheduling for paths with queueing (achieving \realworldMedianLatencyImprovement lower latencies overall) while achieving overall throughput within \realworldAvgBwRatio of that in the Status Quo scenario.}
     \label{fig:eval:realworld}
 \end{figure}
-%\newcommand{\overviewBenefitsBundlerMedianImprovement}{\Sexpr{round(100*(1-(overview_benefits_bundler_results[1] / overview_benefits_baseline_results[1])), 0)}\%\xspace}
+
+\newcommand{\realworldMedianLatencyImprovement}{\Sexpr{round(100*(1-(median_bundler_latency[1] / median_iperf_latency[1])), 0)}\%\xspace}
+\newcommand{\realworldAvgBwRatio}{\Sexpr{round(100*(1-(avg_bw_ratio)), 0)}\%\xspace}
