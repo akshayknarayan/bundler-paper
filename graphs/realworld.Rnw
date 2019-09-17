@@ -1,0 +1,55 @@
+\begin{figure}
+    \centering
+<<eval:realworld,fig.showtext=TRUE,cache=TRUE,echo=FALSE,message=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
+library(ggplot2)
+library(showtext)
+font_add_google("Lato")
+showtext_auto()
+#library(patchwork)
+
+df <- read.csv("data/udping_results.out", sep=" ")
+
+# show gcp_iowa -> other gcps
+df_iowa <- subset(df, src=="gcp_iowa" & grepl("^gcp", dst))
+
+regions <- c(
+    "gcp_iowa"="Iowa",
+    "gcp_belgium"="Belgium",
+    "gcp_frankfurt"="Frankfurt",
+    "gcp_oregon"="Oregon",
+    "gcp_southcarolina"="S. Carolina",
+    "gcp_tokyo"="Tokyo"
+)
+
+ggplot(df_iowa, aes(
+        x=factor(port), y=rtt, fill=Latency, colour=Latency
+    )) +
+    geom_boxplot(outlier.shape=NA) +
+    facet_grid(src ~ dst, labeller=as_labeller(regions)) +
+    coord_cartesian(ylim=c(0, 200)) +
+    ylab("Latency") +
+    xlab("Port") +
+    scale_fill_brewer(type="qual", palette=2, aesthetics=c("colour", "fill"),
+        limit=c("control", "iperf", "bundler"),
+        labels=c(
+            "control" = "Base RTT",
+            "iperf" = "Status Quo", 
+            "bundler" = "Bundler"
+        )
+    ) +
+    theme_minimal() + 
+    theme(
+        legend.position="top",
+        legend.title=element_blank(),
+        axis.text.x = element_blank(),
+        text = element_text(size=18, family="Lato", face="bold"),
+        plot.title = element_text(size=18, family="Lato", face="bold", hjust = 0.5)
+    )
+
+bw <- read.csv("data/bmon_results.out", sep=" ")
+
+@
+    \caption{On 5 real-Internet paths from the GCP datacenter in Iowa, \name achieves close to the Base RTT for latency-sensitive traffic. Each bar depicts an individual 5-tuple. On some paths, load-balancing in the Internet causes only some 5-tuples to experience queueing. \name offers scheduling for those paths while achieving similar throughput as in the Status Quo scenario.}
+    \label{fig:eval:realworld}
+\end{figure}
+%\newcommand{\overviewBenefitsBundlerMedianImprovement}{\Sexpr{round(100*(1-(overview_benefits_bundler_results[1] / overview_benefits_baseline_results[1])), 0)}\%\xspace}
