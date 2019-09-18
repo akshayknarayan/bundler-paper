@@ -42,12 +42,12 @@ In contrast, a \name deployed at the edge is able to shift the queue to its \inb
 
 Figure~\ref{fig:design:block-diag} shows \name's sub-systems: 
 (1) A congestion control module at the \inbox which implements the rate control logic and cross-traffic detection, as discussed in \S\ref{s:design:whichcc}.
-(2) A mechanism for sending congestion feedback in the \outbox, and (3) a measurement module in the \inbox that computes congestion signals (RTT and receive rate) from the received feedback. We discuss options for implementing congestion feedback mechanism in \S\ref{s:design:twosided} and how to use that feedback in the measurement module in \S\ref{s:measurement}.
+(2) A mechanism for sending congestion feedback (ACKs) in the \outbox, and (3) a measurement module in the \inbox that computes congestion signals (RTT and receive rate) from the received feedback. We discuss options for implementing congestion feedback mechanism in \S\ref{s:design:twosided} and how to use that feedback in the measurement module in \S\ref{s:measurement}.
 (4) A datapath for packet processing (which includes rate enforcement and packet scheduling). Any modern middlebox datapath, \eg BESS~\cite{bess}, P4~\cite{p4}, or  Linux tc qdiscs (as used in our prototype implementation (\S\ref{s:impl}), is suitable.
-We discuss the specific interaction between these subsys
-
-\an{radhika, pls check this subsection and the figure. I think it no longer requires understanding how everything works and is more of an overview?}
-
+We detail the interaction between these subsystems when discussing our prototype implementation in \S\ref{s:impl}. 
+%
+%\an{radhika, pls check this subsection and the figure. I think it no longer requires understanding how everything works and is more of an overview?}
+%\radhika{i think it looks good now! i edited it slightly -- adding more detailed sentences so that it gives a slightly more holistic overview. please check. Also, do you want to update fig 5 to make it even more consistent with this? e.g. in Fig 5, replace `Send Box' with `Measurement', `Receive box' with `Congestion ACKs', `CCP' with `Congestion Control (CCP)'? You can have the terms SendBox and ReceiveBox outside the boxes.}
 %Figure~\ref{fig:design:block-diag} shows the necessary components of \name: (1) a means of determining bundle membership; (2) a rate enforcement mechanism; (3) a measurement strategy; (4) a delay-controller; and (5) a fairness-controller.
 %Throughout this section we discuss design options for determining Bundle membership (\S\ref{s:design:membership}), observing feedback (\S\ref{s:design:twosided}), and congestion control (\S\ref{s:design:whichcc}): for other aspects of the design, \name is compatible with a variety of options. For example, domains can implement \name using any modern middlebox datapath, \eg P4~\cite{p4}, BESS~\cite{bess}, or as in our prototype implementation (\S\ref{s:impl}), Linux tc qdiscs.
 %\radhika{maybe we can chop this subsection off -- let's discuss.}
