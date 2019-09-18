@@ -67,7 +67,7 @@ avg_bw_ratio <- (tokyo_bw_ratio + southcarolina_bw_ratio + oregon_bw_ratio + fra
 @
 \newcommand{\realworldMedianLatencyImprovement}{\Sexpr{round(100*(1-(median_bundler_latency[1] / median_iperf_latency[1])), 0)}\%\xspace}
 \newcommand{\realworldAvgBwRatio}{\Sexpr{round(100*(1-(avg_bw_ratio)), 0)}\%\xspace}
-\caption{On 5 real-Internet paths, \name achieves close to the Base RTT for latency-sensitive traffic. Each bar depicts an individual 5-tuple. Load-balancing in the Internet prevents queueing for some 5-tuples. \name still offers scheduling for paths with queueing (achieving \realworldMedianLatencyImprovement lower latencies overall) while achieving overall throughput within \realworldAvgBwRatio of that in the Status Quo scenario.}
+\caption{On 5 real-Internet paths, \name achieves lower latencies than Status Quo for latency-sensitive traffic. Each bar depicts an individual 5-tuple; load-balancing in the Internet prevents queueing for some 5-tuples. \name still offers scheduling for paths with queueing (achieving \realworldMedianLatencyImprovement lower latencies overall) while achieving overall throughput within \realworldAvgBwRatio of that in the Status Quo scenario.}
     \label{fig:eval:realworld}
 \end{figure}
 
