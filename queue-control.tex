@@ -1,4 +1,11 @@
 \section{Coping with Cross Traffic}\label{s:queue-ctl}
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=2\columnwidth]{img/bundler-diagram}
+    \vspace{-10pt}
+    \caption{\name Implementation Overview. Box shading corresponds to the roles described in Figure~\ref{fig:design:block-diag}.}\label{fig:bundler}
+\end{figure*}
+
 
 Recall that \name's key trick is to use delay-minimizing congestion control algorithms from the bottleneck to the \inbox.
 However, a well-known property of delay-minimizing congestion control algorithms is that when competing with traditional loss-based  controllers, they lose throughput~\cite{copa}.

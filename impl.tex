@@ -1,11 +1,4 @@
 \section{Implementation}\label{s:impl}
-\begin{figure*}[t]
-    \centering
-    \includegraphics[width=2\columnwidth]{img/bundler-diagram}
-    \vspace{-10pt}
-    \caption{\name Implementation Overview. Box shading corresponds to the roles described in Figure~\ref{fig:design:block-diag}.}\label{fig:bundler}
-\end{figure*}
-
 \name boxes can be implemented as described below (although the specific implementations could vary across deployments).
 
 \Para{\capinbox} It comprises of a \emph{data plane} and a \emph{control plane}. The data plane is responsible for (i) packet forwarding, (ii) tracking the number of sent bytes, (iii) identifying and reporting the epoch boundary packets to the control plane, (iv) enforcing a sending rate (computed by the control plane) on a bundle, and (iv) enforcing the desired scheduling policies for a bundle. It can implemented in software~\cite{bess, click, netbricks, tc}, or in programmable
