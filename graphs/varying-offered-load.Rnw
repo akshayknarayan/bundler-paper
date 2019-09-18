@@ -6,47 +6,111 @@ library(showtext)
 font_add_google("Lato")
 showtext_auto()
 
-df <- read.csv("data/pl-caidacdf.data", sep=" ")
+df <- read.csv("data/new/vary_offered_load.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
-bw <- 12e6
-df$ofct <- (df$Size / bw) + 0.05
+df$ofct <- (df$Size / 12e6) + 0.05
 df$Slowdown <- df$Duration / df$ofct
 
-ggplot(df, aes(
-        x=Alg, fill=Alg, y=Slowdown
+df$scheme <- df$traffic
+
+big <- df[df$Size > 1e6,]
+med <- df[df$Size <= 1e6 & df$Size > 1e4,]
+small <- df[df$Size <= 1e4,]
+
+schemes <- c("poisson_12", "poisson_24", "poisson_36", "poisson_48", "poisson_60", "poisson_72", "poisson_84", "poisson_96")
+scheme_labels <- c("poisson_12" = "12", "poisson_24" = "24", "poisson_36" = "36", "poisson_48" = "48", "poisson_60" = "60", "poisson_72" = "72", "poisson_84" = "84", "poisson_96" = "96")
+
+ggplot(small, aes(
+        x=scheme, fill=sch, y=Slowdown
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
-    facet_wrap(~Load) +
-    ylab("Slowdown") +
-   scale_fill_brewer(type="qual", palette=2) +
-    scale_x_discrete(
-        limit=c("nobundler_fifo", "copa_sfq"),
-        labels=c(
-            "nobundler_fifo" = "Status Quo",
-            "copa_sfq" = "Bundler"
+    ylab("Slowdown") + xlab(NULL) + 
+    ggtitle("Small\n< 10KB") +
+    scale_x_discrete(labels=scheme_labels, limits=schemes) + 
+    scale_fill_manual(limit=c("sfq", "fifo"),
+        values = c(
+            "sfq" = "#1b9e77",
+            "fifo" = "#d95f02"
         ),
-        scale_name=NULL, name=NULL
+        labels=c(
+            "sfq" = "Bundler ",
+            "fifo" = "Status Quo"
+        )
     ) +
-    coord_cartesian(ylim=c(1,1.5)) +
+    coord_cartesian(ylim=c(1,5)) +
     theme_minimal() + 
-    theme(text = element_text(size=18, family="Lato", face="bold"))
+    theme(
+        legend.position="top",
+        legend.title=element_blank(),
+        text = element_text(angle=0,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
+    ) +
+ggplot(med, aes(
+        x=scheme, fill=sch, y=Slowdown
+    )) +
+    geom_boxplot(outlier.shape=NA) +
+    ylab(NULL) + xlab(NULL) +
+    ggtitle("Medium\n10KB - 1MB") +
+    scale_x_discrete(labels=scheme_labels, limits=schemes) + 
+    scale_fill_manual(limit=c("sfq", "fifo"),
+        values = c(
+            "sfq" = "#1b9e77",
+            "fifo" = "#d95f02"
+        ),
+        labels=c(
+            "sfq" = "Bundler ",
+            "fifo" = "Status Quo"
+        )
+    ) +
+    coord_cartesian(ylim=c(1,15)) +
+    theme_minimal() + 
+    theme(
+        legend.position="bottom",
+        legend.title=element_blank(),
+        text = element_text(angle=0,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
+    ) +
+ggplot(big, aes(
+        x=scheme, fill=sch, y=Slowdown
+    )) +
+    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
+    ylab(NULL) + ggtitle("Large\n> 1MB") + xlab(NULL) + 
+    scale_x_discrete(labels=scheme_labels, limits=schemes) + 
+    scale_fill_manual(limit=c("sfq", "fifo"),
+        values = c(
+            "sfq" = "#1b9e77",
+            "fifo" = "#d95f02"
+        ),
+        labels=c(
+            "sfq" = "Bundler ",
+            "fifo" = "Status Quo"
+        )
+    ) +
+    coord_cartesian(ylim=c(1,25)) +
+    theme_minimal() + 
+    theme(
+        legend.position="top",
+        legend.title=element_blank(),
+        text = element_text(angle=0,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
+    )
 
-highUtilBundler = quantile(df[df$Load == "84Mbps" & df$Alg=="copa_sfq",]$Slowdown, c(0.5, 0.99))
-highUtilSQ = quantile(df[df$Load == "84Mbps" & df$Alg=="nobundler_fifo",]$Slowdown, c(0.5, 0.99))
-highUtilTailImprove = (1 - (highUtilBundler[2] / highUtilSQ[2]))
-
-medUtilBundler = quantile(df[df$Load == "72Mbps" & df$Alg=="copa_sfq",]$Slowdown, c(0.5, 0.99))
-medUtilSQ = quantile(df[df$Load == "72Mbps" & df$Alg=="nobundler_fifo",]$Slowdown, c(0.5, 0.99))
-medUtilTailImprove = (1 - (medUtilBundler[2] / medUtilSQ[2]))
-
-lowUtilBundler = quantile(df[df$Load == "48Mbps" & df$Alg=="copa_sfq",]$Slowdown, c(0.5, 0.99))
-lowUtilSQ = quantile(df[df$Load == "48Mbps" & df$Alg=="nobundler_fifo",]$Slowdown, c(0.5, 0.99))
-lowUtilTailImprove = (1 - (lowUtilBundler[2] / lowUtilSQ[2]))
+#highUtilBundler = quantile(df[df$Load == "84Mbps" & df$Alg=="copa_sfq",]$Slowdown, c(0.5, 0.99))
+#highUtilSQ = quantile(df[df$Load == "84Mbps" & df$Alg=="nobundler_fifo",]$Slowdown, c(0.5, 0.99))
+#highUtilTailImprove = (1 - (highUtilBundler[2] / highUtilSQ[2]))
+#
+#medUtilBundler = quantile(df[df$Load == "72Mbps" & df$Alg=="copa_sfq",]$Slowdown, c(0.5, 0.99))
+#medUtilSQ = quantile(df[df$Load == "72Mbps" & df$Alg=="nobundler_fifo",]$Slowdown, c(0.5, 0.99))
+#medUtilTailImprove = (1 - (medUtilBundler[2] / medUtilSQ[2]))
+#
+#lowUtilBundler = quantile(df[df$Load == "48Mbps" & df$Alg=="copa_sfq",]$Slowdown, c(0.5, 0.99))
+#lowUtilSQ = quantile(df[df$Load == "48Mbps" & df$Alg=="nobundler_fifo",]$Slowdown, c(0.5, 0.99))
+#lowUtilTailImprove = (1 - (lowUtilBundler[2] / lowUtilSQ[2]))
 @
     \caption{\name offers diminishing returns with lower amounts of offered load.}
     \label{fig:eval:offeredload}
 \end{figure}
 %
-\newcommand{\highUtilTailImprove}{\Sexpr{round(highUtilTailImprove, 0)}\%\xspace}
-\newcommand{\medUtilTailImprove}{\Sexpr{round(medUtilTailImprove, 0)}\%\xspace}
-\newcommand{\lowUtilTailImprove}{\Sexpr{round(lowUtilTailImprove, 0)}\%\xspace}
+%\newcommand{\highUtilTailImprove}{\Sexpr{round(highUtilTailImprove, 0)}\%\xspace}
+%\newcommand{\medUtilTailImprove}{\Sexpr{round(medUtilTailImprove, 0)}\%\xspace}
+%\newcommand{\lowUtilTailImprove}{\Sexpr{round(lowUtilTailImprove, 0)}\%\xspace}
