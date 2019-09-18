@@ -7,7 +7,7 @@ font_add_google("Lato")
 showtext_auto()
 #library(patchwork)
 
-df <- read.csv("data/new/overview_benefits.data", sep=" ")
+df <- read.csv("data/overview_benefits.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
 bw <- 12e6
 df$ofct <- (df$Size / bw) + 0.05
@@ -24,14 +24,23 @@ ggplot(small, aes(
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
     ylab("Slowdown") +
     ggtitle("Small\n< 10KB") +
-    scale_fill_brewer(type="qual", palette=2) +
-    scale_x_discrete(
-        limit=c("nobundler_fifo", "copa+nimbus_sfq", "nobundler_sfq"),
+    scale_fill_manual(
+        limit=c("nobundler_fifo", "copa+nimbus_sfq", "nobundler_sfq","copa+nimbus_fifo"),
         labels=c(
             "nobundler_fifo" = "Status Quo",
             "copa+nimbus_sfq" = "Bundler", 
-            "nobundler_sfq" = "In-Network"
+            "nobundler_sfq" = "In-Network",
+            "copa+nimbus_fifo" = "Without Scheduling"
         ),
+        values = c(
+            "nobundler_fifo" = "#d95f02",
+            "copa+nimbus_sfq" = "#1b9e77",
+            "nobundler_sfq" = "#7570b3",
+            "copa+nimbus_fifo" = "#e7298a"
+        )
+    ) +
+    scale_x_discrete(
+        limit=c("nobundler_fifo", "copa+nimbus_sfq", "nobundler_sfq","copa+nimbus_fifo"),
         scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,4)) +
@@ -48,25 +57,22 @@ ggplot(med, aes(
     ylab(NULL) +
     ggtitle("Medium\n10KB - 1MB") +
     scale_fill_manual(
-        limit=c("nobundler_fifo", "copa+nimbus_sfq", "nobundler_sfq"),
+        limit=c("nobundler_fifo", "copa+nimbus_sfq", "nobundler_sfq","copa+nimbus_fifo"),
         labels=c(
-            "nobundler_fifo" = "Status Quo  ",
-            "copa+nimbus_sfq" = "Bundler  ", 
-            "nobundler_sfq" = "In-Network"
+            "nobundler_fifo" = "Status Quo",
+            "copa+nimbus_sfq" = "Bundler", 
+            "nobundler_sfq" = "In-Network",
+            "copa+nimbus_fifo" = "Without Scheduling"
         ),
         values = c(
             "nobundler_fifo" = "#d95f02",
             "copa+nimbus_sfq" = "#1b9e77",
-            "nobundler_sfq" = "#7570b3"
+            "nobundler_sfq" = "#7570b3",
+            "copa+nimbus_fifo" = "#e7298a"
         )
     ) +
     scale_x_discrete(
-        limit=c("nobundler_fifo", "copa+nimbus_sfq", "nobundler_sfq"),
-        labels=c(
-            "nobundler_fifo" = "Status Quo",
-            "copa+nimbus_sfq" = "Bundler", 
-            "nobundler_sfq" = "In-Network"
-        ),
+        limit=c("nobundler_fifo", "copa+nimbus_sfq", "nobundler_sfq","copa+nimbus_fifo"),
         scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,16)) +
@@ -83,15 +89,22 @@ ggplot(big, aes(
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
     ylab(NULL) + ggtitle("Large\n> 1MB") +
-    scale_fill_brewer(type="qual", palette=2,
+    scale_fill_manual(
+        limit=c("nobundler_fifo", "copa+nimbus_sfq", "nobundler_sfq","copa+nimbus_fifo"),
         labels=c(
-            "nobundler_fifo" = "Status Quo",
-            "copa+nimbus_sfq" = "Bundler", 
-            "nobundler_sfq" = "In-Network"
+            "nobundler_fifo" = "Status Quo", "copa+nimbus_sfq" = "Bundler", 
+            "nobundler_sfq" = "In-Network",
+            "copa+nimbus_fifo" = "Without Scheduling"
+        ),
+        values = c(
+            "nobundler_fifo" = "#d95f02",
+            "copa+nimbus_sfq" = "#1b9e77",
+            "nobundler_sfq" = "#7570b3",
+            "copa+nimbus_fifo" = "#e7298a"
         )
     ) +
     scale_x_discrete(
-        limit=c("nobundler_fifo", "copa+nimbus_sfq", "nobundler_sfq"),
+        limit=c("nobundler_fifo", "copa+nimbus_sfq", "nobundler_sfq","copa+nimbus_fifo"),
         scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,20)) +
@@ -107,7 +120,11 @@ overview_benefits_bundler_results = quantile(df[df$scheme=="copa+nimbus_sfq",]$S
 overview_benefits_baseline_results = quantile(df[df$scheme=="nobundler_fifo",]$Slowdown, c(0.5, 0.99))
 overview_benefits_optimal_results = quantile(df[df$scheme=="nobundler_sfq",]$Slowdown, c(0.5, 0.99))
 @
-    \caption{\name achieves \Sexpr{round(100*(1-(overview_benefits_bundler_results[1] / overview_benefits_baseline_results[1])), 0)}\% lower median slowdown. The three graphs show FCT distributions for the indicated request sizes: smaller than 10KB, between 10KB and 1MB, and greater than 1MB.  Note the different y-axis scales for each group of request sizes. Whiskers show $1.25 \times$ the inter-quartile range. For both \name and Optimal, performance benefits come from preventing short flows from queueing behind long ones. \fc{Status quo whiskers are too large to fit on plot, mention the number here.}}
+    \caption{\name achieves \Sexpr{round(100*(1-(overview_benefits_bundler_results[1] / overview_benefits_baseline_results[1])), 0)}\% lower median slowdown. 
+The three graphs show FCT distributions for the indicated request sizes: smaller than 10KB, between 10KB and 1MB, and greater than 1MB.  Note the different y-axis scales for each group of request sizes. Whiskers show $1.25 \times$ the inter-quartile range. 
+For both \name and Optimal, performance benefits come from preventing short flows from queueing behind long ones. 
+Thus, \name's aggregate congestion control by itself is not enough; if we configure \name to use FIFO scheduling, the FCTs worsen compared to the status quo.
+    \fc{Status quo whiskers are too large to fit on plot, mention the number here.}}
     \label{fig:eval:best}
 \end{figure}
 \newcommand{\overviewBenefitsBaselineMedian}{\Sexpr{round(overview_benefits_baseline_results[1], 2)}\xspace}

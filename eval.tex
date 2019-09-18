@@ -65,13 +65,10 @@ Indeed, the packets endhost Cubic sends beyond those that the link can transmit 
 Without \name, they queue at the bottleneck link;
 with \name, they instead queue at the \inbox. 
 In addition, the delay-based congestion controller at \inbox also maintains a small standing queue at the bottleneck link (which can be seen in Figure~\ref{fig:design:shift-bottleneck}) to avoid under-utilization, which increases the end-to-end-delays slightly. 
-Therefore, doing the FIFO scheduling at the \name, as is done by the \baseline, results in slightly worse performance (shown in Figure~\ref{fig:eval:fifo}).
+Therefore, doing the FIFO scheduling at the \name, as is done by the \baseline, results in slightly worse performance.
 
-\input{fifo-not-enough}
-% This is why the tail FCT for \name does not match \optimal's.
-% We can see this by measuring the relative performance of using FIFO scheduling at the \name instead of the SFQ scheduling in Figure~\ref{fig:eval:best}.
-% The results are in Figure~\ref{fig:eval:fifo}. 
-% Unsurprisingly, the FCTs with FIFO scheduling at \name are \emph{worse}: with a median slowdown of \overviewBenefitsFifoMedian, it is \overviewBenefitsFifoWorse higher than the \baseline. 
+% cut, combine with overview-benefits
+%\input{fifo-not-enough}
 
 \subsection{Real Internet Paths}\label{s:eval:realworld}
 \input{realworld}
