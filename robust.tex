@@ -3,9 +3,15 @@
 
 \input{big_exp_text}
 Can \name successfully revert to status-quo performance in the presence of buffer-filling cross traffic, then resume providing benefits once that cross traffic leaves?
-In Figure~\ref{fig:eval:bigexp}, we \an{show something}.
+In Figure~\ref{fig:eval:bigexp}, we show this scenario.
+At first, the link is occupied only by \name's traffic, similar to the setup above.
+At time $t=60$sec, a buffer-filling cross traffic flow arrives.
+\name detects its presence (indicated by the gray shading) and reverts to status-quo performance, as described in \S\ref{s:queue-ctl}.
+At time $t=120$sec, the buffer-filling flow stops and non-buffer-filling traffic starts, generated from the same distribution as \name as described in \S\ref{s:eval:setup}.
+\name correctly detects that it is safe to resume delay-control, and continues providing FCT benefits.
 
-In studying the impact of cross traffic, we present results with both Nimbus and Copa being used as the congestion control algorithm at the \inbox.
+For the remainder of this subsection, we present three micro-benchmarks which dig deeper into the latter two scenarios, where cross traffic can affect \name's performance. 
+We present results with both Nimbus and Copa being used as the congestion control algorithm at the \inbox.
 
 \input{inelastic-cross}
 \paragrapha{Short-lived flows} We first consider the case where the cross traffic comprises of short-lived flows up to a few MBs.
