@@ -13,18 +13,19 @@ df_switch <- read.csv("big_exp_41/bundler.switch", sep=",")
 
 plt <- ggplot(df, aes(x=t, y=value, color=measurement)) + 
     geom_line() +
-    geom_rect(data=df_switch, inherit.aes=FALSE, aes(xmin=xmin,xmax=xmax,ymin=0,ymax=max(df$value),fill="xtcp"), alpha=0.2) +
+    geom_rect(data=df_switch, inherit.aes=FALSE, show.legend=FALSE, aes(xmin=xmin,xmax=xmax,ymin=0,ymax=max(df$value),fill="xtcp"), alpha=0.2) +
     geom_vline(xintercept=60) + geom_vline(xintercept=120) +
     facet_wrap(~Traffic, ncol=1, strip.position="right") + 
     xlab("Time (seconds)") + 
     ylab(expression(atop("Throughput(Mbps)","Delay(ms)"))) +
     scale_x_continuous(expand = c(0, 0), limits=c(0,180), breaks=c(0,60,120,180)) +
     scale_fill_manual('Mode', values="black", labels=c("xtcp")) +
+    scale_colour_brewer(type="qual", palette=2, limits=c("bundle", "cross", "delay"), labels=c("bundle"="Bundler Throughput", "cross"="Cross-Traffic Throughput", "delay"="Queueing Delay")) +
     theme_bw() + 
     theme(
         text = element_text(angle=0,size=14, family="Lato", face="bold"),
-        legend.position = "none",
+        legend.position = "top",
         legend.title=element_blank()
      )
 
-ggsave("mm.pdf", plt, width=15, height=2.5)
+ggsave("mm.pdf", plt, width=15, height=3)
