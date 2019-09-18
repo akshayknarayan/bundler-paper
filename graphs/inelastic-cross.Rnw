@@ -3,40 +3,100 @@
 <<robust:cr-inelastic,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
 library(ggplot2)
 library(showtext)
+library(patchwork)
 font_add_google("Lato")
 showtext_auto()
-df <- read.csv("data/cr-inelastic.data", sep=" ")
+
+df <- read.csv("data/new/vary_inelastic.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
 df$ofct <- (df$Size / 12e6) + 0.05
 df$Slowdown <- df$Duration / df$ofct
 
-df <- df[df$Alg != "copa_sfq" & df$Alg != "bbr_sfq",]
+df$scheme <- df$cross
 
-ggplot(df, aes(x=Cross, y=Slowdown, fill=Alg)) + 
-    geom_boxplot(outlier.shape=NA) + 
-    coord_cartesian(ylim=c(1,5)) +
-    ylab("Slowdown") +
-    xlab(NULL) +
-    scale_fill_brewer(type="qual", palette=1,
-        limit=c("nimbus_sfq", "nimcopa_sfq", "nobundler_fifo"),
-        labels=c("nimbus_sfq" = "Bundler \n Nimbus ", "nimcopa_sfq" = "Bundler \n Copa ", "nobundler_fifo" = "Status Quo")
-    ) +
-    scale_x_discrete(
-        limit=c("12Mbps", "24Mbps", "36Mbps"),
+big <- df[df$Size > 1e6,]
+med <- df[df$Size <= 1e6 & df$Size > 1e4,]
+small <- df[df$Size <= 1e4,]
+
+schemes <- c("poisson_6", "poisson_12", "poisson_18", "poisson_24", "poisson_30", "poisson_36", "poisson_42")
+scheme_labels <- c("poisson_6" = "6", "poisson_12" = "12", "poisson_18" = "18",
+"poisson_24" = "24", "poisson_30" = "30", "poisson_36" = "36", "poisson_42" = "42")
+
+ggplot(small, aes(
+        x=scheme, fill=sch, y=Slowdown
+    )) +
+    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
+    ylab("Slowdown") + xlab(NULL) + 
+    ggtitle("Small\n< 10KB") +
+    scale_x_discrete(labels=scheme_labels, limits=schemes) + 
+    scale_fill_manual(limit=c("sfq", "fifo"),
+        values = c(
+            "sfq" = "#1b9e77",
+            "fifo" = "#d95f02"
+        ),
         labels=c(
-            "12Mbps" = "12Mbps Cross\n72Mbps Bundle", 
-            "24Mbps" = "24Mbps Cross\n60Mbps Bundle", 
-            "36Mbps" = "36Mbps Cross\n48Mbps Bundle"
+            "sfq" = "Bundler ",
+            "fifo" = "Status Quo"
         )
     ) +
-    theme_minimal() +
+    coord_cartesian(ylim=c(1,5)) +
+    theme_minimal() + 
     theme(
         legend.position="top",
         legend.title=element_blank(),
-        legend.text=element_text(size=16, family="Lato", face="plain"),
-        text = element_text(size=18, family="Lato", face="bold")
+        text = element_text(angle=0,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
+    ) +
+ggplot(med, aes(
+        x=scheme, fill=sch, y=Slowdown
+    )) +
+    geom_boxplot(outlier.shape=NA) +
+    ylab(NULL) + xlab(NULL) +
+    ggtitle("Medium\n10KB - 1MB") +
+    scale_x_discrete(labels=scheme_labels, limits=schemes) + 
+    scale_fill_manual(limit=c("sfq", "fifo"),
+        values = c(
+            "sfq" = "#1b9e77",
+            "fifo" = "#d95f02"
+        ),
+        labels=c(
+            "sfq" = "Bundler ",
+            "fifo" = "Status Quo"
+        )
+    ) +
+    coord_cartesian(ylim=c(1,15)) +
+    theme_minimal() + 
+    theme(
+        legend.position="bottom",
+        legend.title=element_blank(),
+        text = element_text(angle=0,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
+    ) +
+ggplot(big, aes(
+        x=scheme, fill=sch, y=Slowdown
+    )) +
+    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
+    ylab(NULL) + ggtitle("Large\n> 1MB") + xlab(NULL) + 
+    scale_x_discrete(labels=scheme_labels, limits=schemes) + 
+    scale_fill_manual(limit=c("sfq", "fifo"),
+        values = c(
+            "sfq" = "#1b9e77",
+            "fifo" = "#d95f02"
+        ),
+        labels=c(
+            "sfq" = "Bundler ",
+            "fifo" = "Status Quo"
+        )
+    ) +
+    coord_cartesian(ylim=c(1,25)) +
+    theme_minimal() + 
+    theme(
+        legend.position="top",
+        legend.title=element_blank(),
+        text = element_text(angle=0,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     )
 @
-    \caption{Against cross traffic comprising of short lived flows. \name and the cross traffic combined offer 84Mbps of load to the bottleneck queue. The cross traffic's offered load increases along the x-axis.}
+    \caption{Against cross traffic comprising of short lived flows. \name offers 48Mbps of load to the bottleneck queue. The cross traffic's offered load increases along the x-axis, while \name{}'s offered load remains fixed.}
     \label{fig:robust:cr-inelastic}
 \end{figure}

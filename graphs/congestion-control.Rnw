@@ -7,7 +7,13 @@ font_add_google("Lato")
 showtext_auto()
 library(patchwork)
 
-df <- read.csv("data/84Mbps-1bk-caidacdf.data", sep=" ")
+df <- read.csv("data/new/bundler_cc_alg_choice.data", sep=" ")
+overview_df <- read.csv("data/new/overview_benefits.data", sep=" ")
+overview_df <- overview_df[overview_df$sch == "fifo" & overview_df$alg == "nobundler",]
+
+df <- rbind(df, overview_df)
+df$scheme <- paste(df$alg, df$sch, sep="_")
+
 df$Duration <- df$Duration.usec. / 1e6
 bw <- 12e6
 df$ofct <- (df$Size / bw) + 0.05
@@ -18,7 +24,7 @@ med <- df[df$Size <= 1e6 & df$Size > 1e4,]
 small <- df[df$Size <= 1e4,]
 
 ggplot(small, aes(
-        x=Alg, fill=Alg, y=Slowdown
+        x=scheme, fill=scheme, y=Slowdown
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
     ylab("Slowdown") +
@@ -45,37 +51,11 @@ ggplot(small, aes(
         plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     ) +
 ggplot(med, aes(
-        x=Alg, fill=Alg, y=Slowdown
+        x=scheme, fill=scheme, y=Slowdown
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
     ylab(NULL) +
     ggtitle("Medium\n10KB - 1MB") +
-    scale_fill_manual(
-        values=c(
-            "copa_sfq" = "#beaed4",
-            "nimbus_sfq" = "#7fc97f",
-            "bbr_sfq" = "#ffff99",
-            "nobundler_fifo" = "#fdc086"
-        )
-    ) +
-    scale_x_discrete(
-        limit=c("nimbus_sfq", "copa_sfq" , "bbr_sfq", "nobundler_fifo"),
-        labels=c("copa_sfq" = "Copa", "nimbus_sfq" = "Nimbus", "nobundler_fifo" = "Status Quo", "bbr_sfq" = "BBR"),
-        scale_name=NULL, name=NULL
-    ) +
-    coord_cartesian(ylim=c(1,5)) +
-    theme_minimal() + 
-    theme(
-        legend.position="top",
-        legend.title=element_blank(),
-        text = element_text(angle=30,size=18, family="Lato", face="bold"),
-        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
-    ) +
-ggplot(big, aes(
-        x=Alg, fill=Alg, y=Slowdown
-    )) +
-    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
-    ylab(NULL) + ggtitle("Large\n> 1MB") +
     scale_fill_manual(
         values=c(
             "copa_sfq" = "#beaed4",
@@ -96,12 +76,38 @@ ggplot(big, aes(
         legend.title=element_blank(),
         text = element_text(angle=30,size=18, family="Lato", face="bold"),
         plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
+    ) +
+ggplot(big, aes(
+        x=scheme, fill=scheme, y=Slowdown
+    )) +
+    geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
+    ylab(NULL) + ggtitle("Large\n> 1MB") +
+    scale_fill_manual(
+        values=c(
+            "copa_sfq" = "#beaed4",
+            "nimbus_sfq" = "#7fc97f",
+            "bbr_sfq" = "#ffff99",
+            "nobundler_fifo" = "#fdc086"
+        )
+    ) +
+    scale_x_discrete(
+        limit=c("nimbus_sfq", "copa_sfq" , "bbr_sfq", "nobundler_fifo"),
+        labels=c("copa_sfq" = "Copa", "nimbus_sfq" = "Nimbus", "nobundler_fifo" = "Status Quo", "bbr_sfq" = "BBR"),
+        scale_name=NULL, name=NULL
+    ) +
+    coord_cartesian(ylim=c(1,30)) +
+    theme_minimal() + 
+    theme(
+        legend.position="top",
+        legend.title=element_blank(),
+        text = element_text(angle=30,size=18, family="Lato", face="bold"),
+        plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     )
 
-ccCopaPerf = quantile(df[df$Alg=="copa_sfq",]$Slowdown, c(0.5, 0.99))
-ccNimbusPerf = quantile(df[df$Alg=="nimbus_sfq",]$Slowdown, c(0.5, 0.99))
-ccBBRPerf = quantile(df[df$Alg=="bbr_sfq",]$Slowdown, c(0.5, 0.99))
-ccBaselinePerf = quantile(df[df$Alg=="nobundler_fifo",]$Slowdown, c(0.5, 0.99))
+ccCopaPerf = quantile(df[df$scheme=="copa_sfq",]$Slowdown, c(0.5, 0.99))
+ccNimbusPerf = quantile(df[df$scheme=="nimbus_sfq",]$Slowdown, c(0.5, 0.99))
+ccBBRPerf = quantile(df[df$scheme=="bbr_sfq",]$Slowdown, c(0.5, 0.99))
+ccBaselinePerf = quantile(df[df$scheme=="nobundler_fifo",]$Slowdown, c(0.5, 0.99))
 @
     \caption{Choosing a congestion control algorithm at \name remains important, just as it is at the end-host. Note the different y-axis scales for each group of request sizes.}
     \label{fig:eval:cc}
