@@ -1,0 +1,88 @@
+#!/usr/bin/env Rscript
+
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+
+args = commandArgs(trailingOnly=TRUE)
+
+cat ("-> Read data\n")
+
+path_to_data <- args[1]
+root_path <- paste(head(strsplit(path_to_data, "/")[[1]], -1),collapse="/")
+
+df <- read.csv(path_to_data, sep=" ")
+df <- df[df$during != "none",]
+
+cat ("-> Calculate FCTs\n")
+df$Duration <- df$Duration.usec. / 1e6
+bw <- 12e6
+df$ofct <- (df$Size / bw) + 0.05
+df$Slowdown <- df$Duration / df$ofct
+
+cat ("-> Reformat\n")
+df$scheme <- df$cross # paste(df$sch, df$alg, sep="_")
+df$class <- "none"
+df[df$Size <= 1e4,]$class <- "short"
+df[df$Size <= 1e6 & df$Size > 1e4,]$class <- "med"
+df[df$Size > 1e6,]$class <- "long"
+small <- df[df$Size <= 1e4,]
+med <- df[df$Size <= 1e6 & df$Size > 1e4,]
+big <- df[df$Size > 1e6,]
+
+durings <- c(
+    "empty" = "No Cross",
+    "elastic" = "Buffer-Filling Cross",
+    "inelastic" = "Non-Buffer-Filling Cross"
+)
+
+df$during_f <- factor(df$during, levels=c("empty", "elastic", "inelastic"))
+
+cat ("-> Plot Boxplots\n")
+
+allp <- ggplot(df[df$class == "short",], aes(x=sch, y=Slowdown)) + geom_boxplot(aes(fill=sch), outlier.shape=NA) + coord_flip() +
+    ylab("Slowdown") + 
+    xlab("") + 
+    scale_fill_manual(limit=c("sfq", "fifo"),
+        labels=c("sfq"="Bundler","fifo"="Status Quo"),
+        values = c(
+            "fifo" = "#d95f02",
+            "sfq" = "#1b9e77",
+            "copa+nimbus_fifo" = "#e7298a"
+        )
+    ) +
+    scale_x_discrete(
+        limit=c("fifo", "sfq"),
+        labels=c("fifo"="","sfq"=""),
+        scale_name=NULL, name=NULL
+    ) +
+    facet_wrap(vars(during_f), nrow=1, labeller=as_labeller(durings), scales="free_y") +
+    ylim(1,5) +
+    theme_minimal() +
+    theme(
+        text = element_text(angle=0,size=18, face="bold"),
+        legend.title=element_blank(),
+        legend.position="left",
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()
+    )
+
+ggsave(paste(root_path, paste("big_exp_fct", "pdf", sep="."), sep="/"), allp, height=2, width=15)
+
+cat ("-> Stats\n")
+
+df %>% 
+    group_by(sch, during_f, class) %>%
+    summarize(
+        n = n(),
+        min = min(Slowdown),
+        avg = mean(Slowdown),
+        p10 = quantile(Slowdown, 0.10),
+        p50 = quantile(Slowdown, 0.50),
+        p90 = quantile(Slowdown, 0.90),
+        p99 = quantile(Slowdown, 0.99),
+        p999 = quantile(Slowdown, 0.999),
+        max = max(Slowdown),
+    ) 
+
+#df %>% group_by(seed, class, scheme) %>% summarize(n=n()) %>% print(n=1000)
