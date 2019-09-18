@@ -1,56 +1,43 @@
+\subsection{Impact of Cross Traffic}
+\label{s:robust:cross}
+
+\an{put big experiment here}
+
+In studying the impact of cross traffic, we present results with both Nimbus and Copa being used as the congestion control algorithm at the \inbox.
+
+\input{inelastic-cross}
+\paragrapha{Short-lived flows} We first consider the case where the cross traffic comprises of short-lived flows up to a few MBs.
+We keep \name's offered load (comprising of web requests described in \S\ref{s:eval:setup}) constant, but vary the cross traffic's offered load.
+Figure~\ref{fig:robust:cr-inelastic} shows that \name continues to provide benefits for this case, since maintaining low in-network queues is still possible in the presence of such flows.
+
+\input{elastic-cross}
+\paragrapha{Buffer-filling flows} Competition from persistent backlogged flows that fill the bottleneck link's buffer is the worst-case scenario for \name (as discussed in \S\ref{s:deploy}).
+As described in \S\ref{s:queue-ctl}, \name's congestion controller must push packets into the bottleneck queue to compete fairly, and thus it cannot retain packets at the \inbox for scheduling. 
+Furthermore, since \name maintains a $10$ms queue at the \inbox in these cases, we expect a small amount of RTT unfairness. \an{maybe don't say this?}
+We indeed see this in Figure~\ref{fig:robust:cr-elastic}, as we vary the number of competing Cubic cross-traffic flows.
+
+\input{twobundler}
+\paragrapha{Competing Bundles} Last, we evaluate the case where flows from multiple bundles compete with one another. 
+In Figure~\ref{fig:robust:twobundler}, we show the performance with two bundles of traffic competing with one another at the same bottleneck link. 
+Both bundles comprise of web requests along with a backlogged Cubic flow. 
+Even in the presence of this buffer-filling cross traffic, both bundles maintain low queueing in the network and successfully control the queues at the \inbox.
+Thus, \name provides benefits for both bundles, even when the amount of traffic in each bundle is different.  
+
 \subsection{Impact of Congestion Control} \label{s:eval:cc}
 
 We now evaluate the impact of a different congestion control algorithm running at the \inbox and at the endhosts.
-% We first verify that \name indeed runs congestion control algorithms appropriately.
-% \input{tput-delay}
-% Figure~\ref{fig:eval:tputdelay} shows that for two of the three congestion control algorithms we evaluate --- Copa~\cite{copa} and Nimbus~\cite{nimbus} --- the throughput (in Figure~\ref{fig:eval:tputdelay:a}) and queueing delay (in Figure~\ref{fig:eval:tputdelay:b}) distributions over a one-minute experiment are similar to the same algorithm running at the end-host (\ie without \name).
-
-% BBR's~\cite{bbr} delay distribution suffers because of its interaction with the end-to-end congestion control. When BBR enters its \texttt{PROBE\_RTT} mode by setting a congestion window of $4$ packets, end-host implementations simply stop transmitting.
-% However, with \name the end-host implementation is another congestion controller, Cubic; it continues probing for bandwidth while BBR throttles the rate until the \inbox is forced to drop packets.
 
 \input{congestion-control}
 
-\Para{\capinbox congestion control} So far we evaluate \name by running Copa~\cite{copa} at the \inbox.  Figure~\ref{fig:eval:cc} shows \name's performance with other congestion control algorithms (namely, Nimbus~\cite{nimbus} and BBR~\cite{bbr}), and using SFQ scheduling. We find that using Nimbus provides similar benefits over \baseline as Copa. BBR, on the other hand, performs slightly worse than \baseline. This is because it pushes packets into the network more aggressively than the other schemes, resulting in a bigger in-network queue. This, combined with the queue built at the \name, results in the endhosts experiencing higher queueing delays than \baseline. This shows that the choice of congestion control algorithm, and its ability to maintain small queues in the network, plays an important role. 
+\Para{\capinbox congestion control} So far we have evaluated \name by running Copa~\cite{copa} at the \inbox.  
+Figure~\ref{fig:eval:cc} shows \name's performance with other congestion control algorithms (namely, Nimbus~\cite{nimbus} and BBR~\cite{bbr}), and using SFQ scheduling. 
+We find that using Nimbus provides similar benefits over \baseline as Copa. 
+BBR, on the other hand, performs slightly worse than \baseline. 
+This is because it pushes packets into the network more aggressively than the other schemes, resulting in a bigger in-network queue.
+This, combined with the queue built at the \name, results in the endhosts experiencing higher queueing delays than \baseline. This shows that the choice of congestion control algorithm, and its ability to maintain small queues in the network, plays an important role. 
 
 \input{e2e}
 \Para{Endhost congestion control} 
 We used Cubic congestion control at the endhosts for our experiments so far. When we configure endhosts to use BBR (as implemented in Linux $4.13$), \name's benefits remain: in Figure~\ref{fig:eval:e2e}, \name achieves 58\% lower FCTs in the median compared to the updated \baseline where the endhosts use BBR. 
 This is primarily because in the \baseline using BBR causes endhosts to achieve 66\% worse median slowdown ($1.62$ with Cubic to $2.68$ with BBR); \name's slowdown is only 5\% worse when endhosts use BBR ($1.08$ with Cubic to $1.14$ with BBR). 
 This shows that \name is compatible with multiple endhost congestion control algorithms.
-
-\subsection{Impact of Cross Traffic}
-\label{s:robust:cross}
-In studying the impact of cross traffic, we present results with both Nimbus and Copa being used as the congestion control algorithm at the \inbox.
-% \paragrapha{Self-Inflicted Delays} Correct congestion control behavior is crucial to achieving low FCTs.
-% In Figure~\ref{fig:eval:cc} we repeat the FCT experiments in \S\ref{s:eval:fct} and now compare three congestion control protocols to the \baseline: BBR~\cite{bbr}, Nimbus~\cite{nimbus}, and Copa~\cite{copa}.
-% In this scenario, it is important to control delays in the bottleneck queue, since it is FIFO scheduled and therefore queued packets from short requests must wait behind those from longer requests. 
-% Nimbus and BBR both maintain slightly higher queueing delays at the bottleneck link, and thus they achieve higher median FCTs. 
-% Nimbus, which is slightly more aggressive than Copa, induces a higher queue build up at the bottleneck, and a smaller queue build up at the \name, when compared to Copa. It therefore results in a higher median slowdown (\ccNimbusMedian) than Copa (\ccCopaMedian), though still providing significant benefits over the baseline (\ccBaselineMedian). 
-% BBR, however is even more aggressive and cannot maintain sufficient queuing at the \name to provide enough benefits: it achievesa median slowdown of \ccBBRMedian.
-% Meanwhile, the characteristics of other traffic --- not part of the traffic aggregate \name controls --- on the link can force \name's congestion controller to behave more aggressively in order to remain competitive in the bottleneck link. This would reduce the amount of queue build up at the \name, thus reducing its benefits.
-
-\input{inelastic-cross}
-\paragrapha{Short-lived flows} We first consider the case where the cross traffic comprises of short-lived flows up to a few MBs.
-%; that is, traffic that does not respond to queue-size fluctuations.
-% For example, traffic primarily comprised of short web requests has the inelastic property: regardless of what \name's congestion controller (or, indeed, any end-to-end congestion controller) does, the component short requests, which remain in TCP slow start for their entirety, will occupy some fraction of the bottleneck link capacity.
-% In this case, the congestion controller must yield bandwidth to the cross traffic, but can still maintain low delays at the bottleneck link.
-We split the offered load (comprising of web requests described in \S\ref{s:eval:setup}) between the bundled traffic and non-bundle cross traffic in the three ways, as shown in Figure~\ref{fig:robust:cr-inelastic}. \name continues to provide benefits for this case, since maintaining low in-network queues is still possible in the presence of such flows.
-%Each of the congestion control algorithms we evaluate sacrifice bandwidth (to varying degrees)  in reaction to the cross traffic, which hurts the FCTs of the larger requests.
-%However, the scheduling policy apportions the remaining bandwidth to the short flows, so there is still an improvement in FCTs at the median.
-
-\input{elastic-cross}
-\paragrapha{Buffer-filling flows} Competition from persistent backlogged flows that fill the bottleneck link's buffer, is the worst-case scenario for \name.
-As described in \S\ref{s:impl:prototype}, \name's congestion controller must push packets into the bottleneck queue to compete fairly, and thus it cannot retain packets at the \inbox for scheduling. As a result, we expect performance to be no better than the baseline. We indeed see this in Figure~\ref{fig:robust:cr-elastic}, as we add different numbers of buffer-filling flows as cross-traffic.
-
-% \an{In this experiment, Copa, primarily a delay-based algorithm, cannot adequately detect the presence of competing elastic traffic and ``mode-switch'' to its competitive mode. 
-% %When we modify Copa to use Nimbus's elasticity detector (Figure~\ref{fig:robust:cr-elastic}), its performance matches the baseline.
-% }
-
-\input{twobundler}
-\paragrapha{Competing Bundles} We finally evaluate the case where flows from multiple bundles compete with one another. 
-In Figure~\ref{fig:robust:twobundler}, we show the performance with two bundles of traffic competing with one another at the same bottleneck link. Both bundles comprise of web requests along with a backlogged flow. We find that \name continues to provide benefits for both bundles, even when the amount of traffic in each bundle is different.  
-%A \name's performance improvements return once competing traffic starts using \name as well. In Figure~\ref{fig:robust:twobundler}, we show the performance of each of two bundles of traffic competing in the same bottleneck link. 
-%Despite both bundles containing persistently backlogged flows, just as in Figure~\ref{fig:robust:cr-elastic}, here \name improves the FCTs of both bundles independently.
-
-% \paragrapha{Competing Bundles} A \name's performance improvements return once competing traffic starts using \name as well. In Figure~\ref{fig:robust:twobundler}, we show the performance of each of two bundles of traffic competing in the same bottleneck link. 
-% Despite both bundles containing persistently backlogged flows, just as in Figure~\ref{fig:robust:cr-elastic}, here \name improves the FCTs of both bundles independently.
