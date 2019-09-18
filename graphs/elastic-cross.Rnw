@@ -5,30 +5,31 @@ library(ggplot2)
 library(showtext)
 font_add_google("Lato")
 showtext_auto()
-df <- read.csv("data/cr-elastic.data", sep=" ")
-df$Duration <- df$Duration.usec. / 1e6
-df$ofct <- (df$Size / 12e6) + 0.05
-df$Slowdown <- df$Duration / df$ofct
 
-df <- df[df$Alg != "copa_sfq" & df$Alg != "bbr_sfq",]
+df <- read.csv("data/new/vary_elastic.data", sep=" ")
 
-ggplot(df, aes(x=factor(Cross), y=Slowdown, fill=Alg)) + 
-    geom_boxplot(outlier.shape=NA) + 
-    coord_cartesian(ylim=c(1,10)) +
-    ylab("Slowdown") +
-    xlab(NULL) +
-    scale_fill_brewer(type="qual", palette=1,
-        limit=c("nimbus_sfq", "nimcopa_sfq", "nobundler_fifo"),
-        labels=c("nimcopa_sfq" = "Bundler\nCopa", "nimbus_sfq" = "Bundler\nNimbus", "nobundler_fifo" = "Status Quo")
-    ) +
-    theme_minimal() +
+df$fair <- df$bundler_flows / (df$bundler_flows + df$cross_flows)
+df$actual <- df$btpt / (df$btpt + df$ctpt)
+df$normalized <- df$actual / df$fair
+
+
+
+ggplot(df, aes(x=cross_flows, y=normalized*100, fill=scheme)) + 
+    geom_bar(colour="black", position="dodge", stat="identity") + 
+    xlab("# Elastic Cross Traffic Flows") + 
+    ylab("% Fair Share Throughput") + 
+    scale_fill_manual(
+        limit=c("fifo_nobundler", "sfq_nimbus"), 
+        values=c("fifo_nobundler"="#d95f02", "sfq_nimbus" =  "#1b9e77"), 
+        labels=c("fifo_nobundler" = "Status Quo ", "sfq_nimbus" = "Bundler")
+    ) + 
+    theme_minimal() + 
     theme(
-        legend.position="top",
-        legend.title=element_blank(),
-        legend.text=element_text(size=16, family="Lato", face="plain"),
-        text = element_text(size=18, family="Lato", face="bold")
+          legend.position="top", 
+          legend.title=element_blank(), 
+          text=element_text(angle=0,size=14,family="Lato",face="bold")
     )
 @
-    \caption{Varying number of competing buffer-filling cross traffic flows. As before, \name's traffic offers 84Mbps of load, with one persistently backlogged connection.}
+    \caption{Varying number of competing buffer-filling cross traffic flows. \name controls a fixed 20 buffer-filling flows in each case. The Y-axis is normalized to the expected fair share of throughput. For example, when there are 40 cross traffic flows, the expected fair share of the bundle is $20 / 60 = 33.3\%$.}
     \label{fig:robust:cr-elastic}
 \end{figure}

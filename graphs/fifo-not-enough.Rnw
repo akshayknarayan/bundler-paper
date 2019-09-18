@@ -6,31 +6,32 @@ library(showtext)
 library(patchwork)
 font_add_google("Lato")
 showtext_auto()
-df <- read.csv("data/84Mbps-1bk-caidacdf.data", sep=" ")
+df <- read.csv("data/new/overview_benefits.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
 bw <- 12e6
 df$ofct <- (df$Size / bw) + 0.05
 df$Slowdown <- df$Duration / df$ofct
+df$scheme <- paste(df$alg, df$sch, sep="_")
 
 big <- df[df$Size > 1e6,]
 med <- df[df$Size <= 1e6 & df$Size > 1e4,]
 small <- df[df$Size <= 1e4,]
 
 ggplot(small, aes(
-        x=Alg, fill=Alg, y=Slowdown
+        x=scheme, fill=scheme, y=Slowdown
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
     ylab("Slowdown") +
     ggtitle("Small\n< 10KB") +
-    scale_fill_manual(limit=c("nobundler_fifo", "copa_sfq", "copa_fifo"),
+    scale_fill_manual(limit=c("nobundler_fifo", "copa+nimbus_sfq", "copa+nimbus_fifo"),
         values = c(
             "nobundler_fifo" = "#d95f02",
-            "copa_sfq" = "#1b9e77",
-            "copa_fifo" = "#e7298a"
+            "copa+nimbus_sfq" = "#1b9e77",
+            "copa+nimbus_fifo" = "#e7298a"
         )
     ) +
     scale_x_discrete(
-        limit=c("nobundler_fifo", "copa_sfq", "copa_fifo"),
+        limit=c("nobundler_fifo", "copa+nimbus_sfq", "copa+nimbus_fifo"),
         scale_name=NULL, name=NULL
     ) +
     coord_cartesian(ylim=c(1,4)) +
@@ -43,28 +44,28 @@ ggplot(small, aes(
         plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     ) +
 ggplot(med, aes(
-        x=Alg, fill=Alg, y=Slowdown
+        x=scheme, fill=scheme, y=Slowdown
     )) +
     geom_boxplot(outlier.shape=NA) +
     ylab(NULL) +
     ggtitle("Medium\n10KB - 1MB") +
-    scale_fill_manual(limit=c("nobundler_fifo", "copa_sfq", "copa_fifo"),
+    scale_fill_manual(limit=c("nobundler_fifo", "copa+nimbus_sfq", "copa+nimbus_fifo"),
         values = c(
             "nobundler_fifo" = "#d95f02",
-            "copa_sfq" = "#1b9e77",
-            "copa_fifo" = "#e7298a"
+            "copa+nimbus_sfq" = "#1b9e77",
+            "copa+nimbus_fifo" = "#e7298a"
         ),
         labels=c(
             "nobundler_fifo" = "Status Quo  ",
-            "copa_sfq" = "Bundler SFQ  ",
-            "copa_fifo" = "Bundler FIFO"
+            "copa+nimbus_sfq" = "Bundler SFQ  ",
+            "copa+nimbus_fifo" = "Bundler FIFO"
         )
     ) +
     scale_x_discrete(
-        limit=c("nobundler_fifo", "copa_sfq", "copa_fifo"),
+        limit=c("nobundler_fifo", "copa+nimbus_sfq", "copa+nimbus_fifo"),
         scale_name=NULL, name=NULL
     ) +
-    coord_cartesian(ylim=c(1,5)) +
+    coord_cartesian(ylim=c(1,20)) +
     theme_minimal() + 
     theme(
         legend.position="bottom",
@@ -74,22 +75,22 @@ ggplot(med, aes(
         plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     ) +
 ggplot(big, aes(
-        x=Alg, fill=Alg, y=Slowdown
+        x=scheme, fill=scheme, y=Slowdown
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
     ylab(NULL) + ggtitle("Large\n> 1MB") +
-    scale_fill_manual(limit=c("nobundler_fifo", "copa_sfq", "copa_fifo"),
+    scale_fill_manual(limit=c("nobundler_fifo", "copa+nimbus_sfq", "copa+nimbus_fifo"),
         values = c(
             "nobundler_fifo" = "#d95f02",
-            "copa_sfq" = "#1b9e77",
-            "copa_fifo" = "#e7298a"
+            "copa+nimbus_sfq" = "#1b9e77",
+            "copa+nimbus_fifo" = "#e7298a"
         )
     ) +
     scale_x_discrete(
-        limit=c("nobundler_fifo", "copa_sfq", "copa_fifo"),
+        limit=c("nobundler_fifo", "copa+nimbus_sfq", "copa+nimbus_fifo"),
         scale_name=NULL, name=NULL
     ) +
-    coord_cartesian(ylim=c(1,15)) +
+    coord_cartesian(ylim=c(1,30)) +
     theme_minimal() + 
     theme(
         legend.position="top",
@@ -99,8 +100,8 @@ ggplot(big, aes(
         plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     )
 
-overview_benefits_bundler_results = quantile(df[df$Alg=="copa_sfq",]$Slowdown, c(0.5, 0.99))
-overview_benefits_fifo_results = quantile(df[df$Alg=="copa_fifo",]$Slowdown, c(0.5, 0.99))
+overview_benefits_bundler_results = quantile(df[df$scheme=="copa+nimbus_sfq",]$Slowdown, c(0.5, 0.99))
+overview_benefits_fifo_results = quantile(df[df$scheme=="copa+nimbus_fifo",]$Slowdown, c(0.5, 0.99))
 @
     \caption{With FIFO scheduling, the benefits of \name are lost: FCTs are \Sexpr{round(100*(1-((overview_benefits_fifo_results[1] / overview_benefits_bundler_results[1])-1)), 0)}\% worse in the median. Note the different y-axis scales for each group of request sizes.}
     \label{fig:eval:fifo}
