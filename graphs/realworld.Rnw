@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-<<eval:realworld,fig.showtext=TRUE,cache=TRUE,echo=FALSE,message=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
+<<eval:realworld,fig.showtext=TRUE,cache=TRUE,echo=FALSE,message=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=9>>=
 library(ggplot2)
 library(showtext)
 font_add_google("Lato")
@@ -13,7 +13,7 @@ df <- read.csv("data/udping_results.out", sep=" ")
 df_iowa <- subset(df, src=="gcp_iowa" & grepl("^gcp", dst))
 
 regions <- c(
-    "gcp_iowa"="Iowa",
+    "gcp_iowa"="",
     "gcp_belgium"="Belgium",
     "gcp_frankfurt"="Frankfurt",
     "gcp_oregon"="Oregon",
@@ -25,7 +25,7 @@ ggplot(df_iowa, aes(
         x=factor(port), y=rtt, fill=Latency, colour=Latency
     )) +
     geom_boxplot(outlier.shape=NA) +
-    facet_grid(src ~ dst, labeller=as_labeller(regions)) +
+    facet_wrap(src ~ dst, ncol=1, labeller=as_labeller(regions)) +
     coord_cartesian(ylim=c(0, 200)) +
     ylab("Latency") +
     xlab("5-Tuples (ECMP Path)") +
