@@ -109,17 +109,17 @@ A congestion control algorithm at the \inbox would require network feedback from
 Conventional endhost-based implementations have used TCP acknowledgements to gather congestion control measurements. A simple strategy for \name is to passively observe the receiver generated TCP acknowledgements at the \inbox. However, we discard this option as it is specific to TCP and thus incompatible with alternate protocols, \ie UDP for video streaming or QUIC's encrypted transport header~\cite{quic}.
 
 \paragrapha{Terminate connections and proxy through TCP} With this approach, one would terminate end-host TCP connections at the \inbox and open new connections to the \outbox, allowing the \inbox to control the rate of traffic in these connections.
-This approach allows the unmodified use of existing congestion control algorithms, since a TCP tunnel can collect ACKs. This approach provides an added advantage: TCP proxies can improve performance by allowing end-to-end connections to ramp up their sending rates quickly. \radhika{unclear} \radhika{also, wouldn't this approach have the same disadvantage as previous one?}
+This approach allows the unmodified use of existing congestion control algorithms, since a TCP tunnel can collect ACKs. This approach provides an added advantage: TCP proxies can improve performance by allowing end-to-end connections to ramp up their sending rates quickly. 
+\radhika{unclear} \radhika{also, wouldn't this approach have the same disadvantage as previous one?}
 The primary disadvantage of this approach is that \name must take responsibility for reliable delivery of component traffic, which requires large amounts of queueing and, in the case of UDP applications, can harm application performance. 
 Furthermore, proxying TCP connections introduces a new potential point of failure at \name; if \name crashes, connections will be lost.
 Finally, from a practical standpoint, to avoid head-of-line blocking this approach requires that \name open a new proxy connection for each component end-host connection, but still determine the bottleneck rate of the traffic \emph{aggregate}. While this approach may be technically feasible~\cite{cm}, it would result in high 
 overhead\footnote{From an architectural standpoint this design runs counter to the end-to-end principle~\cite{e2e-principle}; it replicates endhost functionality in the network.}.
 %the cycles used for opening and managing new proxy connections are better used for packet processing.
-Thus, we set aside TCP proxies for the remainder of this discussion. 
+Thus, we set aside TCP proxies for the remainder of this discussion, but explore their compatibility with \name in \S\ref{s:eval:proxy}. 
 %We but note that this approach is complementary with \name (see \S\ref{s:eval}).
 
-\an{discuss non-terminating tcp tunnels?}
-
+%\an{discuss non-terminating tcp tunnels?}
 \paragrapha{Out-of-band feedback} Having eliminated the options for using in-band feedback, we adopt an out-of-band feedback mechanism: the \outbox sends out-of-band congestion ACKs to the \inbox.
 This decouples congestion signalling from traditional ACKs used for reliability\footnote{The idea of an out-of-band congestion notification is similar to that in QCN~\cite{qcn}, although our goals differ.} and is thus indifferent to the underlying protocol (be it TCP, UDP, or QUIC).
 

@@ -41,14 +41,20 @@ This overhead is unnecessary; reacting once per RTT is sufficient for congestion
 The \inbox therefore samples a subset of the packets for which the \outbox sends congestion ACKs.
 We refer to the period between two successively sampled packets as an \emph{epoch}, and each sampled packet as an \emph{epoch boundary packet}.
 
-The simplest way to sample an epoch boundary packet would be for the \inbox to probabilistically modify a packet (\ie set a flag bit in the packet header) and the \outbox to match on this flag bit.
+The simplest way to sample an epoch boundary packet would be for the \inbox to probabilistically modify a packet (\ie set a flag bit in the packet header) and the \outbox to match on this flag bit\footnote{This observation is analogous to AXE's ``deduplication filter''~\cite{axe}.}.
 However, where in the header should this flag bit be?
 Evolving packet headers has proved impractical~\cite{trotsky}, so perhaps we could use an encapsulation mechanism.
 Protocols at both L3 (\eg NVGRE~\cite{nvgre}, IP-in-IP~\cite{ipinip}) and L4 (\eg VXLAN~\cite{vxlan}) are broadly available and deployed in commodity routers today.
 
 However, packet modification is unnecessary; since the same packets pass through \inbox and \outbox, uniquely identifying a given pattern of packets is sufficient to meet our requirements. In this scheme, the \inbox and \outbox both hash a subset of header for every packet, and mark a packet as an epoch boundary if its hash is a multiple of the desired \emph{sampling period}. The \inbox computes the sampling period to produce about 4 samples per RTT and communicates it to the \outbox. We defer the details of sampling period computation to Appendix~\ref{app:epochs}. 
 
-Upon identifying a packet $p_i$ as an epoch boundary packet the \inbox records: (i) its hash, $h(p_i)$, (ii) the time when it is sent out, $t_{\text{sent}}(p_i)$, and (iii) the total number of bytes sent thus far including this packet, $b_{sent}(p_i)$. When the \outbox sees $p_i$, it also identifies it as an epoch boundary and sends a congestion ACK back to the \inbox. The congestion ACK contains $h(p_i)$ and the running count of the total number of bytes received for that bundle. Upon receiving the congestion ACK for $p_i$, the \inbox records the received information, and using its previously recorded state, computes the RTT and the rates at which packets are sent and received, as in Figure~\ref{fig:ratecalc}. \radhika{don't think the figure helps much now}
+Upon identifying a packet $p_i$ as an epoch boundary packet the \inbox records: 
+(i) its hash, $h(p_i)$, 
+(ii) the time when it is sent out, $t_{\text{sent}}(p_i)$, 
+and (iii) the total number of bytes sent thus far including this packet, $b_{sent}(p_i)$. 
+When the \outbox sees $p_i$, it also identifies it as an epoch boundary and sends a congestion ACK back to the \inbox. 
+The congestion ACK contains $h(p_i)$ and the running count of the total number of bytes received for that bundle. 
+Upon receiving the congestion ACK for $p_i$, the \inbox records the received information, and using its previously recorded state, computes the RTT and the rates at which packets are sent and received, as in Figure~\ref{fig:ratecalc}. \radhika{don't think the figure helps much now}
 
 The packet header subset that is used for identifying epoch boundaries must have the following properties:
 (i) It must be the same at both the \inbox and the \outbox.
