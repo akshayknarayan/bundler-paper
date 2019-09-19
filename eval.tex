@@ -28,7 +28,7 @@ Each server then sends the requested amount of data to the client and we measure
 The link bandwidth at the mahimahi link is set to 96Mbps, and the RTT is set to 50ms. The requests result in an offered load of 84Mbps. 
 
 The endhost runs Cubic~\cite{cubic}, and the \inbox runs Copa~\cite{copa} (we test other schemes in \S\ref{s:eval:cc}) with the Nimbus~\cite{nimbus} cross traffic detection mechanism. The \inbox schedules traffic using stochastic fair queueing~\cite{sfq} in our experiments by default (we show other policies in \S\ref{s:eval:policies}). 
-\an{true? Each experiment is comprised of $100,000$ requests sampled from this distribution, across $10$ runs each with a different random seed.}
+Each experiment is comprised of 1,000,000 requests sampled from this distribution, across 10 runs each with a different random seed.
 
 \subsection{Understanding Performance Benefits}\label{s:eval:fct}
 
