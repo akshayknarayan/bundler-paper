@@ -20,7 +20,7 @@ plt <- ggplot(df, aes(x=t, y=value, color=measurement)) +
     ylab(expression(atop("Throughput(Mbps)","Delay(ms)"))) +
     scale_x_continuous(expand = c(0, 0), limits=c(0,180), breaks=c(0,60,120,180)) +
     scale_fill_manual('Mode', values="black", labels=c("xtcp")) +
-    scale_colour_brewer(type="qual", palette=2, limits=c("bundle", "cross", "delay"), labels=c("bundle"="Bundler Throughput", "cross"="Cross-Traffic Throughput", "delay"="Queueing Delay")) +
+    scale_colour_brewer(type="qual", palette=2, limits=c("bundle", "cross", "delay"), labels=c("bundle"="Bundler Throughput", "cross"="Cross-Traffic Throughput", "delay"="In-Network Queueing Delay")) +
     theme_bw() + 
     theme(
         text = element_text(angle=0,size=14, family="Lato", face="bold"),
