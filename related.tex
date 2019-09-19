@@ -2,7 +2,7 @@
 \label{s:related}
 
 %With our work sitting at the intersection of highly popular topics of scheduling, congestion control and middleboxes, one can produce a large body of past work related to each topic. However, this unique intersection of topics is also what adds significant novelty to our work. 
-Our work is at the intersection of congestion control, scheduling, and middleboxes. 
+%Our work is at the intersection of congestion control, scheduling, and middleboxes. 
 %We identify the most relevant related work in each of these areas below. 
 
 \Para{Aggregating congestion information} A recent proposal~\cite{fivecomps} observes that the majority of today's traffic is owned by a few entities.
@@ -15,5 +15,5 @@ This observation implies that there are large bundles in practice, resulting in 
 In that spirit, \name is closer to OverQoS~\cite{overqos}. Proposed more than a decade ago, OverQoS aimed to provide QoS benefits in the Internet by aggregating and managing traffic at the nodes of an already-deployed overlay network~\cite{ron}. 
 Given the aggregation opportunities today, where a few content providers generate a majority of the Internet traffic~\cite{fivecomps}, we observe that the time for reaping benefits from such designs may have arrived. 
 Recent trends enable a simpler and more deployable approach; instead of deploying an overlay network, \name{} proposes deploying a middlebox at the sending and the receiving domains to aggregate sufficient traffic. 
-This simplifies the ``rezendezvous'' problem, since \name initializes bundles dynamically (\S\ref{s:design}).
+This simplifies the ``rendezvous'' problem, since \name initializes bundles dynamically (\S\ref{s:design}).
 In addition, \name provides a novel mechanism to \emph{move} the in-network queues, and gain the power to schedule the bundled traffic. 
