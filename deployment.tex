@@ -1,4 +1,4 @@
-\section{Example Scenario}\label{s:deploy}
+\section{Example Scenarios}\label{s:deploy}
 \begin{figure*}[t]
     \centering
     \includegraphics[width=\textwidth]{img/shift-bottleneck-combined}
@@ -37,15 +37,19 @@ We expect this to become the common form of observed congestion as more domains 
 \paragraphi{Congestion due to un-bundled cross-traffic} We now consider the scenario where the cross-traffic includes flows from domains that have not yet deployed a \name. If all such \emph{un-bundled} competing flows are short-lived (up to a few MBs), the bundled traffic still sees significant performance benefits. 
 However, if the cross traffic is long lasting and aggressively fills up available buffer space at the bottleneck link, using a delay-based congestion controller  at the \name would adversely impact the bundled traffic. 
 Instead, \name detects the presence of such \emph{buffer-filling} cross-traffic and, to compete fairly, pushes more packets into the network. 
-It thus relinquishes its control over the bundled traffic.
-However, in these cases, \name chooses to create extra queueing as described in \S\ref{s:queue-ctl} to be able to detect when the cross traffic leaves.
-Therefore, the bundle's aggregate throughput will decrease slightly due to RTT unfairness.
-We evaluate this phenomenon in \S\ref{s:robust:cross}.
-
+It thus relinquishes most of its control (and scheduling opportunities) over the bundled traffic, while still maintaining a small queue for continued detection of cross-traffic (as detailed in \S\ref{s:queue-ctl}). This results in a slight throughput degradation with \name that we evaluate in \S\ref{s:robust:cross}.
+%However, in these cases, \name chooses to create extra queueing as described in \S\ref{s:queue-ctl} to be able to detect when the cross traffic leaves.
+%Therefore, the bundle's aggregate throughput will decrease slightly due to RTT unfairness.
+%We evaluate this phenomenon in \S\ref{s:robust:cross}.
 However, buffer-filling cross traffic is \emph{rare}.
-Recent work in CDNs shows~\cite{akamai-cdn-trace} that the vast majority of requests are smaller than 1MiB; these requests may fill buffers for a few seconds, but no more.
-We further analyze a packet trace from an Internet backbone router~\cite{caida-dataset}.
-The flow size distribution here is even more skewed: $97.6\%$ of flows are under $10$KB, and only $0.02\%$ of flows are larger than $5$MB.
+Recent study in CDNs~\cite{akamai-cdn-trace} and packet trace from an Internet backbone router~\cite{caida-dataset} reveal that the vast majority of requests are smaller than 1MB; these requests may fill buffers for a few seconds, but no more. Our experiments on real Internet paths (\S\ref{s:eval:realworld}), conducted over multiple days also did not encounter such pathological cross traffic. 
+\radhika{Akshay, check this out.}
+%We further analyze a packet trace from an Internet backbone router~\cite{caida-dataset}.
+%The flow size distribution here is even more skewed: $97.6\%$ of flows are under $10$KB, and only $0.02\%$ of flows are larger than $5$MB.
+
+\Para{Shared congestion across flows in the bundle} Bundler’s design for moving queues via aggregate congestion control assumes that the component flows within a bundle share in-network congestion. We believe this would hold in most scenarios. Even if an ISP does load balancing for its core, the bottleneck interdomain links would still be shared by the flows in a bundle. Another common scenario is for the bottleneck to be at the edge of the receiving domain, which will again be shared across the bundled flows. Finally, even if an in-network load balancing mechanism splits the bundled flows across multiple congested paths with multiple in-network queues, \name would account for the aggregate network bandwidth and move all of these queues to the sender's domain. Our success with using \name on real Internet paths (\S\ref{s:eval:realworld}) suggests that our design is robust to such multi-pathing effects. 
+
+%(2) from the bundle's perspective, multiple paths appear as multiple queues, with some aggregate bandwidth capacity (\ie the max-flow of the network paths between the sending and receiving domains). While queueing may be unevenly distributed among the paths, the distribution of flows onto paths is currently random (\eg via ECMP). With \name, all these queues are moved to the \inbox, so it can schedule bundled flows deliberately rather than randomly.
 
 \vspace{0.05in}
 \paragrapha{Takeaway} While \name must yield its scheduling ability in the face of aggressive, buffer-filling cross traffic, in most scenarios it significantly improves performance (as we show in \S\ref{s:eval}).
