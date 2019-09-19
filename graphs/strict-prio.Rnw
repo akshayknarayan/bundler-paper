@@ -48,6 +48,7 @@ Bundler (SFQ)     &  \overviewBenefitsBundlerMedian  &  \overviewBenefitsBundler
     \label{fig:eval:strict-prio}
 \end{tabular}
 \end{center}
+    \vspace{-10pt}
 \caption{Using strict prioritization further reduces FCTs for the higher-priority class of traffic.}\label{t:eval:prio}
 \end{table}
 \newcommand{\strictPrioTailImprovementOverFq}{\Sexpr{round((1-(strictprio_copa_prio[2] / strictprio_copa_sfq[2]))*100, 0)}\%\xspace}
