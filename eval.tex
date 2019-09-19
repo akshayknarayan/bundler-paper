@@ -49,8 +49,8 @@ at the mahimahi bottleneck\footnote{
 We implement this scheme by modifying mahimahi (our patch comprises $171$ lines of C++) to add a packet-level fair-queueing scheduler to the bottleneck link.}. 
 Recall from \S\ref{s:intro} that this configuration is not deployable.
 %: it would force all customers --- who may desire diverging scheduling policies --- to use the same scheduler.
-(iii) The default \name configuration, that uses stochastic fair queueing~\cite{sfq} scheduling policy at the \inbox, \radhika{and (iv) Using \name with FIFO (without exploiting scheduling opportunity).}
-\radhika{flip the order for in-network and \name in the figure to be consistent with the above order.}
+(iii) The default \name configuration, that uses stochastic fair queueing~\cite{sfq} scheduling policy at the \inbox, and (iv) Using \name with FIFO (without exploiting scheduling opportunity).
+%\radhika{flip the order for in-network and \name in the figure to be consistent with the above order.}
 
 Figure~\ref{fig:eval:best} presents our results. 
 The median slowdown (across all flow sizes) decreases from \overviewBenefitsBaselineMedian 
