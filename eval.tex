@@ -7,26 +7,25 @@ Given \name's ability to move the in-network queues to the \inbox (as shown earl
     \item Where do \name's performance benefits come from? We discuss this in the context of improving the flow completion times of \name's component flows. (\S\ref{s:eval:fct})
     \item Can \name effectively control the queues on real Internet paths? (\S\ref{s:eval:realworld})
     \item Do \name's performance benefits hold across different scenarios? (\S\ref{s:robust:cross})
-    \item Can \name enforce different scheduling policies? (\S\ref{s:eval:policies})
+    \item Can \name work with different congestion control algorithms (\S\ref{s:eval:cc}) and enforce different scheduling policies \S\ref{s:eval:policies})?
+    \item Are \name's core ideas still applicable with other design decisions? (\S\ref{s:eval:proxy})
 \end{enumerate}
-\fc{Come back and update these after eval is finished}
 
 \subsection{Experimental Setup}\label{s:eval:setup}
 
-We use network emulation via mahimahi~\cite{mahimahi} to extensively evaluate our implementation of \name in a controlled setting; we also present results on real Internet paths in \S\ref{s:eval:realworld}.
-%Mahimahi creates a Linux network namespace and applies the configured network condition (emulated delay or link bandwidth) to all packets that traverse it. 
-There are three $8$-core machines in our emulated setup: one machine is a sender, another is configured as a middlebox and runs \inbox, and a third is the receiver. The \outbox runs on the same machine as the receiver, inside the same mahimahi network namespace as the receiving application. 
-%Our prototype requires that the sending application and the \inbox run on different machines, to prevent TCP small queues (TSQ) from interfering with the queuing behaviour that one would expect in a real deployment. 
+We use network emulation via mahimahi~\cite{mahimahi} to evaluate our implementation of \name in a controlled setting; we also present results on real Internet paths in \S\ref{s:eval:realworld}.
+There are three $8$-core Ubuntu 18.04 machines in our emulated setup: one machine is a sender, an \inbox, and a  receiver. The \outbox runs on the same machine as the receiver.
 Since our \outbox implementation uses \texttt{libpcap}, GRO would change the packets before they are delivered to the \outbox, which would cause inconsistent epoch boundary identification between the two boxes. We, therefore, disable TSO and GRO.
 Nevertheless, throughout our experiments CPU utilization on the machines remained below $10$\%.
 
 Unless otherwise specified, we emulate the following scenario.
-A many-threaded client generates requests from a request size CDF drawn from an Internet core router~\cite{caida-dataset}, and assigns them to one of $200$ server processes on the traffic generator.
+A many-threaded client generates requests from a request size CDF drawn from an Internet core router~\cite{caida-dataset} and assigns them to one of $200$ server processes.
 The workload is heavy-tailed: 97.6\% of requests are 10KB or shorter, and the largest 0.002\% of requests are between $5$MB and $100$MB.
 Each server then sends the requested amount of data to the client and we measure the flow completion time of each such request. 
 The link bandwidth at the mahimahi link is set to 96Mbps, and the RTT is set to 50ms. The requests result in an offered load of 84Mbps. 
 
-The endhost runs Cubic~\cite{cubic}, and the \inbox runs Copa~\cite{copa} (we test other schemes in \S\ref{s:eval:cc}) with the Nimbus~\cite{nimbus} cross traffic detection mechanism. The \inbox schedules traffic using stochastic fair queueing~\cite{sfq} in our experiments by default (we show other policies in \S\ref{s:eval:policies}). 
+The endhost runs Cubic~\cite{cubic}, and the \inbox runs Copa~\cite{copa} (we test other schemes in \S\ref{s:eval:cc}) with the Nimbus~\cite{nimbus} cross traffic detection mechanism. 
+The \inbox schedules traffic using stochastic fair queueing~\cite{sfq} in our experiments by default (we show other policies in \S\ref{s:eval:policies}). 
 Each experiment is comprised of 1,000,000 requests sampled from this distribution, across 10 runs each with a different random seed.
 
 \subsection{Understanding Performance Benefits}\label{s:eval:fct}
@@ -59,7 +58,7 @@ lower.
 \optimal's median slowdown is a further 15\% lower then \name: \overviewBenefitsOptimalMedian.
 Meanwhile, in the tail, \name's $99\%$ile slowdown is \overviewBenefitsBundlerTail, which is 48\% lower than the \baseline's \overviewBenefitsBaselineTail. \optimal's $99\%$ile slowdown is \overviewBenefitsOptimalTail.
 
-\paragrapha{Aggregate congestion control is not enough} It is important to note that \name's congestion control by itself (i.e. running FIFO scheduling) is not a means of achieving improved performance. 
+\paragrapha{Aggregate congestion control is not enough} It is important to note that \name's congestion control by itself (\ie running FIFO scheduling) is not a means of achieving improved performance. 
 To see why this is the case, recall that \name does not modify the endhosts: they continue to run the default Cubic congestion controller, which will probe for bandwidth until it observes loss.
 Indeed, the packets endhost Cubic sends beyond those that the link can transmit must queue somewhere in the network or get dropped. 
 Without \name, they queue at the bottleneck link;
@@ -72,41 +71,24 @@ Therefore, doing the FIFO scheduling at the \name, as is done by the \baseline, 
 
 \subsection{Real Internet Paths}\label{s:eval:realworld}
 \input{realworld}
-
-%\radhika{will do a pass on this subsection. Purpose, expt setup, and takeaways are not coming across as sharply. Might need a quick chat.}
-
-
 We next evaluate our prototype implementation on real Internet paths to answer three key questions that our emulated setup did not answer: (1) Does congestion (and queuing) actually occur in the middle of the network? (2) Is buffer-filling cross traffic rare enough in practice to ensure that \name provides a net improvement in performance? and (3) Is \name's design robust to multi-pathing effects in a real network?  
 Our results reveal an affirmative answer for all three questions. We explain our experiment setup and results below. 
 
-%Is there queueing on real Internet paths, and if so, can \name effectively control those queues?
-% An interesting real-Internet scenario to consider is load-balancing, a widely used technique for reducing the congestion on any one path.
-% Here, we make two observations: 
-% (1) while bundle traffic may traverse multiple intermediate paths, it will converge on the receiving domain (and the \outbox). If the bottleneck is near the receiving domain, the bundled traffic will still build queues.
-% (2) from the bundle's perspective, multiple paths appear as multiple queues, with some aggregate bandwidth capacity (\ie the max-flow of the network paths between the sending and receiving domains). While queueing may be unevenly distributed among the paths, the distribution of flows onto paths is currently random (\eg via ECMP). With \name, all these queues are moved to the \inbox, so it can schedule bundled flows deliberately rather than randomly.
-
 \Para{Experiment Setup} 
 We deploy \name (\inbox) in a GCP datacenter in Iowa and generate traffic from multiple different machines in this datacenter (as detailed below). The generated traffic is sent to multiple machines in five different GCP datacenters (in Belgium, Frankfurt, Oregon, South Carolina, and Tokyo).\footnote{We use GCP's ``Standard Networking'' option, since our focus is the public Internet.} We deploy a \name (\outbox) in each of these receiving datacenters, thus resulting in a total of five bundles spanning different regions of the globe.
-%We set up five different bundles with a GCP datacenter in Iowa sending traffic to GCP datacenters in Belgium, Frankfurt, Oregon, South Carolina, and Tokyo.
 We evaluate two different workloads in this setup: (i) Each bundle comprising of 10 parallel closed-loop 40 bytes UDP requests, where the sender issues a new request every time it receives a response. We measure the request-response RTTs in this workload to use as a baseline (and call them Base RTTs). (ii) We add 20 backlogged (\texttt{iperf}) flows to the above workload in each bundle. We run this workload both with and without \name and measure the UDP request-response RTTs (represented as \name and \baseline respectively). Effective SFQ across all flows should not inflate the base request-response RTT.
-%We measure the latency of 10 parallel, closed-loop UDP senders with 40-byte requests. Each UDP sender uses a different port, to gain visibility across multiple paths, if applicable.
-%We gather baseline latency measurements on five bundles sent from a GCP datacenter in Iowa to GCP datacenters in Belgium, Frankfurt, Oregon, South Carolina, and Tokyo and measure queueing\footnote{We use GCP's ``Standard Networking'' option, since our focus is the public Internet.}
-%by comparing this baseline to the same scenario with 20 backlogged senders.
 We verified that the backlogged senders achieve similar throughput in all cases (2-4Gbit/s on these paths) both with and without \name, and that the \name machine in Iowa is not a bottleneck itself. 
 
 \Para{Result} 
-Figure~\ref{fig:eval:realworld} shows, for each of the five bundles, the resulting RTT box-plots for each of the ten request-response loops (with the 5 tuples in UDP/IP headers differing across all ten).  %``Base RTT'' bars show the latency without backlogged senders and ``Status Quo'' bars represent, as above, the latency with the backlogged senders but without \name.
+Figure~\ref{fig:eval:realworld} shows, for each of the five bundles, the resulting RTT box-plots for each of the ten request-response loops (with the 5 tuples in UDP/IP headers differing across all ten). 
 We make the following key observations: (i) The \baseline RTTs are significantly higher than the Base RTT, which indicates significant in-network queueing. (ii) \name is able to move these queues and enforce SFQ scheduling effectively, resulting in request-response RTTs comparable to Base RTTs, and \realworldMedianLatencyImprovement smaller than \baseline at the median.
 (iii) The \baseline results further reveal that different request-response loops within a given bundle see different amounts of queueing in the network. This indicates possible ECMP load-balancing in the network based on the 5 tuples, and how \name is robust to its effects.
-%We observe multipath effects for all five bundles; while, as a result, some paths experience no queueing, all five bundles also experience queueing on at least half of the available paths.
-
-%On the paths with queueing, because \name can prioritize the latency-sensitive requests, the latency those requests observe is significantly reduced. As a result, 
 
 \input{robust}
 
 \begin{Appendix}
 \section{Varying Offered Load}\label{s:eval:offeredload}
-%Naturally, if a link is less congested, scheduling the packets that traverse it will have less benefit. Accordingly, as the offered load is reduced, we would expect the gains from scheduling to diminish. 
+Naturally, if a link is less congested, scheduling the packets that traverse it will have less benefit. Accordingly, as the offered load is reduced, we would expect the gains from scheduling to diminish. 
 We now use the web request distribution described in \S\ref{s:eval:setup} to generate a load of 50\% ($48$Mbps), 75\% ($72$Mbps) and 87.5\% ($84$Mbps) of the bottleneck link bandwidth. Our results in Figure~\ref{fig:eval:offeredload} show that as the offered load is decreased, the benefits of \name reduce. This is because if a link is less congested, scheduling the packets that traverse it will have less benefit.
 % At 87.5\% load, even without the load offered by a persistently backlogged connection, \name improves FCTs by \an{amount}. 
 % As the offered load decreases to 50\%, the benefit provided by \name decreases as well -- to \an{amount} at the 75th percentile.
@@ -116,7 +98,7 @@ We now use the web request distribution described in \S\ref{s:eval:setup} to gen
 
 \subsection{Applying Different Scheduling Policies}\label{s:eval:policies}
 %Per \S\ref{s:impl}, our \name implementation can implement any scheduling discipline available in Linux. 
-We demonstrate that, in addition to improving flow completion times, our implementation of \name can achieve low packet delay, perform strict prioritization, and rate fairness.
+In addition to improving flow completion times, \name can achieve low packet delay, perform strict prioritization, and rate fairness.
 
 \paragrapha{Achieving Improved Flow Completion Times} \S\ref{s:eval:fct} shows how enabling SFQ at the \name improves the median slowdown by \overviewBenefitsBundlerMedianImprovement.
 
@@ -156,17 +138,17 @@ the highest possible bitrate and thus maximize QoE.
 
 \subsection{Terminating TCP Connections}\label{s:eval:proxy}
 
-Although our \name prototype does not terminate connections (as discussed in \S\ref{s:design:whichcc}), we note that terminating connections, despite its numerous disadvantages, does provide one key advantage: enabling the end-to-end congestion controller to observe a smaller RTT, by acknowledging its segments much faster than the original receiver further away. 
-This enables rapid window growth at the endhosts, causing packets to arrive at a faster rate at the middlebox.
+Although our \name prototype does not terminate connections (as discussed in \S\ref{s:design:whichcc}), we note that terminating connections does provide one key advantage: the end-to-end congestion controller will observe a smaller RTT, since the proxy can acknowledge its segments much faster than the original receiver. 
+This enables rapid window growth at the endhosts.
 While there are, of course, operational concerns with managing the resulting queue, it does provide additional scheduling opportunities as well as faster ramp-up for midsized connections.
 
 How much benefit, then, could a proxy-based \name provide?
-To evaluate this, we emulate an idealized TCP proxy by modifying the endhosts to maintain a constant congestion window of $450$ packets---slightly larger than the bandwidth-delay product in our setup---and correspondingly increasing the buffering at the \inbox to hold these packets. 
+To evaluate this, we emulate an idealized TCP proxy by modifying the endhosts to maintain a constant congestion window of $450$ packets---slightly larger than the bandwidth-delay product in our setup---and increasing the buffering at the \inbox to hold these packets. 
 The other aspects of \name remain unchanged.
 The result is in Figure~\ref{fig:eval:proxy}. 
 
 For the short requests which never leave TCP slow start, terminating TCP connections does not yield additional benefits: with or without termination, they finish in a few RTTs.
 For medium-to-long requests, terminating TCP connections yields additional benefits since they no longer incur the penalty of window growth.
-Therefore, a domain benefit from proxying TCP connections at \name if the traffic pattern contains many medium-sized flows which benefit from fast ramp-up.
+Therefore, a domain benefit from proxying TCP connections at \name if its traffic pattern contains many medium-sized flows which benefit from fast ramp-up.
 
 \input{proxy}

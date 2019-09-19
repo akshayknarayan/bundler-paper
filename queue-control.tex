@@ -30,17 +30,17 @@ When the queueing delay is purely self-inflicted, it is safe to resume control o
 Passive probing is insufficient to determine this state, since passive measurements of the bottleneck will be identical in the case of self-inflicted queueing and queueing driven by cross traffic.
 Therefore, it is important to \emph{actively probe}, that is, change the rate of in-band traffic and observe the response of the cross traffic. 
 This is what the Nimbus mechanism does.
-At a high level (see Appendix \S\ref{s:app:nimbus} for details),
+At a high level (see \S\ref{s:app:nimbus} for details),
 Nimbus sinusoidally varies the sending rate $r(t) = A sin(\frac{4\pi{}t}{T})$ during the up-pulse, where $A$ is the pulse amplitude (set to one-fourth of the estimated bottleneck bandwidth) and $T$ is the pulse duration, and measures the cross traffic's response in the frequency domain.
 The \inbox can use the Nimbus algorithm to detect when to relinquish control over the queue by interposing this sending pattern over the delay-controller's rate decisions.
-However, this implies that we must be careful when letting the traffic pass; if the \inbox entirely drains its queues into the network, it will no longer be possible for Nimbus to overlay pulses onto the traffic pattern, and it will be unable to determine the nature of the cross traffic.
+However, if the \inbox entirely drains its queues into the network, it will no longer be possible for Nimbus to overlay pulses onto the traffic pattern, and it will be unable to determine the nature of the cross traffic.
 Practically, this would mean that once \inbox switches to compete with cross traffic, it would never gain the information necessary to switch back.
 
 Instead, to support active probing while also letting the traffic pass, the \inbox must \emph{hold back} some packets.
 How many packets should this be? The \inbox should be able to generate enough packets for a Nimbus up-pulse, \ie the area under the up-pulse curve: 
 $A \int_0^{\frac{T}{4}} \sin(\frac{4\pi{}t}{T}) dt = \frac{AT}{2\pi}$.
 From Nimbus, we use $T = 0.2$ seconds and $A$ is as above, one-fourth the bottleneck bandwidth. By Little's law, we can calculate the amount of extra queueing: $\frac{T}{8\pi}$, or $8$ms.
-We thus configure the \inbox to hold back $8$ms of queueing for active probing.
+We configure the \inbox to hold back $10$ms of queueing for active probing; the additional queueing is a cushion against input variance.
 Note that this extra queueing is in addition to queueing in the network. As a result, the end-to-end Cubic connections will see RTT inflation, and experience slightly lower throughput due to RTT unfairness. 
 In \S\ref{s:robust:cross} we show that this effect is not large; \name still achieves performance comparable to the status quo.
 

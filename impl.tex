@@ -8,24 +8,24 @@ hardware~\cite{p4}. The control plane, implemented in software, is responsible f
 
 \subsection{Prototype}\label{s:impl:prototype}
 
-We now describe our prototype implementation of the \name boxes.
+We now describe our prototype implementation of \name.
 
 \Para{\capinbox data plane} We implement it using Linux \texttt{tc}~\cite{tc}.
-We patch the TBF queueing discipline (qdisc)~\cite{tbf} to detect epoch boundary packets, and to report them to the control plane using a netlink socket. We use the FNV hash function~\cite{fnv-hash}, a non-cryptographic fast hash function with a low collision rate, to compute the packet content hash for identifying epoch boundaries.
+We patch the TBF queueing discipline (qdisc)~\cite{tbf} to detect epoch boundary packets and to report them to the control plane using a netlink socket. 
+We use the FNV hash function~\cite{fnv-hash}, a non-cryptographic fast hash function with a low collision rate, to compute the packet content hash for identifying epoch boundaries.
 We patch TBF's \texttt{inner\_qdisc} to support SFQ~\cite{sfq}, FQ-CoDel~\cite{fq-codel} and strict prioritization, in addition to the default FIFO. 
 By default, TBF instantaneously re-fills the token bucket when the rate is updated; we disable this feature to avoid rate fluctuations caused by our frequent rate updates. 
-Our patches to the TBF qdisc comprise $112$ lines of C.
+Our patche to the TBF qdisc comprises $112$ lines of C.
 
 \Para{\capinbox control plane} We implement it to run in user-space in $1167$ lines of Rust.
-We use CCP~\cite{ccp} to run different congestion control algorithms (described next). CCP is a platform for expressing congestion control algorithms in an asynchronous format, which makes it a natural choice for our epoch-based measurement architecture. The control plane uses \texttt{libccp}~\cite{ccp} to interface with the congestion control algorithm, and  \texttt{libnl} to communicate with the qdisc.
+We use CCP~\cite{ccp} to run different congestion control algorithms (described next). 
+CCP is a platform for expressing congestion control algorithms in an asynchronous format, which makes it a natural choice for our epoch-based measurement architecture. 
+The control plane uses \texttt{libccp}~\cite{ccp} to interface with the congestion control algorithm, and  \texttt{libnl} to communicate with the qdisc.
 
 \Para{Congestion control algorithms} We use existing implementations of congestion control algorithms (namely, Nimbus~\cite{nimbus}, Copa~\cite{copa} and BBR~\cite{bbr}) on CCP to compute sending rates at the \inbox.  If the algorithm uses a congestion window, the \inbox computes an effective rate of $\frac{\text{CWND}}{\text{RTT}}$ and sets it at the qdisc. 
 We validated that our implementation of these congestion control schemes at the \inbox closely follows their implementation at an endhost.
 
-%The \inbox also leverages a recently proposed technique~\cite{nimbus} to detect persistent buffer-filling flows. Its basic idea is to use short-timescale pulses to create traffic fluctuations at the bottleneck link, and measure if the cross traffic changes its rate in response to these fluctuations; if it does, it indicates the presence of long-running TCP flows that react to bandwidth variations. When such flows are detected, the \inbox  starts pushing traffic at an increased rate, set to the observed received rate plus a probe factor. Sending faster than the receive rate ensures that the rate of the \inbox eventually exceeds the offered load, thus draining any queue at the \inbox. This, in turn, allows the congestion control algorithms at the unmodified endhosts to compete with the buffer-filling flow, as they would without a \name. The additive probe factor is set in our implementation to one-sixteenth of the maximum receive rate seen so far. 
-
 \Para{\capoutbox} We implement it using \texttt{libpcap} in $188$ lines of Rust. 
-%It listens for packets on the interface, checks for epoch packets, and sends the reports to the \inbox. It must maintain per-bundle counters (described in \S\ref{s:impl:discovery}).
 
 \subsection{\name Event Loop}\label{s:impl:loop}
 Figure~\ref{fig:bundler} provides an overview of how our \name implementation operates on an already-established bundle.
