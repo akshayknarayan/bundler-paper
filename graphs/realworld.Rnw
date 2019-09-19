@@ -28,7 +28,7 @@ ggplot(df_iowa, aes(
     facet_wrap(src ~ dst, ncol=1, labeller=as_labeller(regions)) +
     coord_cartesian(ylim=c(0, 200)) +
     ylab("Latency") +
-    xlab("5-Tuples (ECMP Path)") +
+    xlab("Request-Response Loops With Unique 5-Tuples") +
     scale_fill_brewer(type="qual", palette=2, aesthetics=c("colour", "fill"),
         limit=c("control", "iperf", "bundler"),
         labels=c(
