@@ -76,16 +76,19 @@ Therefore, doing the FIFO scheduling at the \name, as is done by the \baseline, 
 %\radhika{will do a pass on this subsection. Purpose, expt setup, and takeaways are not coming across as sharply. Might need a quick chat.}
 
 
-We next evaluate our prototype implementation on real Internet paths to answer three key questions that our emulated setup did not answer: (i) Does congestion (and queuing) occur in the middle of the network to make \name useful? (ii) Is buffer-filling cross traffic rare enough in practice to ensure that \name provides a net improvement in performance? and (iii) Is \name's design robust to multi-pathing effects in a real network?  
-Our results reveal an affirmative answe
+We next evaluate our prototype implementation on real Internet paths to answer three key questions that our emulated setup did not answer: (1) Does congestion (and queuing) actually occur in the middle of the network?? (2) Is buffer-filling cross traffic rare enough in practice to ensure that \name provides a net improvement in performance? and (3) Is \name's design robust to multi-pathing effects in a real network?  
+Our results reveal an affirmative answer for all three questions. 
 
-Is there queueing on real Internet paths, and if so, can \name effectively control those queues?
+%Is there queueing on real Internet paths, and if so, can \name effectively control those queues?
 % An interesting real-Internet scenario to consider is load-balancing, a widely used technique for reducing the congestion on any one path.
 % Here, we make two observations: 
 % (1) while bundle traffic may traverse multiple intermediate paths, it will converge on the receiving domain (and the \outbox). If the bottleneck is near the receiving domain, the bundled traffic will still build queues.
 % (2) from the bundle's perspective, multiple paths appear as multiple queues, with some aggregate bandwidth capacity (\ie the max-flow of the network paths between the sending and receiving domains). While queueing may be unevenly distributed among the paths, the distribution of flows onto paths is currently random (\eg via ECMP). With \name, all these queues are moved to the \inbox, so it can schedule bundled flows deliberately rather than randomly.
 
-To measure this effect, we measure the latency of 10 parallel, closed-loop UDP senders with 40-byte requests. Each UDP sender uses a different port, to gain visibility across multiple paths, if applicable.
+\Para{Experiment Setup} 
+We set up five bundles 
+We evaluate two different workloads: (i) 10 parallel close loop UDP   
+We measure the latency of 10 parallel, closed-loop UDP senders with 40-byte requests. Each UDP sender uses a different port, to gain visibility across multiple paths, if applicable.
 We gather baseline latency measurements on five bundles sent from a GCP datacenter in Iowa to GCP datacenters in Belgium, Frankfurt, Oregon, South Carolina, and Tokyo and measure queueing\footnote{We use GCP's ``Standard Networking'' option, since our focus is the public Internet.}
 by comparing this baseline to the same scenario with 20 backlogged senders.
 In all cases, we verified that the backlogged senders achieve similar throughput (2-4Gbit/s on these paths) with and without \name.
