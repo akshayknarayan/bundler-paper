@@ -47,5 +47,6 @@ Bundler    &  \Sexpr{round(delaysBundler[1],2)}   &    \Sexpr{round(delaysBundle
     \label{fig:eval:lowdelays}
 \end{tabular}
 \end{center}
+    \vspace{-10pt}
     \caption{Using CoDel at \name reduces end-to-end packet delays.}\label{t:eval:codel}
 \end{table}
