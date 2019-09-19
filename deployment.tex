@@ -42,7 +42,7 @@ However, in these cases, \name chooses to create extra queueing as described in 
 Therefore, the bundle's aggregate throughput will decrease slightly due to RTT unfairness.
 We evaluate this phenomenon in \S\ref{s:robust:cross}.
 
-\paragraphi{However, buffer-filling cross traffic is rare}
+However, buffer-filling cross traffic is \emph{rare}.
 Recent work in CDNs shows~\cite{akamai-cdn-trace} that the vast majority of requests are smaller than 1MiB; these requests may fill buffers for a few seconds, but no more.
 We further analyze a packet trace from an Internet backbone router~\cite{caida-dataset}.
 The flow size distribution here is even more skewed: $97.6\%$ of flows are under $10$KB, and only $0.02\%$ of flows are larger than $5$MB.
