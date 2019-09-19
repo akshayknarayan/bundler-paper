@@ -76,7 +76,7 @@ Therefore, doing the FIFO scheduling at the \name, as is done by the \baseline, 
 %\radhika{will do a pass on this subsection. Purpose, expt setup, and takeaways are not coming across as sharply. Might need a quick chat.}
 
 
-We next evaluate our prototype implementation on real Internet paths to answer three key questions that our emulated setup did not answer: (1) Does congestion (and queuing) actually occur in the middle of the network?? (2) Is buffer-filling cross traffic rare enough in practice to ensure that \name provides a net improvement in performance? and (3) Is \name's design robust to multi-pathing effects in a real network?  
+We next evaluate our prototype implementation on real Internet paths to answer three key questions that our emulated setup did not answer: (1) Does congestion (and queuing) actually occur in the middle of the network? (2) Is buffer-filling cross traffic rare enough in practice to ensure that \name provides a net improvement in performance? and (3) Is \name's design robust to multi-pathing effects in a real network?  
 Our results reveal an affirmative answer for all three questions. We explain our experiment setup and results below. 
 
 %Is there queueing on real Internet paths, and if so, can \name effectively control those queues?
@@ -86,23 +86,21 @@ Our results reveal an affirmative answer for all three questions. We explain our
 % (2) from the bundle's perspective, multiple paths appear as multiple queues, with some aggregate bandwidth capacity (\ie the max-flow of the network paths between the sending and receiving domains). While queueing may be unevenly distributed among the paths, the distribution of flows onto paths is currently random (\eg via ECMP). With \name, all these queues are moved to the \inbox, so it can schedule bundled flows deliberately rather than randomly.
 
 \Para{Experiment Setup} 
-We set up five different bundles with a GCP datacenter in Iowa sending traffic to GCP datacenters in Belgium, Frankfurt, Oregon, South Carolina, and Tokyo.\footnote{We use GCP's ``Standard Networking'' option, since our focus is the public Internet.}
-We evaluate two different workloads generated from multiple different machines in the datacenter in Iowa: (i) Each bundle comprising of 10 parallel closed-loop UDP requests with 40 bytes of data, where a sender issues a new request up on receiving a previous response. We measure the request-response RTTs and use them as a baseline to evaluate \name's effectiveness (and call it Base RTT). (ii) We add 20 backlogged (iPerf) flows to the above workload in each bundle. Effective SFQ across all flows should not inflate the base request-response RTT. We run this workload both with and without \name and measure the UDP request-response RTTs (represented as \name and \baseline respectively).
+We deploy \name (\inbox) in a GCP datacenter in Iowa and generate traffic from multiple different machines in this datacenter (as detailed below). The generated traffic is sent to multiple machines in five different GCP datacenters (in Belgium, Frankfurt, Oregon, South Carolina, and Tokyo).\footnote{We use GCP's ``Standard Networking'' option, since our focus is the public Internet.} We deploy a \name (\outbox) in each of these receiving datacenters, thus resulting in a total of five bundles spanning different regions of the globe.
+%We set up five different bundles with a GCP datacenter in Iowa sending traffic to GCP datacenters in Belgium, Frankfurt, Oregon, South Carolina, and Tokyo.
+We evaluate two different workloads in this setup: (i) Each bundle comprising of 10 parallel closed-loop 40 bytes UDP requests, where the sender issues a new request every time it receives a response. We measure the request-response RTTs in this workload to use as a baseline (and call them Base RTTs). (ii) We add 20 backlogged (\texttt{iperf}) flows to the above workload in each bundle. We run this workload both with and without \name and measure the UDP request-response RTTs (represented as \name and \baseline respectively). Effective SFQ across all flows should not inflate the base request-response RTT.
 %We measure the latency of 10 parallel, closed-loop UDP senders with 40-byte requests. Each UDP sender uses a different port, to gain visibility across multiple paths, if applicable.
 %We gather baseline latency measurements on five bundles sent from a GCP datacenter in Iowa to GCP datacenters in Belgium, Frankfurt, Oregon, South Carolina, and Tokyo and measure queueing\footnote{We use GCP's ``Standard Networking'' option, since our focus is the public Internet.}
 %by comparing this baseline to the same scenario with 20 backlogged senders.
-We verified that the backlogged senders achieve similar throughput in all cases (2-4Gbit/s on these paths) with and without \name, and 
+We verified that the backlogged senders achieve similar throughput in all cases (2-4Gbit/s on these paths) both with and without \name, and that the \name machine in Iowa is not a bottleneck itself. 
 
 \Para{Result} 
-Figure~\ref{fig:eval:realworld} shows the resulting RTT box-plots for each of the ten request-response loops (with the 5 tuples in UDP/IP headers differing across all ten) in each of the five bundles. %``Base RTT'' bars show the latency without backlogged senders and ``Status Quo'' bars represent, as above, the latency with the backlogged senders but without \name.
-We make the following key observations: (i) The \baseline RTTs are significantly higher than the Base RTT, which indicates 
-
-By moving the \name is able to achieve 
-
-(ii) The \baseline results further reveal that different request-response loops within a given bundle see different amounts of queueing in the network. This indicates possible ECMP based load-balancing in the network using the 5 tuples. \name is robust to its effects.
+Figure~\ref{fig:eval:realworld} shows, for each of the five bundles, the resulting RTT box-plots for each of the ten request-response loops (with the 5 tuples in UDP/IP headers differing across all ten).  %``Base RTT'' bars show the latency without backlogged senders and ``Status Quo'' bars represent, as above, the latency with the backlogged senders but without \name.
+We make the following key observations: (i) The \baseline RTTs are significantly higher than the Base RTT, which indicates significant in-network congestion. (ii) \name is able to move these queues and enforce SFQ scheduling effectively, resulting in request-response RTTs comparable to Base RTTs, and \realworldMedianLatencyImprovement smaller than \baseline at the median.
+(iii) The \baseline results further reveal that different request-response loops within a given bundle see different amounts of queueing in the network. This indicates possible ECMP load-balancing in the network based on the 5 tuples, and how \name is robust to its effects.
 %We observe multipath effects for all five bundles; while, as a result, some paths experience no queueing, all five bundles also experience queueing on at least half of the available paths.
 
-On the paths with queueing, because \name can prioritize the latency-sensitive requests, the latency those requests observe is significantly reduced. As a result, 
+%On the paths with queueing, because \name can prioritize the latency-sensitive requests, the latency those requests observe is significantly reduced. As a result, 
 
 \input{robust}
 
