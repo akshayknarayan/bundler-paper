@@ -6,7 +6,7 @@ library(showtext)
 font_add_google("Lato")
 showtext_auto()
 
-df <- read.csv("data/new/vary_elastic.data", sep=" ")
+df <- read.csv("data/vary_elastic.data", sep=" ")
 
 df$fair <- df$bundler_flows / (df$bundler_flows + df$cross_flows)
 df$actual <- df$btpt / (df$btpt + df$ctpt)
@@ -16,7 +16,7 @@ df$normalized <- df$actual / df$fair
 
 ggplot(df, aes(x=cross_flows, y=normalized*100, fill=scheme)) + 
     geom_bar(colour="black", position="dodge", stat="identity") + 
-    xlab("# Elastic Cross Traffic Flows") + 
+    xlab("# Buffer-Filling Cross Traffic Flows") + 
     ylab("% Fair Share Throughput") + 
     scale_fill_manual(
         limit=c("fifo_nobundler", "sfq_nimbus"), 
