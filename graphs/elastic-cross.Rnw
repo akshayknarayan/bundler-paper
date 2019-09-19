@@ -32,9 +32,17 @@ ggplot(df, aes(x=cross_flows, y=btpt, fill=scheme)) +
 
 bundler_tpt <- mean(df[df$scheme=="sfq_nimbus",]$btpt)
 nobundler_tpt <- mean(df[df$scheme!="sfq_nimbus",]$btpt)
+
+bundler_tpt_10 <- mean(df[df$scheme=="sfq_nimbus" & df$cross_flows == 10,]$btpt)
+nobundler_tpt_10 <- mean(df[df$scheme!="sfq_nimbus" & df$cross_flows == 10,]$btpt)
+
+bundler_tpt_50 <- mean(df[df$scheme=="sfq_nimbus" & df$cross_flows == 50,]$btpt)
+nobundler_tpt_50 <- mean(df[df$scheme!="sfq_nimbus" & df$cross_flows == 50,]$btpt)
 @
     \caption{Varying number of competing buffer-filling cross traffic flows. \name controls a fixed 20 buffer-filling flows in each case.}
     \label{fig:robust:cr-elastic}
 \end{figure}
 
 \newcommand{\bundlerElasticTputWorseness}{\Sexpr{round(100*(1-(bundler_tpt / nobundler_tpt)), 0)}\%\xspace}
+\newcommand{\bundlerElasticTputWorsenessTen}{\Sexpr{round(100*(1-(bundler_tpt_10 / nobundler_tpt_10)), 0)}\%\xspace}
+\newcommand{\bundlerElasticTputWorsenessFifty}{\Sexpr{round(100*(1-(bundler_tpt_50 / nobundler_tpt_50)), 0)}\%\xspace}
