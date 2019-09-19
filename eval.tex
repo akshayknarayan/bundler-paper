@@ -118,7 +118,7 @@ We measure the resulting distribution of RTTs seen by the endhost connections wi
 As is expected from CoDel, \name in this experiment, achieves \delaysImprovement lower median packet delay than \baseline.
 
 \paragrapha{Strict Prioritization}\label{s:eval:strictprio}
-We uniformly divide the web request distribution described in \S\ref{s:eval:setup} into two classes, one of which is given a higher priority over the other. \radhika{what's the division ratio?} The results are presented in Table~\ref{t:eval:prio}.
+We uniformly divide the web request distribution described in \S\ref{s:eval:setup} into two equally sized classes, one of which is given a higher priority over the other. \radhika{what's the division ratio?}\an{specified equal ratio}  The results are presented in Table~\ref{t:eval:prio}.
 %of traffic transitting \name over a lower-priority class. 
 \input{strict-prio}
 Using a priority scheduler (we use the \texttt{pfifo\_fast} qdisc) at \inbox improves the flow completion times for the higher-priority class compared to \baseline.

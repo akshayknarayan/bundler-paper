@@ -27,14 +27,14 @@ The next question that arises is, does such in-network congestion occur in pract
 We briefly discuss how the nature of this congestion influences \name's benefits (and provide detailed results in \S\ref{s:eval}).
 
 \paragraphi{Self-inflicted congestion} This occurs when traffic from a single bundle causes a queue to build up at the bottleneck links in the network, even without any other cross-traffic. It can happen when a small carrier network does not have enough capacity to sustain the large volume of traffic sent by a content provider to a receiving domain, or due to explicit rate limiting commonly done by ISPs~\cite{isp-throttle-1, isp-throttle-2, isp-throttle-3}. In such cases, \name can result in
-significant improvements in performance \an{up to XX\%}, as it would then have control over the entire queue. 
+significant improvements in performance, as it would then have control over the entire queue. 
 %In our experiments (\S\ref{s:eval}), we found this to be the case.
 
 \paragraphi{Congestion due to bundled cross-traffic} In-network congestion can further increase in the presence of other cross-traffic (\eg when the peering link between Carrier 2 and the enterprise in Figure~\ref{fig:deploy:arch} is shared by traffic from multiple content providers' domains). 
-\name continues to provide benefits (\an{up to YY\%}) when the competing flows are part of other bundles from/to other domains because the rate control algorithm at each of the other {\inbox}es would ensure that the in-network queues remain small. Since each \inbox controls its own delays, it can apply the appropriate scheduling policy in its the per-bundle queues.
+\name continues to provide benefits when the competing flows are part of other bundles from/to other domains because the rate control algorithm at each of the other {\inbox}es would ensure that the in-network queues remain small. Since each \inbox controls its own delays, it can apply the appropriate scheduling policy in its the per-bundle queues.
 We expect this to become the common form of observed congestion as more domains deploy \name. 
 
-\paragraphi{Congestion due to un-bundled cross-traffic} We now consider the scenario where the cross-traffic includes flows from domains that have not yet deployed a \name. If all such \emph{un-bundled} competing flows are short-lived (up to a few MBs), the bundled traffic still sees significant performance benefits (\an{ZZ \%}). 
+\paragraphi{Congestion due to un-bundled cross-traffic} We now consider the scenario where the cross-traffic includes flows from domains that have not yet deployed a \name. If all such \emph{un-bundled} competing flows are short-lived (up to a few MBs), the bundled traffic still sees significant performance benefits. 
 However, if the cross traffic is long lasting and aggressively fills up available buffer space at the bottleneck link, using a delay-based congestion controller  at the \name would adversely impact the bundled traffic. 
 Instead, \name detects the presence of such \emph{buffer-filling} cross-traffic and, to compete fairly, pushes more packets into the network. 
 It thus relinquishes its control over the bundled traffic.

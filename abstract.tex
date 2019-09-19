@@ -6,5 +6,7 @@ To resolve this mismatch, we propose a new kind of middlebox, called \name.
 It does rate control for each bundle, such that the queuing induced by its traffic is moved from the bottleneck (wherever it might be in the network) to \name itself. 
 This allows the sender to enforce its desired scheduling policy across the bundled traffic. 
 \name has an immediately deployable, light-weight design, which we implement in only $\sim1500$ lines of code. 
-Our evaluation, on real Internet paths and on a variety of emulated scenarios, shows that, \name achieves 33\% lower median normalized flow completion time than the status quo scenario with queueing in the middle of the network. \radhika{the number 33\% seems too definitive for a `variety of scenarios'. i recall that `upto' sounds weasly :) can we instead report a range?} \an{agreed, this was placeholder waiting for the eval}
+\an{Our evaluation, on real Internet paths and on a variety of emulated scenarios and metrics, shows that
+\name trades a 12\% lower aggregate rate in rare scenarios with aggressive cross traffic for 28-97\% better performance in the common case than the status quo scenario (with queueing in the middle of the network).}
+%Our evaluation, on real Internet paths and on a variety of emulated scenarios, shows that, \name achieves 28\% lower median normalized flow completion time than the status quo scenario (with queueing in the middle of the network). \radhika{the number 33\% seems too definitive for a `variety of scenarios'. i recall that `upto' sounds weasly :) can we instead report a range?} \an{agreed, this was placeholder waiting for the eval}
 \end{abstract}
