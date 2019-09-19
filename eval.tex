@@ -87,20 +87,22 @@ Our results reveal an affirmative answer for all three questions. We explain our
 
 \Para{Experiment Setup} 
 We set up five different bundles with a GCP datacenter in Iowa sending traffic to GCP datacenters in Belgium, Frankfurt, Oregon, South Carolina, and Tokyo.\footnote{We use GCP's ``Standard Networking'' option, since our focus is the public Internet.}
-We evaluate two different workloads: (i) Each bundle comprising of 10 parallel closed-loop UDP requests with 40 bytes of data, where a sender issues a new request up on receiving a previous response. We measure the request-response RTTs and use them as a baseline to evaluate \name's effectiveness (and call it Base RTT). (ii) We add 20 backlogged (iPerf) flows to the above workload in each bundle. Effective SFQ across all flows should not inflate the base request-response RTT. We run this workload both with and without \name and measure the UDP request-response RTTs (represented as \name and \baseline respectively).
+We evaluate two different workloads generated from multiple different machines in the datacenter in Iowa: (i) Each bundle comprising of 10 parallel closed-loop UDP requests with 40 bytes of data, where a sender issues a new request up on receiving a previous response. We measure the request-response RTTs and use them as a baseline to evaluate \name's effectiveness (and call it Base RTT). (ii) We add 20 backlogged (iPerf) flows to the above workload in each bundle. Effective SFQ across all flows should not inflate the base request-response RTT. We run this workload both with and without \name and measure the UDP request-response RTTs (represented as \name and \baseline respectively).
 %We measure the latency of 10 parallel, closed-loop UDP senders with 40-byte requests. Each UDP sender uses a different port, to gain visibility across multiple paths, if applicable.
 %We gather baseline latency measurements on five bundles sent from a GCP datacenter in Iowa to GCP datacenters in Belgium, Frankfurt, Oregon, South Carolina, and Tokyo and measure queueing\footnote{We use GCP's ``Standard Networking'' option, since our focus is the public Internet.}
 %by comparing this baseline to the same scenario with 20 backlogged senders.
-We verified that the backlogged senders achieve similar throughput in all cases (2-4Gbit/s on these paths) with and without \name.
+We verified that the backlogged senders achieve similar throughput in all cases (2-4Gbit/s on these paths) with and without \name, and 
 
 \Para{Result} 
 Figure~\ref{fig:eval:realworld} shows the resulting RTT box-plots for each of the ten request-response loops (with the 5 tuples in UDP/IP headers differing across all ten) in each of the five bundles. %``Base RTT'' bars show the latency without backlogged senders and ``Status Quo'' bars represent, as above, the latency with the backlogged senders but without \name.
-We make the following key observations: (i) 
+We make the following key observations: (i) The \baseline RTTs are significantly higher than the Base RTT, which indicates 
+
+By moving the \name is able to achieve 
 
 (ii) The \baseline results further reveal that different request-response loops within a given bundle see different amounts of queueing in the network. This indicates possible ECMP based load-balancing in the network using the 5 tuples. \name is robust to its effects.
 %We observe multipath effects for all five bundles; while, as a result, some paths experience no queueing, all five bundles also experience queueing on at least half of the available paths.
 
-On the paths with queueing, because \name can prioritize the latency-sensitive requests, the latency those requests observe is significantly reduced. As a result, across the bundle as a whole, \name achieves \realworldMedianLatencyImprovement lower latencies than the status quo scenario over the 5 paths.
+On the paths with queueing, because \name can prioritize the latency-sensitive requests, the latency those requests observe is significantly reduced. As a result, 
 
 \input{robust}
 
