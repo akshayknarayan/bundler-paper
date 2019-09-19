@@ -1,0 +1,16 @@
+<<eval:bigexp:fctnum,fig.showtext=TRUE,cache=TRUE,echo=FALSE,message=FALSE,warning=FALSE>>=
+df <- read.csv("../big_exp/big_exp_41/fcts.data", sep=" ")
+
+df$Duration <- df$Duration.usec. / 1e6
+bw <- 12e6
+df$ofct <- (df$Size / bw) + 0.05
+df$Slowdown <- df$Duration / df$ofct
+
+bundler_empty_slowdown <- median(df[df$during == "empty" & df$Size <= 1e4 & df$alg != "nobundler.",]$Slowdown)
+nobundler_empty_slowdown <- median(df[df$during == "empty" & df$Size <= 1e4 & df$alg == "nobundler.",]$Slowdown)
+bundler_elastic_cross_slowdown <- median(df[df$during == "elastic" & df$Size <= 1e4 & df$alg != "nobundler.",]$Slowdown)
+nobundler_elastic_cross_slowdown <- median(df[df$during == "elastic" & df$Size <= 1e4 & df$alg == "nobundler.",]$Slowdown)
+@
+\newcommand{\bigexpBundlerElasticSlowdown}{\Sexpr{bundler_elastic_cross_slowdown}\%\xspace}
+\newcommand{\bigexpNoBundlerElasticSlowdown}{\Sexpr{nobundler_elastic_cross_slowdown}\%\xspace}
+\newcommand{\bigexpElasticSlowdownWorseness}{\Sexpr{round(100*((bundler_elastic_cross_slowdown / nobundler_elastic_cross_slowdown)-1), 0)}\%\xspace}
