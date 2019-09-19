@@ -104,21 +104,19 @@ We demonstrate that, in addition to improving flow completion times, our impleme
 \paragrapha{Achieving Improved Flow Completion Times} \S\ref{s:eval:fct} shows how enabling SFQ at the \name improves the median slowdown by \overviewBenefitsBundlerMedianImprovement.
 
 \paragrapha{Achieving Low Packet Delays}
-We enable CoDel~\cite{fq-codel} at the \inbox, to lower the packet delays, and test it for a single large backlogged flow, using the setup described in \S\ref{s:eval}.
-%, which adds ECN marks to packets in fair-queue buckets which exceed a threshold. 
-%As a result, endhosts cut their windows earlier than otherwise, and thus achieve low end-to-end-delays.
-We measure the distribution of RTTs seen by the endhost connections with \name and \baseline.
+We enable CoDel~\cite{fq-codel} at the \inbox to lower the packet delays, and test it for a single large backlogged flow using the setup described in \S\ref{s:eval}.
+CoDel adds ECN marks to packets in fair-queue buckets which exceed a queue length threshold. 
+As a result, endhosts cut their windows earlier than otherwise reducing the self-inflicted delay within their fair-queue bucket.
+We measure the resulting distribution of RTTs seen by the endhost connections with \name and \baseline in Table~\ref{t:eval:codel}.
 \input{lowdelays}
 As is expected from CoDel, \name in this experiment, achieves \delaysImprovement lower median packet delay than \baseline.
-%Note that due to the effect discussed above, using FIFO scheduling results in higher delays than the \baseline case.
 
 \paragrapha{Strict Prioritization}\label{s:eval:strictprio}
-We uniformly divide the web request distribution described in \S\ref{s:eval:setup} into two classes, one of which is given a higher priority over the other. The results are presented below.
+We uniformly divide the web request distribution described in \S\ref{s:eval:setup} into two classes, one of which is given a higher priority over the other. The results are presented in Table~\ref{t:eval:prio}.
 %of traffic transitting \name over a lower-priority class. 
 \input{strict-prio}
-Using a priority scheduler at \inbox improves the flow completion times for the higher-priority class when compared to \baseline.
-Furthermore, prioritization achieves \strictPrioTailImprovementOverFq lower $99$\%ile FCT for the higher priority traffic class, when compared to using fair queueing instead.
-%running this scenario with to fair queueing,.
+Using a priority scheduler (we use the \texttt{pfifo\_fast} qdisc) at \inbox improves the flow completion times for the higher-priority class compared to \baseline.
+Furthermore, prioritization achieves \strictPrioTailImprovementOverFq lower $99$\%ile FCT for the higher priority traffic class, when compared to using fair queueing.
 
 \input{waterfall}
 \paragrapha{Rate Fairness and Stability}\label{s:eval:waterfall}
@@ -139,24 +137,17 @@ the highest possible bitrate and thus maximize QoE.
 
 \subsection{Terminating TCP Connections}\label{s:eval:proxy}
 
-We now study the benefits of combining \name with a TCP proxy middlebox. A TCP-proxy enables the the end-to-end congestion controller to observe a smaller RTT, by acknowledging its segments much faster than the original receiver further away. This enables a rapid window growth at the endhosts, causing packets to arrive at a faster rate at the middlebox. Combining \name with such a proxy would result in even greater scheduling opportunities. 
+Although our \name prototype does not terminate connections (as discussed in \S\ref{s:design:whichcc}), we note that terminating connections, despite its numerous disadvantages, does provide one key advantage: enabling the end-to-end congestion controller to observe a smaller RTT, by acknowledging its segments much faster than the original receiver further away. 
+This enables rapid window growth at the endhosts, causing packets to arrive at a faster rate at the middlebox.
+While there are, of course, operational concerns with managing the resulting queue, it does provide additional scheduling opportunities as well as faster ramp-up for midsized connections.
 
-To evaluate this, we emulate a TCP proxy by modifying the endhosts to maintain a constant congestion window of $450$ packets---slightly larger than the bandwidth-delay product in our setup---and increase the buffering at the \inbox to hold these packets. The other aspects of \name remain unchanged, including its use of Copa to move the queues from the network, and its proper scheduling.
-The result is in Figure~\ref{fig:eval:proxy}. As expected, combining \name with a TCP proxy produces even greater benefits, though primarily for large flows that benefit from the increased congestion window. 
-%For the short requests which never leave TCP slow start, terminating TCP connections does not yield additional benefits: with or without termination, they finish in a few RTTs.
-%A proxy-based design could then apply a scheduling policy to the acknowledged, but yet unsent traffic from terminated connections.
+How much benefit, then, could a proxy-based \name provide?
+To evaluate this, we emulate an idealized TCP proxy by modifying the endhosts to maintain a constant congestion window of $450$ packets---slightly larger than the bandwidth-delay product in our setup---and correspondingly increasing the buffering at the \inbox to hold these packets. 
+The other aspects of \name remain unchanged.
+The result is in Figure~\ref{fig:eval:proxy}. 
 
+For the short requests which never leave TCP slow start, terminating TCP connections does not yield additional benefits: with or without termination, they finish in a few RTTs.
+For medium-to-long requests, terminating TCP connections yields additional benefits since they no longer incur the penalty of window growth.
+Therefore, a domain benefit from proxying TCP connections at \name if the traffic pattern contains many medium-sized flows which benefit from fast ramp-up.
 
-
-% An alternate implementation of a \name could terminate TCP connections at the \inbox. 
-% %\radhika{I assume we mention this in an earlier section? else we need a line or two about why this experiment is interesting.}
-% We consider the best-case outcome of terminating TCP connections --- the RTT the end-to-end congestion controller observed would decrease (since the proxy would acknowledge its segments much faster than the original receiver would), and it would therefore grow its window rapidly.
-% A proxy-based design could then apply a scheduling policy to the acknowledged, but yet unsent traffic from terminated connections.
-% To emulate a best-case scenario for termination, we modify the end-hosts to maintain a constant congestion window of $450$ packets --- slightly larger than the BDP --- and increase the buffering at the \inbox to hold these packets. 
-% The other aspects of \name, including scheduling, remain unchanged.
-% The result is in Figure~\ref{fig:eval:proxy}.
-%
 \input{proxy}
-%
-%For the short requests which never leave TCP slow start, terminating TCP connections does not yield additional benefits: with or without termination, they finish in a few RTTs.
-%For medium-to-long requests, terminating TCP connections yields benefits since they no longer incur the penalty of window growth.

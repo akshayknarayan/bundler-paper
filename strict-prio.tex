@@ -1,14 +1,17 @@
 
+\begin{table}[h]
 \begin{center}
 \begin{tabular}{c|c|c}
 Scheme     &  Median Slowdown                           &  $99$\%ile Slowdown                        \\
 \hline
 Bundler (Prio.)   &  1.07 &  10.52  \\
-Bundler (SFQ)     &  1.1  &  19.85  \\
+Bundler (SFQ)     &  \overviewBenefitsBundlerMedian  &  \overviewBenefitsBundlerTail  \\
 \baseline  &  3.07  &  201.72
     \label{fig:eval:strict-prio}
 \end{tabular}
 \end{center}
+\caption{Using strict prioritization further reduces FCTs for the higher-priority class of traffic.}\label{t:eval:prio}
+\end{table}
 \newcommand{\strictPrioTailImprovementOverFq}{47\%\xspace}
 \newcommand{\strictPrioImprovement}{65\%\xspace}
 

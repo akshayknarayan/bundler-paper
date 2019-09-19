@@ -3,23 +3,6 @@
 \paragrapha{Composability} Bundles are naturally \emph{composable}: a subdomain of domain A could deploy its own \name to take control of its fraction of the in-network queues. 
 
 \paragrapha{Scheduling across different bundles at a \inbox} We evaluate benefits of scheduling \emph{within} a bundle. In practice, a given \inbox will see traffic from multiple bundles. Extending different scheduling policies to multiple such bundles can be done trivially.
-
-\paragrapha{Rate allocation across different competing bundles} When multiple bundles, belonging to different sending domains, compete at the same bottleneck, \name's congestion control would ensure a fair rate allocation across each of these bundles, irrespective of the amount of traffic in them. It, therefore, provides fairness on per-sending domain basis, as opposed to a per-flow basis, making it more robust to strategies like opening multiple connections for increasing bandwidth share. 
-
-
-% Our \name design addresses scheduling \emph{within} a bundle. In our system, scheduling \emph{across} bundles is implicit; each bundle's congestion control algorithm will converge to an aggregate rate.  \name therefore inherits the well-studied strengths and weaknesses of using congestion control for rate allocation. Just as users choose a congestion control algorithm as a point in the tradeoff space between aggressiveness and cooperation at the endhost, network operators deploying a \name would pick a configuration appropriate for their workload.
-
-% In the case where a sending domain controls multiple bundles (to different destination domains) it could apply scheduling policies across them.
-% \fc{We should say something somewhere about sched across bundles and in-bundle/out-of-bundle}
-
-
-% \paragrapha{Scheduling and rate allocation across bundles} Our \name design addresses scheduling \emph{within} a bundle. In our system, scheduling \emph{across} bundles is implicit; each bundle's congestion control algorithm will converge to an aggregate rate. 
-% \name therefore inherits the well-studied strengths and weaknesses of using congestion control for rate allocation. 
-% Just as users choose a congestion control algorithm as a point in the tradeoff space between aggressiveness and cooperation at the endhost, network operators deploying a \name would pick a configuration appropriate for their workload.
-
-% In the case where a sending domain controls multiple bundles (to different destination domains) it could apply scheduling policies across them.
-% \fc{We should say something somewhere about sched across bundles and in-bundle/out-of-bundle}
- 
 %Different bundles may have different rates; recent work~\cite{carousel, eifel} has shown it is possible to implement such multi-rate, multi-scheduler datapaths efficiently.
 
-\paragrapha{Benefits of delay-based congestion control} A delay-based congestion control allows maintaining low packet delays in the network. Deploying such algorithms at each individual endhosts is difficult. \name provides a way to reap benefits of such algorithms, by simply deploying a middlebox, without changing individual endpoints.
+\paragrapha{Rate allocation across different competing bundles} When multiple bundles (belonging to different sending domains) compete at the same bottleneck, \name's congestion control would ensure a fair rate allocation across each of these bundles, irrespective of the amount of traffic in them. It, therefore, provides fairness on per-sending domain basis, as opposed to a per-flow basis, making it more robust to popular end-host strategies such as opening multiple connections to increase bandwidth share. 
