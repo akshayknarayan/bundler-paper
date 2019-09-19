@@ -7,7 +7,7 @@ In Figure~\ref{fig:eval:bigexp}, we show this scenario.
 At first, the link is occupied only by \name's traffic, similar to the setup described in \S\ref{s:eval:setup}.
 At time $t=60$sec, a buffer-filling cross traffic flow arrives.
 \name detects its presence (indicated by the gray shading) and starts pushing more packets into the network to compete fairly, reverting back to performance that is slightly worse than Status Quo (median FCT for short flows is \bigexpElasticSlowdownWorseness higher). 
-Performance is slightly worse because of the \fc{check: $10$ms} queue that \name continues to maintain at its \inbox for active probing to detect the cross-traffic's departure, as described in \S\ref{s:queue-ctl}\footnote{We believe the benefits provided by \name in the more common regime with no competing buffer-filling cross traffic are substantial enough to make up for slight degradation in these specific scenarios.}. 
+Performance is slightly worse because of the $10$ms queue that \name continues to maintain at its \inbox for active probing to detect the cross-traffic's departure, as described in \S\ref{s:queue-ctl}\footnote{We believe the benefits provided by \name in the more common regime with no competing buffer-filling cross traffic are substantial enough to make up for slight degradation in these specific scenarios.}. 
 At time $t=120$sec, the buffer-filling flow stops and non-buffer-filling traffic starts, generated from the same distribution as \name as described in \S\ref{s:eval:setup}.
 \name correctly detects that it is safe to resume delay-control, and continues providing scheduling benefits.
 For the remainder of this subsection, we present three micro-benchmarks which dig deeper into the latter two scenarios, where cross traffic can affect \name's performance. 
@@ -26,9 +26,8 @@ We now evaluate how \name's throughput is impacted due to competition from varyi
 %As described in \S\ref{s:queue-ctl}, \name's congestion controller must push packets into the bottleneck queue to compete fairly, and thus it cannot retain packets at the \inbox for scheduling. 
 %Furthermore, recall that \name maintains a $10$ms queue at the \inbox in this case. 
 As discussed earlier, in this (rare) scenario, we expect component flows in a bundle to experience slightly higher RTTs compared to \baseline.
-We indeed see its impact in Figure~\ref{fig:robust:cr-elastic}, 
-%, as we vary the number of competing Cubic cross-traffic flows.
-where the component flows in the bundle experience  \bundlerElasticTputWorseness less throughput on average. Notice how the the impact on \name's throughput (which stems from the extra queuing at the \inbox) is independent of the amount of cross-traffic: the bundled flows experience \bundlerElasticTputWorsenessTen lower throughput with 10 competing flows and \bundlerElasticTputWorsenessFifty lower throughput with 50. 
+Indeed, Figure~\ref{fig:robust:cr-elastic} shows that 
+the component flows in the bundle experience  \bundlerElasticTputWorseness less throughput on average. The impact (which stems from the extra queuing at the \inbox) varies from \bundlerElasticTputWorsenessTen lower throughput with 10 competing flows to \bundlerElasticTputWorsenessFifty lower with 50. 
 %\radhika{please fill -- the trend could be interesting.} 
 %\an{filled}
 %Note that FCTs may not increase as much; in Figure~\ref{fig:eval:bigexp}, during the elastic cross traffic period the median short flow FCT is
@@ -52,8 +51,8 @@ We now evaluate the impact of a different congestion control algorithm running a
 \input{congestion-control}
 
 \Para{\capinbox congestion control} So far we have evaluated \name by running Copa~\cite{copa} at the \inbox.  
-Figure~\ref{fig:eval:cc} shows \name's performance with other congestion control algorithms (namely, Nimbus~\cite{nimbus} and BBR~\cite{bbr}), and using SFQ scheduling. 
-We find that using Nimbus provides similar benefits over \baseline as Copa. 
+Figure~\ref{fig:eval:cc} shows \name's performance with other congestion control algorithms (namely, Nimbus's BasicDelay~\cite{nimbus} and BBR~\cite{bbr}), and using SFQ scheduling. 
+We find that using BasicDelay provides similar benefits over \baseline as Copa. 
 BBR, on the other hand, performs slightly worse than \baseline. 
 This is because it pushes packets into the network more aggressively than the other schemes, resulting in a bigger in-network queue.
 This, combined with the queue built at the \name, results in the endhosts experiencing higher queueing delays than \baseline. This shows that the choice of congestion control algorithm, and its ability to maintain small queues in the network, plays an important role. 
