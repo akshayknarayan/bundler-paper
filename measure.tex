@@ -1,4 +1,18 @@
 \section{Measuring Congestion}\label{s:measurement}
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{img/rate-calculation}
+    \caption{Example of epoch-based measurement calculation. Time moves from top to bottom.
+    %Packets from flows in a bundle
+    %pass through the \inbox and \outbox middleboxes on the way to their destination. 
+    The \inbox records the packets that are identified as epoch boundaries. 
+    The \outbox, up on identifying such packets, sends a feedback message back to
+    the \inbox, which allows it to calculate the RTT and epochs.
+    %When the \inbox observes a packet header matching the boundary condition, it records it. 
+    %When the \outbox observes this packet, it sends an out-of-band feedback message back to
+    %the \inbox, which allows it to calculate the RTT and epochs.
+    }\label{fig:ratecalc}
+\end{figure}
 
 % \name uses out-of-band congestion ACKs to signal congestion between the \inbox and \outbox. 
 % %Sending these congestion ACKs up on every packet is not just unnecessary, but also incurs high overhead. The \outbox instead sends congestion ACKs only for a few sampled packets. We refer to the period between two successively sampled packets as an \emph{epoch}, and each sampled packet as an \emph{epoch boundary packet}.
@@ -47,32 +61,10 @@ For example, in our prototype implementation (\S\ref{s:impl}) we use a header su
 We make this choice for simplicity; it does not require tunnelling mechanisms (and is thus easily deployable, and if \name fails connections are unaffected); we note that previous proposals~\cite{ip-traceback} have used IP ID for unique packet identification. The drawback of this approach is that it cannot be extended to IPv6.
 A full deployment \radhika{better term?} of \name could use dedicated fields in an encapsulating header such as a VLAN tag \radhika{can we cite something for schemes that have used this before?}.
 
-
 Note that our congestion measurement technique is robust to a boundary packet being lost between the \inbox and the \outbox. In this case, the \inbox would not get a feedback for the lost boundary packet, and it would simply compute rates for the next boundary packet over a longer epoch once the next congestion ACK arrives. We present microbenchmarks evaluating the fidelity of our measurements in Appendix~\ref{app:epochs}.
-
-
 
 % \subsection{Contents of Congestion ACKs}
 % \label{s:measure:compute}
-
-
-
-\begin{figure}
-    \centering
-    \includegraphics[width=\columnwidth]{img/rate-calculation}
-    \caption{Example of epoch-based measurement calculation. Time moves from top to bottom.
-    %Packets from flows in a bundle
-    %pass through the \inbox and \outbox middleboxes on the way to their destination. 
-    The \inbox records the packets that are identified as epoch boundaries. 
-    The \outbox, up on identifying such packets, sends a feedback message back to
-    the \inbox, which allows it to calculate the RTT and epochs.
-    %When the \inbox observes a packet header matching the boundary condition, it records it. 
-    %When the \outbox observes this packet, it sends an out-of-band feedback message back to
-    %the \inbox, which allows it to calculate the RTT and epochs.
-    }\label{fig:ratecalc}
-\end{figure}
-
-
 
 \begin{Appendix}
 \section{Epoch Selection Details}\label{app:epochs}
