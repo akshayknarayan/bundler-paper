@@ -89,13 +89,15 @@ On the paths with queueing, because \name can prioritize the latency-sensitive r
 
 \input{robust}
 
-\subsection{Varying Offered Load}\label{s:eval:offeredload}
+\begin{Appendix}
+\section{Varying Offered Load}\label{s:eval:offeredload}
 %Naturally, if a link is less congested, scheduling the packets that traverse it will have less benefit. Accordingly, as the offered load is reduced, we would expect the gains from scheduling to diminish. 
 We now use the web request distribution described in \S\ref{s:eval:setup} to generate a load of 50\% ($48$Mbps), 75\% ($72$Mbps) and 87.5\% ($84$Mbps) of the bottleneck link bandwidth. Our results in Figure~\ref{fig:eval:offeredload} show that as the offered load is decreased, the benefits of \name reduce. This is because if a link is less congested, scheduling the packets that traverse it will have less benefit.
 % At 87.5\% load, even without the load offered by a persistently backlogged connection, \name improves FCTs by \an{amount}. 
 % As the offered load decreases to 50\%, the benefit provided by \name decreases as well -- to \an{amount} at the 75th percentile.
 
 \input{varying-offered-load}
+\end{Appendix}
 
 \subsection{Applying Different Scheduling Policies}\label{s:eval:policies}
 %Per \S\ref{s:impl}, our \name implementation can implement any scheduling discipline available in Linux. 
