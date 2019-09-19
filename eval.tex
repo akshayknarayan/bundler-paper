@@ -14,9 +14,9 @@ Given \name's ability to move the in-network queues to the \inbox (as shown earl
 
 \subsection{Experimental Setup}\label{s:eval:setup}
 
-We evaluate our implementation of \name (discussed in \S\ref{s:impl}) using network emulation via mahimahi~\cite{mahimahi}.
+We use network emulation via mahimahi~\cite{mahimahi} to extensively evaluate our implementation of \name in a controlled setting; we also present results on real Internet paths in \S\ref{s:eval:realworld}.
 %Mahimahi creates a Linux network namespace and applies the configured network condition (emulated delay or link bandwidth) to all packets that traverse it. 
-There are three $8$-core machines in our setup: one machine is a sender, another is configured as a middlebox and runs a \inbox, and a third is the receiver. The \outbox runs on the same machine as the receiver, inside the same mahimahi network namespace as the receiving application. 
+There are three $8$-core machines in our emulated setup: one machine is a sender, another is configured as a middlebox and runs \inbox, and a third is the receiver. The \outbox runs on the same machine as the receiver, inside the same mahimahi network namespace as the receiving application. 
 %Our prototype requires that the sending application and the \inbox run on different machines, to prevent TCP small queues (TSQ) from interfering with the queuing behaviour that one would expect in a real deployment. 
 Since our \outbox implementation uses \texttt{libpcap}, GRO would change the packets before they are delivered to the \outbox, which would cause inconsistent epoch boundary identification between the two boxes. We, therefore, disable TSO and GRO.
 Nevertheless, throughout our experiments CPU utilization on the machines remained below $10$\%.
@@ -40,7 +40,7 @@ This scenario highlights the benefits of using \name when the congestion on the 
 \newcommand{\optimal}{In-Network\xspace}
 
 \Para{Using \name for fair queueing}
-In this section, we evaluate the benefits provided by doing fair queuing at the \name, and use median slowdown as our metric, where the ``slowdown'' of a request as its completion time divided by what its completion time would have been in an unloaded network. A slowdown of $1$ is optimal, and lower numbers represent better performance.
+In this section, we evaluate the benefits provided by doing fair queuing at the \name, and use median slowdown as our metric, where the ``slowdown'' of a request is its completion time divided by what its completion time would have been in an unloaded network. A slowdown of $1$ is optimal, and lower numbers represent better performance.
 
 We evaluate three configurations: 
 (i) The ``\baseline'' configuration represents the status quo: the \inbox simply forwards packets as it receives them, and the mahimahi bottleneck uses FIFO scheduling.
@@ -49,7 +49,8 @@ at the mahimahi bottleneck\footnote{
 We implement this scheme by modifying mahimahi (our patch comprises $171$ lines of C++) to add a packet-level fair-queueing scheduler to the bottleneck link.}. 
 Recall from \S\ref{s:intro} that this configuration is not deployable.
 %: it would force all customers --- who may desire diverging scheduling policies --- to use the same scheduler.
-(iii) The default \name configuration, that uses stochastic fair queueing~\cite{sfq} scheduling policy at the \inbox.
+(iii) The default \name configuration, that uses stochastic fair queueing~\cite{sfq} scheduling policy at the \inbox, \radhika{and (iv) Using \name with FIFO (without exploiting scheduling opportunity).}
+\radhika{flip the order for in-network and \name in the figure to be consistent with the above order.}
 
 Figure~\ref{fig:eval:best} presents our results. 
 The median slowdown (across all flow sizes) decreases from \overviewBenefitsBaselineMedian 
@@ -57,7 +58,7 @@ for Baseline to \overviewBenefitsBundlerMedian
 with \name, \overviewBenefitsBundlerMedianImprovement
 lower. 
 \optimal's median slowdown is a further 15\% lower then \name: \overviewBenefitsOptimalMedian.
-Meanwhile, in the tail, \name's $99\%$ile slowdown is \overviewBenefitsBundlerTail, which is 48\% lower than the Baseline's \overviewBenefitsBaselineTail. \optimal's $99\%$ile slowdown is \overviewBenefitsOptimalTail.
+Meanwhile, in the tail, \name's $99\%$ile slowdown is \overviewBenefitsBundlerTail, which is 48\% lower than the \baseline's \overviewBenefitsBaselineTail. \optimal's $99\%$ile slowdown is \overviewBenefitsOptimalTail.
 
 \paragrapha{Aggregate congestion control is not enough} It is important to note that \name's congestion control by itself (i.e. running FIFO scheduling) is not a means of achieving improved performance. 
 To see why this is the case, recall that \name does not modify the endhosts: they continue to run the default Cubic congestion controller, which will probe for bandwidth until it observes loss.
@@ -72,6 +73,9 @@ Therefore, doing the FIFO scheduling at the \name, as is done by the \baseline, 
 
 \subsection{Real Internet Paths}\label{s:eval:realworld}
 \input{realworld}
+
+\radhika{will do a pass on this subsection. Purpose, expt setup, and takeaways are not coming across as sharply. Might need a quick chat.}
+
 Is there queueing on real Internet paths, and if so, can \name effectively control those queues?
 An interesting real-Internet scenario to consider is load-balancing, a widely used technique for reducing the congestion on any one path.
 Here, we make two observations: 
