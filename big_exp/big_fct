@@ -40,7 +40,8 @@ df$during_f <- factor(df$during, levels=c("empty", "elastic", "inelastic"))
 
 cat ("-> Plot Boxplots\n")
 
-allp <- ggplot(df[df$class == "short",], aes(x=sch, y=Slowdown)) + geom_boxplot(aes(fill=sch), outlier.shape=NA) + coord_flip() +
+# df[df$class == "short",]
+allp <- ggplot(df, aes(x=sch, y=Slowdown)) + geom_boxplot(aes(fill=sch), outlier.shape=NA) + coord_flip() +
     ylab("Slowdown") + 
     xlab("") + 
     scale_fill_manual(limit=c("sfq", "fifo"),
