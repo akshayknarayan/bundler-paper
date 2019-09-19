@@ -6,7 +6,7 @@ In Figure~\ref{fig:eval:bigexp}, we show this scenario.
 At first, the link is occupied only by \name's traffic, similar to the setup described in \S\ref{s:eval:setup}.
 \radhika{do we have a backlog flow in the bundle here? If yes, mention it. If not, delete this comment.}
 At time $t=60$sec, a buffer-filling cross traffic flow arrives.
-\name detects its presence (indicated by the gray shading) and reverts to status-quo performance, as described in \S\ref{s:queue-ctl}.
+\name detects its presence (indicated by the gray shading) and reverts to performance that is slightly worse than Status Quo. It is slightly worse because of the small queue that \name continues to maintain at its \inbox for active probing to detect the cross-traffic's departure, as described in \S\ref{s:queue-ctl}.\footnote{We believe the benefits provided by \name in the more common regime with no competing buffer filling cross traffic are substantial enough to allow for this slight degradation in these specific scenarios.}  \radhika{edited last two sentences. pls check.}
 At time $t=120$sec, the buffer-filling flow stops and non-buffer-filling traffic starts, generated from the same distribution as \name as described in \S\ref{s:eval:setup}.
 \name correctly detects that it is safe to resume delay-control, and continues providing scheduling benefits.
 \radhika{In the graph, rewrite `Queueing Delay' as `In-network Queueing Delay'.} 
