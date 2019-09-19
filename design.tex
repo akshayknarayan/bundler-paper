@@ -110,7 +110,7 @@ Conventional endhost-based implementations have used TCP acknowledgements to gat
 
 \paragrapha{Terminate connections and proxy through TCP} With this approach, one would terminate end-host TCP connections at the \inbox and open new connections to the \outbox, allowing the \inbox to control the rate of traffic in these connections.
 This approach allows the unmodified use of existing congestion control algorithms, since a TCP tunnel can collect ACKs. This approach provides an added advantage: TCP proxies can improve performance by allowing end-to-end connections to ramp up their sending rates quickly. 
-\radhika{unclear} \radhika{also, wouldn't this approach have the same disadvantage as previous one?}
+%\radhika{unclear} \radhika{also, wouldn't this approach have the same disadvantage as previous one?}
 The primary disadvantage of this approach is that \name must take responsibility for reliable delivery of component traffic, which requires large amounts of queueing and, in the case of UDP applications, can harm application performance. 
 Furthermore, proxying TCP connections introduces a new potential point of failure at \name; if \name crashes, connections will be lost.
 Finally, from a practical standpoint, to avoid head-of-line blocking this approach requires that \name open a new proxy connection for each component end-host connection, but still determine the bottleneck rate of the traffic \emph{aggregate}. While this approach may be technically feasible~\cite{cm}, it would result in high 

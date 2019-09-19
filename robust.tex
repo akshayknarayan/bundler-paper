@@ -21,28 +21,28 @@ Figure~\ref{fig:robust:cr-inelastic} shows that \name continues to provide benef
 \input{elastic-cross}
 \paragrapha{Buffer-filling flows} 
 %Competition from persistent backlogged flows (recall from \S\ref{s:deploy} that this condition is rare) that fill the bottleneck link's buffer is the worst-case scenario for \name.
-We now evaluate how \name's throughput is impacted due to competition from varying amount of buffer-filling cross-traffic.
-\radhika{are these all longlived flows in the bundle?}\fc{yes, 20 flows inside, 10-50 flows outside}
+We now evaluate how \name's throughput is impacted due to competition from varying amount of buffer-filling cross-traffic. 
+%\radhika{are these all longlived flows in the bundle?}\fc{yes, 20 flows inside, 10-50 flows outside}
 %As described in \S\ref{s:queue-ctl}, \name's congestion controller must push packets into the bottleneck queue to compete fairly, and thus it cannot retain packets at the \inbox for scheduling. 
 %Furthermore, recall that \name maintains a $10$ms queue at the \inbox in this case. 
 As discussed earlier, in this (rare) scenario, we expect component flows in a bundle to experience slightly higher RTTs compared to \baseline.
 We indeed see its impact in Figure~\ref{fig:robust:cr-elastic}, 
 %, as we vary the number of competing Cubic cross-traffic flows.
 where the component flows in the bundle experience  \bundlerElasticTputWorseness less throughput on average. Notice how the the impact on \name's throughput (which stems from the extra queuing at the \inbox) is independent of the amount of cross-traffic: the bundled flows experience \bundlerElasticTputWorsenessTen lower throughput with 10 competing flows and \bundlerElasticTputWorsenessFifty lower throughput with 50. 
-\radhika{please fill -- the trend could be interesting.} 
-\an{filled}
+%\radhika{please fill -- the trend could be interesting.} 
+%\an{filled}
 %Note that FCTs may not increase as much; in Figure~\ref{fig:eval:bigexp}, during the elastic cross traffic period the median short flow FCT is
 %\bigexpElasticSlowdownWorseness higher.
-\radhika{edited this. basically wanted to bring up the `performance is worse point' sooner when we discuss Fig 8, as opposed to towards the end of section, as it would have confused readers.}
+%\radhika{edited this. basically wanted to bring up the `performance is worse point' sooner when we discuss Fig 8, as opposed to towards the end of section, as it would have confused readers.}
 
 \input{twobundler}
 \paragrapha{Competing Bundles} Last, we evaluate the case where flows from multiple bundles compete with one another. 
 In Figure~\ref{fig:robust:twobundler}, we show the performance with two bundles of traffic competing with one another at the same bottleneck link. 
 Both bundles comprise of web requests along with a backlogged Cubic flow. 
-Even in the presence of this buffer-filling cross traffic, 
-\radhika{??? i believe the backlog flow is in the bundles and not outside it}
-\an{yes, it is, that's why the perf is good. I agree we should reword, it is confusing}
-both bundles maintain low queueing in the network and successfully control the queues at the \inbox.
+%Even in the presence of this buffer-filling cross traffic, 
+%\radhika{??? i believe the backlog flow is in the bundles and not outside it}
+%\an{yes, it is, that's why the perf is good. I agree we should reword, it is confusing}
+Both bundles maintain low queueing in the network and successfully control the queues at the \inbox.
 Thus, \name provides benefits for both bundles, even when the amount of traffic in each bundle is different.  
 
 \subsection{Impact of Congestion Control}\label{s:eval:cc}
