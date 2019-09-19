@@ -23,6 +23,7 @@ Figure~\ref{fig:robust:cr-inelastic} shows that \name continues to provide benef
 As described in \S\ref{s:queue-ctl}, \name's congestion controller must push packets into the bottleneck queue to compete fairly, and thus it cannot retain packets at the \inbox for scheduling. 
 Furthermore, since \name maintains a $10$ms queue at the \inbox in these cases, we expect a small amount of RTT unfairness. \an{maybe don't say this?}
 We indeed see this in Figure~\ref{fig:robust:cr-elastic}, as we vary the number of competing Cubic cross-traffic flows.
+\an{need to read this paragraph carefully to make sure it is correct}
 
 \input{twobundler}
 \paragrapha{Competing Bundles} Last, we evaluate the case where flows from multiple bundles compete with one another. 

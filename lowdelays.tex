@@ -4,6 +4,8 @@
 %    \caption{We configure \name with the fq-codel scheduling policy to achieve low end-to-end queueing delays. \name's packet delay is round(delaysImprovement, 0)\% lower in the median.}
 %\end{figure}
 \newcommand{\delaysImprovement}{97\%\xspace}
+
+\begin{table}[h]
 \begin{center}
 \begin{tabular}{c|c|c}
 Scheme     &  Median RTT                          &    $99$\%ile  RTT                      \\
@@ -13,4 +15,5 @@ Bundler    &  4.25   &    15.32   \\
     \label{fig:eval:lowdelays}
 \end{tabular}
 \end{center}
-
+    \caption{Using CoDel at \name reduces end-to-end packet delays.}\label{t:eval:codel}
+\end{table}
