@@ -1,5 +1,4 @@
-\subsection{Impact of Cross Traffic}
-\label{s:robust:cross}
+\subsection{Impact of Cross Traffic}\label{s:robust:cross}
 
 \input{big_exp_text}
 Can \name successfully revert to status-quo performance in the presence of buffer-filling cross traffic, then resume providing benefits once that cross traffic leaves?
@@ -8,7 +7,7 @@ At first, the link is occupied only by \name's traffic, similar to the setup abo
 At time $t=60$sec, a buffer-filling cross traffic flow arrives.
 \name detects its presence (indicated by the gray shading) and reverts to status-quo performance, as described in \S\ref{s:queue-ctl}.
 At time $t=120$sec, the buffer-filling flow stops and non-buffer-filling traffic starts, generated from the same distribution as \name as described in \S\ref{s:eval:setup}.
-\name correctly detects that it is safe to resume delay-control, and continues providing FCT benefits.
+\name correctly detects that it is safe to resume delay-control, and continues providing scheduling benefits.
 
 For the remainder of this subsection, we present three micro-benchmarks which dig deeper into the latter two scenarios, where cross traffic can affect \name's performance. 
 We present results with both Nimbus and Copa being used as the congestion control algorithm at the \inbox.
@@ -19,11 +18,14 @@ We keep \name's offered load (comprising of web requests described in \S\ref{s:e
 Figure~\ref{fig:robust:cr-inelastic} shows that \name continues to provide benefits for this case, since maintaining low in-network queues is still possible in the presence of such flows.
 
 \input{elastic-cross}
-\paragrapha{Buffer-filling flows} Competition from persistent backlogged flows that fill the bottleneck link's buffer is the worst-case scenario for \name (as discussed in \S\ref{s:deploy}).
+\input{big_exp_nums}
+\paragrapha{Buffer-filling flows} Competition from persistent backlogged flows (recall from \S\ref{s:deploy} that this condition is rare) that fill the bottleneck link's buffer is the worst-case scenario for \name.
 As described in \S\ref{s:queue-ctl}, \name's congestion controller must push packets into the bottleneck queue to compete fairly, and thus it cannot retain packets at the \inbox for scheduling. 
 Furthermore, recall that \name maintains a $10$ms queue at the \inbox in this case. Thus, we expect component flows to experience RTT unfairness.
 We indeed see this in Figure~\ref{fig:robust:cr-elastic}, as we vary the number of competing Cubic cross-traffic flows.
-As expected, the component flows, on aggregate, experience \an{XX}\% less throughput on average.
+As expected, the component flows, on aggregate, experience \bundlerElasticTputWorseness less throughput on average.
+Note that FCTs may not increase as much; in Figure~\ref{fig:eval:bigexp}, during the elastic cross traffic period the median short flow FCT is
+\bigexpElasticSlowdownWorseness higher.
 
 \input{twobundler}
 \paragrapha{Competing Bundles} Last, we evaluate the case where flows from multiple bundles compete with one another. 
@@ -32,7 +34,7 @@ Both bundles comprise of web requests along with a backlogged Cubic flow.
 Even in the presence of this buffer-filling cross traffic, both bundles maintain low queueing in the network and successfully control the queues at the \inbox.
 Thus, \name provides benefits for both bundles, even when the amount of traffic in each bundle is different.  
 
-\subsection{Impact of Congestion Control} \label{s:eval:cc}
+\subsection{Impact of Congestion Control}\label{s:eval:cc}
 
 We now evaluate the impact of a different congestion control algorithm running at the \inbox and at the endhosts.
 
@@ -47,6 +49,6 @@ This, combined with the queue built at the \name, results in the endhosts experi
 
 \input{e2e}
 \Para{Endhost congestion control} 
-We used Cubic congestion control at the endhosts for our experiments so far. When we configure endhosts to use BBR (as implemented in Linux $4.13$), \name's benefits remain: in Figure~\ref{fig:eval:e2e}, \name achieves 58\% lower FCTs in the median compared to the updated \baseline where the endhosts use BBR. 
+We used Cubic congestion control at the endhosts for our experiments so far. When we configure endhosts to use BBR (as implemented in Linux $4.13$), \name's benefits remain: in Figure~\ref{fig:eval:traffic}, \name achieves 58\% lower FCTs in the median compared to the updated \baseline where the endhosts use BBR. 
 This is primarily because in the \baseline using BBR causes endhosts to achieve 66\% worse median slowdown ($1.62$ with Cubic to $2.68$ with BBR); \name's slowdown is only 5\% worse when endhosts use BBR ($1.08$ with Cubic to $1.14$ with BBR). 
 This shows that \name is compatible with multiple endhost congestion control algorithms.
