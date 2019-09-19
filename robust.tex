@@ -10,7 +10,6 @@ At time $t=60$sec, a buffer-filling cross traffic flow arrives.
 Performance is slightly worse because of the \fc{check: $10$ms} queue that \name continues to maintain at its \inbox for active probing to detect the cross-traffic's departure, as described in \S\ref{s:queue-ctl}\footnote{We believe the benefits provided by \name in the more common regime with no competing buffer-filling cross traffic are substantial enough to make up for slight degradation in these specific scenarios.}. 
 At time $t=120$sec, the buffer-filling flow stops and non-buffer-filling traffic starts, generated from the same distribution as \name as described in \S\ref{s:eval:setup}.
 \name correctly detects that it is safe to resume delay-control, and continues providing scheduling benefits.
-\radhika{In the graph, rewrite `Queueing Delay' as `In-network Queueing Delay'.} 
 For the remainder of this subsection, we present three micro-benchmarks which dig deeper into the latter two scenarios, where cross traffic can affect \name's performance. 
 We present results with both Nimbus and Copa being used as the congestion control algorithm at the \inbox.
 
