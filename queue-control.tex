@@ -21,9 +21,7 @@ On some high-performance datapaths, it may be difficult to measure this number~\
 We propose a simpler solution.
 Recall that bundles comprise of traditional end-host connections, with their own congestion controllers. 
 If we simply \emph{let the traffic pass}, \ie increase the pacing rate at the \inbox to stop controlling queues as described in \S\ref{s:design:key}, these end-host congestion controllers will naturally compete fairly with cross traffic, just as traffic in the Internet does today.
-\an{Copa is not compatible with this approach because its TCP-compatible mode is designed for the context of a single connection. Therefore, we must use Nimbus for cross traffic detection.}
-
-\radhika{chop the above paragraph?}
+Copa is not compatible with this approach because its TCP-compatible mode is designed for the context of a single connection. Therefore, we must use Nimbus for cross traffic detection.
 
 \paragrapha{Active Probing}
 When does the \inbox know it is safe to resume delay-control and scheduling?

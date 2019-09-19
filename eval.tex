@@ -96,7 +96,7 @@ We verified that the backlogged senders achieve similar throughput in all cases 
 
 \Para{Result} 
 Figure~\ref{fig:eval:realworld} shows, for each of the five bundles, the resulting RTT box-plots for each of the ten request-response loops (with the 5 tuples in UDP/IP headers differing across all ten).  %``Base RTT'' bars show the latency without backlogged senders and ``Status Quo'' bars represent, as above, the latency with the backlogged senders but without \name.
-We make the following key observations: (i) The \baseline RTTs are significantly higher than the Base RTT, which indicates significant in-network congestion. (ii) \name is able to move these queues and enforce SFQ scheduling effectively, resulting in request-response RTTs comparable to Base RTTs, and \realworldMedianLatencyImprovement smaller than \baseline at the median.
+We make the following key observations: (i) The \baseline RTTs are significantly higher than the Base RTT, which indicates significant in-network queueing. (ii) \name is able to move these queues and enforce SFQ scheduling effectively, resulting in request-response RTTs comparable to Base RTTs, and \realworldMedianLatencyImprovement smaller than \baseline at the median.
 (iii) The \baseline results further reveal that different request-response loops within a given bundle see different amounts of queueing in the network. This indicates possible ECMP load-balancing in the network based on the 5 tuples, and how \name is robust to its effects.
 %We observe multipath effects for all five bundles; while, as a result, some paths experience no queueing, all five bundles also experience queueing on at least half of the available paths.
 
@@ -129,7 +129,9 @@ We measure the resulting distribution of RTTs seen by the endhost connections wi
 As is expected from CoDel, \name in this experiment, achieves \delaysImprovement lower median packet delay than \baseline.
 
 \paragrapha{Strict Prioritization}\label{s:eval:strictprio}
-We uniformly divide the web request distribution described in \S\ref{s:eval:setup} into two equally sized classes, one of which is given a higher priority over the other. \radhika{what's the division ratio?}\an{specified equal ratio}  The results are presented in Table~\ref{t:eval:prio}.
+We uniformly divide the web request distribution described in \S\ref{s:eval:setup} into two equally sized classes, one of which is given a higher priority over the other. 
+%\radhika{what's the division ratio?}\an{specified equal ratio}  
+The results are presented in Table~\ref{t:eval:prio}.
 %of traffic transitting \name over a lower-priority class. 
 \input{strict-prio}
 Using a priority scheduler (we use the \texttt{pfifo\_fast} qdisc) at \inbox improves the flow completion times for the higher-priority class compared to \baseline.

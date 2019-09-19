@@ -1,16 +1,17 @@
 \section{Discussion}\label{s:discussion}
 
-\paragrapha{Composability} Bundles are naturally \emph{composable}: a subdomain of domain A could deploy its own \name to take control of its fraction of the in-network queues. \radhika{finally at the right place! but needs more exposition.}
-\an{added some exposition below}
-For example, a department within an institute may bundle its traffic to a collaborating department, while the parent institute bundles its traffic to a peer institute.
-\name may be useful at \emph{both} levels of aggregation, because different amounts of traffic experience bottlenecks in different locations.
-An individual user could be bottlenecked on a slow Wi-Fi link. 
-This individual's traffic might mix with an institute's department which, as an aggregate, is bottlenecked on the campus's local network.
-After another layer of aggregation, the institute's traffic could be bottlenecked on an interdomain link.
-At each layer of aggregation, it may be beneficial to control the queues at the respective \name.
-Studying this deployment scenario remains future work.
+\paragrapha{Composability} Bundles are naturally \emph{composable}: a subdomain of domain A can deploy its own \name to take control of its fraction of the in-network queues, with domain A's \name enforcing a scheduling policy across the bundled traffic from each subdomain.  
+%\radhika{finally at the right place! but needs more exposition.}
+%\an{added some exposition below}
+For example, a department within an institute may bundle its traffic to a collaborating department in another institute, with the parent institutes bundling the aggregate traffic across multiple departments.
+% \name may be useful at \emph{both} levels of aggregation, because different amounts of traffic experience bottlenecks in different locations.
+% An individual user could be bottlenecked on a slow Wi-Fi link. 
+% This individual's traffic might mix with an institute's department which, as an aggregate, is bottlenecked on the campus's local network.
+% After another layer of aggregation, the institute's traffic could be bottlenecked on an interdomain link.
+% At each layer of aggregation, it may be beneficial to control the queues at the respective \name.
+% Studying this deployment scenario remains future work.
 
-\paragrapha{Scheduling across different bundles at a \inbox} We evaluate benefits of scheduling \emph{within} a bundle. In practice, a given \inbox will see traffic from multiple bundles. Extending different scheduling policies to multiple such bundles can be done trivially.\an{cut?}
+\paragrapha{Scheduling across different bundles at a \inbox} We evaluate benefits of scheduling \emph{within} a bundle. In practice, a given \inbox will see traffic from multiple bundles. Extending different scheduling policies to multiple such bundles can be done trivially.
 %Different bundles may have different rates; recent work~\cite{carousel, eifel} has shown it is possible to implement such multi-rate, multi-scheduler datapaths efficiently.
 
 \paragrapha{Rate allocation across different competing bundles} When multiple bundles (belonging to different sending domains) compete at the same bottleneck, \name's congestion control would ensure a fair rate allocation across each of these bundles, irrespective of the amount of traffic in them. It, therefore, provides fairness on per-sending domain basis, as opposed to a per-flow basis, making it more robust to popular end-host strategies such as opening multiple connections to increase bandwidth share. 
