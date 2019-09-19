@@ -6,8 +6,7 @@
 \end{figure*}
 %
 
-\fc{Would it be better to lead with some example of how theres a large amount
-of traffic bewteen A and B? }
+%\fc{Would it be better to lead with some example of how theres a large amount of traffic bewteen A and B? }
 
 Figure~\ref{fig:deploy:arch} provides an example scenario for deploying \name. 
 \name aggregates traffic from Domain A to Domain B, and vice-versa, into two unidirectional bundles. 
@@ -31,7 +30,7 @@ We briefly discuss how the nature of this congestion influences \name's benefits
 significant improvements in performance \an{up to XX\%}, as it would then have control over the entire queue. 
 %In our experiments (\S\ref{s:eval}), we found this to be the case.
 
-\paragraphi{Congestion due to bundled cross-traffic} In-network congestion can further increase in the presence of other cross-traffic (\eg when the peering link between Carrier B and the enterprise in Figure~\ref{fig:deploy:arch} is shared by traffic from multiple content providers' domains). 
+\paragraphi{Congestion due to bundled cross-traffic} In-network congestion can further increase in the presence of other cross-traffic (\eg when the peering link between Carrier 2 and the enterprise in Figure~\ref{fig:deploy:arch} is shared by traffic from multiple content providers' domains). 
 \name continues to provide benefits (\an{up to YY\%}) when the competing flows are part of other bundles from/to other domains because the rate control algorithm at each of the other {\inbox}es would ensure that the in-network queues remain small. Since each \inbox controls its own delays, it can apply the appropriate scheduling policy in its the per-bundle queues.
 We expect this to become the common form of observed congestion as more domains deploy \name. 
 
