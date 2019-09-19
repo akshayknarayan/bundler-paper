@@ -42,8 +42,8 @@ It thus relinquishes most of its control (and scheduling opportunities) over the
 %Therefore, the bundle's aggregate throughput will decrease slightly due to RTT unfairness.
 %We evaluate this phenomenon in \S\ref{s:robust:cross}.
 However, buffer-filling cross traffic is \emph{rare}.
-Recent study in CDNs~\cite{akamai-cdn-trace} and packet trace from an Internet backbone router~\cite{caida-dataset} reveal that the vast majority of requests are smaller than 1MB; these requests may fill buffers for a few seconds, but no more. Our experiments on real Internet paths (\S\ref{s:eval:realworld}), conducted over multiple days also did not encounter such pathological cross traffic. 
-\radhika{Akshay, check this out.}
+Recent study in CDNs~\cite{akamai-cdn-trace} and a packet trace from an Internet backbone router~\cite{caida-dataset} reveal that the vast majority of connections are smaller than 1MB; they may fill buffers for a few seconds, but no more. Our experiments on real Internet paths (\S\ref{s:eval:realworld}), also did not encounter such pathological cross traffic. 
+%\radhika{Akshay, check this out.}
 %We further analyze a packet trace from an Internet backbone router~\cite{caida-dataset}.
 %The flow size distribution here is even more skewed: $97.6\%$ of flows are under $10$KB, and only $0.02\%$ of flows are larger than $5$MB.
 

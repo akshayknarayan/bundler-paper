@@ -41,7 +41,7 @@ This overhead is unnecessary; reacting once per RTT is sufficient for congestion
 The \inbox therefore samples a subset of the packets for which the \outbox sends congestion ACKs.
 We refer to the period between two successively sampled packets as an \emph{epoch}, and each sampled packet as an \emph{epoch boundary packet}.
 
-The simplest way to sample an epoch boundary packet would be for the \inbox to probabilistically modify a packet (\ie set a flag bit in the packet header) and the \outbox to match on this flag bit\footnote{This observation is analogous to AXE's ``deduplication filter''~\cite{axe}.}.
+The simplest way to sample an epoch boundary packet would be for the \inbox to probabilistically modify a packet (\ie set a flag bit in the packet header) and the \outbox to match on this flag bit.
 However, where in the header should this flag bit be?
 Evolving packet headers has proved impractical~\cite{trotsky}, so perhaps we could use an encapsulation mechanism.
 Protocols at both L3 (\eg NVGRE~\cite{nvgre}, IP-in-IP~\cite{ipinip}) and L4 (\eg VXLAN~\cite{vxlan}) are broadly available and deployed in commodity routers today.
@@ -64,8 +64,10 @@ The packet header subset that is used for identifying epoch boundaries must have
 
 We expect that the precise set of fields used will depend on specific deployment considerations.
 For example, in our prototype implementation (\S\ref{s:impl}) we use a header subset of the IPv4 IP ID field and destination IP and port. 
-We make this choice for simplicity; it does not require tunnelling mechanisms (and is thus easily deployable, and if \name fails connections are unaffected); we note that previous proposals~\cite{ip-traceback} have used IP ID for unique packet identification. The drawback of this approach is that it cannot be extended to IPv6.
-A full deployment \radhika{better term?} of \name could use dedicated fields in an encapsulating header such as a VLAN tag \radhika{can we cite something for schemes that have used this before?}.
+We make this choice for simplicity; it does not require tunnelling mechanisms (and is thus easily deployable, and if \name fails connections are unaffected); we note that previous proposals~\cite{ip-traceback} have used IP ID for unique packet identification. 
+The drawback of this approach is that it cannot be extended to IPv6.
+To support a wider set of scenarios, \name could use dedicated fields in an encapsulating header, analogous to AXE's ``deduplication filter''~\cite{axe}.
+%\radhika{can we cite something for schemes that have used this before?}
 
 Note that our congestion measurement technique is robust to a boundary packet being lost between the \inbox and the \outbox. In this case, the \inbox would not get a feedback for the lost boundary packet, and it would simply compute rates for the next boundary packet over a longer epoch once the next congestion ACK arrives. We present microbenchmarks evaluating the fidelity of our measurements in Appendix~\ref{app:epochs}.
 
