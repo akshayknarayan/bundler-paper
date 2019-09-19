@@ -131,7 +131,7 @@ We detail the congestion measurement strategy and contents of congestion ACKs in
 
 We briefly summarize Nimbus~\cite{nimbus} for reference.
 
-Nimbus detects \emph{elastic} cross traffic which reacts to changes in the available bandwidth. Its core observation is that the absence of such elastic cross traffic, \ie competition with only \emph{inelastic} traffic, is a sufficient (but not necessary) condition to use a delay-control algorithm.
+Nimbus detects \emph{elastic} cross traffic which reacts to changes in the available bandwidth on fast time-scales, \ie a couple RTTs. Its core observation is that the absence of such elastic cross traffic, \ie competition with only \emph{inelastic} traffic, is a sufficient (but not necessary) condition to use a delay-control algorithm.
 Nimbus thus measures whether cross traffic reacts to changes in available bandwidth by pulsing its sending rate at a predetermined frequency.
 If the cross traffic's rate responds to these pulses at the same frequency, Nimbus can conclude that it is elastic, because it has reacted to changes in the available bandwidth.
 

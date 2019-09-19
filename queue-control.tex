@@ -21,7 +21,7 @@ On some high-performance datapaths, it may be difficult to measure this number~\
 We propose a simpler solution.
 Recall that bundles comprise of traditional end-host connections, with their own congestion controllers. 
 If we simply \emph{let the traffic pass}, \ie increase the pacing rate at the \inbox to stop controlling queues as described in \S\ref{s:design:key}, these end-host congestion controllers will naturally compete fairly with cross traffic, just as traffic in the Internet does today.
-\an{Copa is not compatible with this approach because its TCP-compatible mode is designed for the context of a single connection. Therefore, we must use Nimbus for elasticity detection.}
+\an{Copa is not compatible with this approach because its TCP-compatible mode is designed for the context of a single connection. Therefore, we must use Nimbus for cross traffic detection.}
 
 \radhika{chop the above paragraph?}
 
@@ -89,37 +89,6 @@ $\frac{10\pi{}A}{|p(10\pi{}i|} = \frac{A}{5\pi}$.
 
 $\alpha = 10, \beta = 10$ satisfy these constraints.
 \end{Appendix}
-
-\cut{
-\begin{outline}
-\1 Nimbus relies on pulsing the sending rate, and analyzing the resulting response to this pulse in received rate and rtt in the frequency domain. \radhika{Maybe add a line about Copa too and say why its not as suitable}
-    \2 This poses two problems which are not present in the traditional end-host congestion control setting. \radhika{The transition from previous statement is not too clear. Might want to say something like ``This requires control over the input / data being sent (explain what you mean by control and why Nimbus needs it). Such control is naturally present when the detector runs at the endhosts (as explored in Nimbus) and when Bundler's \inbox is in delay control mode (i.e. no elastic flow has been detected), but it is lost once Bundler gets out of the delay-control mode upon detecting elastic cross traffic to relinquish its queue control and fall back to status quo...(what you have in the next bullet point). So how do we detect when the elastic cross traffic has left, so that we can switch back to delay mode?''}
-        \3 Lack of control over input
-        \3 Dynamic number of underlying connections \radhika{Why is this an issue? As in, why do you need to know the number of connections?}
-    \2 Both these problems confound the usual approach of falling back to cubic when buffer-filling cross traffic is detected.
-        \3 Lack of control over input: running Cubic at \inbox will drain the queues into the network. As a result, it will no longer be possible to overlay pulses onto the traffic pattern, and Nimbus will be unable to determine the nature of the cross traffic.
-            \4 
-        \3 Dynamic number of underlying connections: A naive approach of running a single instance of cubic would cause unfairness to bundled traffic
-            \4 Instead of competing with the aggressiveness of $n$ cubic flows, it would only compete as one.
-            \4 Determining the number of currently-backlogged component connections can be difficult on some datapaths~\cite{heavy-hitters} \radhika{Ok, now I see the issue with dynamic connectins. But this is a second orthogonal issue to the first one. Maybe explain one problem at a time. Also, are we really running Cubic in the `get out of the way mode'? This part needs a bit more build up. If we are not running Cubic, we can directly jump to queue control, and we don't have to look into this. Unless, we say something like: `` But this has the issue that....''.}
-\1 Queue-control to support nimbus pulsing
-    \2 We implement a congestion control scheme which seeks to keep a small, constant number of packets at the \inbox while letting other traffic pass through.
-        \3 This does not interfere with the nimbus pulse analysis because it appears as high-frequency noise in the frequency domain. \radhika{not sure I understand this point}
-        \3 Because traffic is passing through, end-to-end congestion controllers will naturally build queues at the botteneck and compete fairly with the cross traffic.
-        \3 Because \inbox maintains a small queue, component connections will experience a small degree of rtt-unfairness.
-            \4 Circumvent by using an end-to-end scheme which doesn't suffer from rtt-unfairness?
-        \3 This unfairness is somewhat offset by the scheduling within the small queue maintained at the \inbox. \radhika{hopefully we will have results showing this, that we can add a forward pointer to?}
-\1 Computing \inbox queue target
-    \2 We can look at the shape of the nimbus pulse to determine what the queue target should be: $A \mu \int_0^{\frac{T}{4}} sin(4 \pi \frac{t}{T}) dt$.
-        \3 $A$ is pulse size fraction
-        \3 $\mu$ is bottleneck bandwith estimate
-        \3 $T$ is pulse duration, depends on pulse frequency.
-\1 We implement a simple PI controller to maintain this queue at the \inbox.
-    \2 $rate = \alpha (q - q_T) + \beta (\dot{q})$
-        \3 We use $\alpha = 100$ and $\beta = 10000$.
-    \2 \fc{todo: explain principle of $\alpha$ and $\beta$}
-\end{outline}
-}
 
 % add plot varying queue length
 % maybe measure the amount of time nimbus spent in the correct mode
