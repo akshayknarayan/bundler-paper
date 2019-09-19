@@ -1,13 +1,13 @@
 \begin{figure}
     \centering
-<<eval:e2e,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
+<<eval:traffic,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
 library(ggplot2)
 library(showtext)
 library(patchwork)
 font_add_google("Lato")
 showtext_auto()
 
-df <- read.csv("data/new/endhost_cc_alg_choice_10k.data", sep=" ")
+df <- read.csv("data/endhost_cc_alg_choice.data", sep=" ")
 
 df$Duration <- df$Duration.usec. / 1e6
 df$ofct <- (df$Size / 12e6) + 0.05
@@ -20,7 +20,7 @@ med <- df[df$Size <= 1e6 & df$Size > 1e4,]
 small <- df[df$Size <= 1e4,]
 
 ggplot(small, aes(
-        x=e2e, fill=alg, y=Slowdown
+        x=traffic, fill=alg, y=Slowdown
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
     ylab("Slowdown") + xlab(NULL) + 
@@ -35,7 +35,7 @@ ggplot(small, aes(
             "nobundler." = "Status Quo"
         )
     ) +
-    coord_cartesian(ylim=c(1,5)) +
+    coord_cartesian(ylim=c(1,4)) +
     theme_minimal() + 
     theme(
         legend.position="top",
@@ -44,7 +44,7 @@ ggplot(small, aes(
         plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     ) +
 ggplot(med, aes(
-        x=e2e, fill=alg, y=Slowdown
+        x=traffic, fill=alg, y=Slowdown
     )) +
     geom_boxplot(outlier.shape=NA) +
     ylab(NULL) + xlab(NULL) +
@@ -59,7 +59,7 @@ ggplot(med, aes(
             "nobundler." = "Status Quo"
         )
     ) +
-    coord_cartesian(ylim=c(1,15)) +
+    coord_cartesian(ylim=c(1,12)) +
     theme_minimal() + 
     theme(
         legend.position="bottom",
@@ -68,7 +68,7 @@ ggplot(med, aes(
         plot.title = element_text(angle=0,size=18, family="Lato", face="bold", hjust = 0.5)
     ) +
 ggplot(big, aes(
-        x=e2e, fill=alg, y=Slowdown
+        x=traffic, fill=alg, y=Slowdown
     )) +
     geom_boxplot(show.legend=FALSE,outlier.shape=NA) +
     ylab(NULL) + ggtitle("Large\n> 1MB") + xlab(NULL) + 
@@ -92,5 +92,5 @@ ggplot(big, aes(
     )
 @
     \caption{\name still provides benefits when the endhosts use different congestion control algorithms.}
-    \label{fig:eval:e2e}
+    \label{fig:eval:traffic}
 \end{figure}
