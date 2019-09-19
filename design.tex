@@ -112,11 +112,11 @@ Conventional endhost-based implementations have used TCP acknowledgements to gat
 This approach allows the unmodified use of existing congestion control algorithms, since a TCP tunnel can collect ACKs. This approach provides an added advantage: TCP proxies can improve performance by allowing end-to-end connections to ramp up their sending rates quickly. \radhika{unclear} \radhika{also, wouldn't this approach have the same disadvantage as previous one?}
 The primary disadvantage of this approach is that \name must take responsibility for reliable delivery of component traffic, which requires large amounts of queueing and, in the case of UDP applications, can harm application performance. 
 Furthermore, proxying TCP connections introduces a new potential point of failure at \name; if \name crashes, connections will be lost.
-Finally, from a practical standpoint, to avoid head-of-line blocking this approach requires that \name open a new proxy connection for each component end-host connection, but still determine the bottleneck rate of the traffic \emph{aggregate}. While this approach may be technically feasible~\cite{cm}, it would result in high overhead. 
+Finally, from a practical standpoint, to avoid head-of-line blocking this approach requires that \name open a new proxy connection for each component end-host connection, but still determine the bottleneck rate of the traffic \emph{aggregate}. While this approach may be technically feasible~\cite{cm}, it would result in high 
+overhead\footnote{From an architectural standpoint this design runs counter to the end-to-end principle~\cite{e2e-principle}; it replicates endhost functionality in the network.}.
 %the cycles used for opening and managing new proxy connections are better used for packet processing.
 Thus, we set aside TCP proxies for the remainder of this discussion. 
 %We but note that this approach is complementary with \name (see \S\ref{s:eval}).
-\footnote{\an{If anyone still cares, from an architectural standpoint this design runs counter to the end-to-end principle~\cite{e2e-principle}; it replicates endhost functionality in the network.}}.
 
 \an{discuss non-terminating tcp tunnels?}
 
