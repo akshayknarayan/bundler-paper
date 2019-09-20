@@ -17,7 +17,7 @@ We patch TBF's \texttt{inner\_qdisc} to support SFQ~\cite{sfq}, FQ-CoDel~\cite{f
 By default, TBF instantaneously re-fills the token bucket when the rate is updated; we disable this feature to avoid rate fluctuations caused by our frequent rate updates. 
 Our patche to the TBF qdisc comprises $112$ lines of C.
 
-\Para{\capinbox control plane} We implement it to run in user-space in $1167$ lines of Rust.
+\Para{\capinbox control plane} We implement it to run in user-space in $1365$ lines of Rust.
 We use CCP~\cite{ccp} to run different congestion control algorithms (described next). 
 CCP is a platform for expressing congestion control algorithms in an asynchronous format, which makes it a natural choice for our epoch-based measurement architecture. 
 The control plane uses \texttt{libccp}~\cite{ccp} to interface with the congestion control algorithm, and  \texttt{libnl} to communicate with the qdisc.
@@ -25,10 +25,10 @@ The control plane uses \texttt{libccp}~\cite{ccp} to interface with the congesti
 \Para{Congestion control algorithms} We use existing implementations of congestion control algorithms (namely, Nimbus~\cite{nimbus}, Copa~\cite{copa} and BBR~\cite{bbr}) on CCP to compute sending rates at the \inbox.  If the algorithm uses a congestion window, the \inbox computes an effective rate of $\frac{\text{CWND}}{\text{RTT}}$ and sets it at the qdisc. 
 We validated that our implementation of these congestion control schemes at the \inbox closely follows their implementation at an endhost.
 
-\Para{\capoutbox} We implement it using \texttt{libpcap} in $188$ lines of Rust. 
+\Para{\capoutbox} We implement it using \texttt{libpcap} in $236$ lines of Rust. 
 
 \subsection{\name Event Loop}\label{s:impl:loop}
-Figure~\ref{fig:bundler} provides an overview of how our \name implementation operates on an already-established bundle.
+Figure~\ref{fig:bundler} provides an overview of how our \name implementation operates on an already-established bundle. 
 
 (1) In the datapath, packets arrive at the \inbox qdisc.
 (2) The qdisc determines whether a packet matches the epoch boundary condition (\S\ref{s:measurement}). 
