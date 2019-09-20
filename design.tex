@@ -132,12 +132,14 @@ We detail the congestion measurement strategy and contents of congestion ACKs in
 
 We briefly summarize Nimbus~\cite{nimbus} for reference.
 
-Nimbus detects \emph{elastic} cross traffic which reacts to changes in the available bandwidth on fast time-scales, \ie a couple RTTs. Its core observation is that the absence of such elastic cross traffic, \ie competition with only \emph{inelastic} traffic, is a sufficient (but not necessary) condition to use a delay-control algorithm.
+Nimbus's goal is to detect scenarios in which it is safe to use delay-based congestion control. 
+To achieve this goal, Nimbus proposes an \emph{elasticity detector} to detect whether the cross traffic contains any \emph{elastic} flows, which react to changes in the available bandwidth on fast time-scales, \ie a couple RTTs. 
+Nimbus's core observation is that the absence of such elastic cross traffic, \ie competition with only \emph{inelastic} traffic, is a sufficient (but not necessary) condition to use a delay-control algorithm.
 Nimbus thus measures whether cross traffic reacts to changes in available bandwidth by pulsing its sending rate at a predetermined frequency.
 If the cross traffic's rate responds to these pulses at the same frequency, Nimbus can conclude that it is elastic, because it has reacted to changes in the available bandwidth.
 
 A natural method of measuring the cross traffic's frequency response is to compare Nimbus's pulses with the cross traffic's rate in the frequency domain.
-Thus, Nimbus an asymmetric sinusoidal pulse (as we have noted in \S\ref{s:queue-ctl}) which has a straightforward representation in the frequency domain while maximizing the sender's ability to influence the available bandwidth.
+Thus, Nimbus uses an asymmetric sinusoidal pulse (as we have noted in \S\ref{s:queue-ctl}) which has a straightforward representation in the frequency domain while maximizing the sender's ability to influence the available bandwidth.
 
 How can Nimbus know the cross traffic's response? It develops an estimator for the cross traffic's sending rate:
 \begin{equation}
@@ -145,7 +147,7 @@ How can Nimbus know the cross traffic's response? It develops an estimator for t
 \end{equation}
 
 $\hat{z}(t)i$ is the estimated cross traffic rate, $\mu$ is the estimated bottleneck bandwidth, $S(t)$ is the sending rate, and $R(t)$ is the receiving rate. 
-\name measures $R(t)$ using congestion ACKs from the \outbox and $\mu$ using the maximum receive rate, as in Nimbus and BBR~\cite{bbr}.
+    \name measures $R(t)$ using congestion ACKs from the \outbox and $\mu$ using the maximum receive rate as in BBR~\cite{bbr}.
 
 Then, Nimbus searches for a peak in the neighborhood of its pulsing frequency $f_p$ to determine the elasticity metric $\eta$:
 
@@ -154,6 +156,6 @@ Then, Nimbus searches for a peak in the neighborhood of its pulsing frequency $f
 \end{equation}
 
 If $\eta$ is larger, the cross traffic is more elastic.
-Nimbus then uses a hard-decision rule $\eta \ge 1$ to decide when to switch to cross-traffic competitive mode as described in \S\ref{s:queue-ctl}.
+Nimbus then uses a hard-decision rule $\eta \ge 2$ to decide when to switch to cross-traffic competitive mode as described in \S\ref{s:queue-ctl}.
 
 \end{Appendix}
