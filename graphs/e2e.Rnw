@@ -1,13 +1,13 @@
 \begin{figure}
     \centering
-<<eval:traffic,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
+<<eval:e2e,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
 library(ggplot2)
 library(showtext)
 library(patchwork)
 font_add_google("Lato")
 showtext_auto()
 
-df <- read.csv("data/endhost_cc_alg_choice.data", sep=" ")
+df <- read.csv("data/endhost_cc_alg_choice_100k.data", sep=" ")
 
 df$Duration <- df$Duration.usec. / 1e6
 df$ofct <- (df$Size / 12e6) + 0.05
@@ -59,7 +59,7 @@ ggplot(med, aes(
             "nobundler." = "Status Quo"
         )
     ) +
-    coord_cartesian(ylim=c(1,12)) +
+    coord_cartesian(ylim=c(1,15)) +
     theme_minimal() + 
     theme(
         legend.position="bottom",
@@ -82,7 +82,7 @@ ggplot(big, aes(
             "nobundler." = "Status Quo"
         )
     ) +
-    coord_cartesian(ylim=c(1,15)) +
+    coord_cartesian(ylim=c(1,25)) +
     theme_minimal() + 
     theme(
         legend.position="top",
