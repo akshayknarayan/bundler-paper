@@ -11,7 +11,8 @@ Performance is slightly worse because of the $10$ms queue that \name continues t
 At time $t=120$sec, the buffer-filling flow stops and non-buffer-filling traffic starts, generated from the same distribution as \name as described in \S\ref{s:eval:setup}.
 \name correctly detects that it is safe to resume delay-control, and continues providing scheduling benefits.
 For the remainder of this subsection, we present three micro-benchmarks which dig deeper into the latter two scenarios, where cross traffic can affect \name's performance. 
-We present results with both Nimbus and Copa being used as the congestion control algorithm at the \inbox.
+We present results with both Nimbus and Copa being used as the congestion control algorithm at the \inbox. 
+In \S\ref{s:eval:offeredload} we present further results on how well \name retains benefits with varying amounts of offered load.
 
 \input{inelastic-cross}
 \paragrapha{Short-lived flows} We first consider the case where the cross traffic comprises of short-lived flows up to a few MBs.

@@ -1,12 +1,13 @@
-\begin{figure}
+\begin{figure*}[ht!]
     \centering
-<<eval:offeredload,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,message=FALSE,fig.width='\\columnwidth',fig.height=2>>=
+<<eval:offeredload,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,message=FALSE,fig.width=15,fig.height=3>>=
 library(ggplot2)
+library(patchwork)
 library(showtext)
 font_add_google("Lato")
 showtext_auto()
 
-df <- read.csv("data/new/vary_offered_load.data", sep=" ")
+df <- read.csv("data/vary_offered_load.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
 df$ofct <- (df$Size / 12e6) + 0.05
 df$Slowdown <- df$Duration / df$ofct
@@ -109,7 +110,7 @@ ggplot(big, aes(
 @
     \caption{\name offers diminishing returns with lower amounts of offered load.}
     \label{fig:eval:offeredload}
-\end{figure}
+\end{figure*}
 %
 %\newcommand{\highUtilTailImprove}{\Sexpr{round(highUtilTailImprove, 0)}\%\xspace}
 %\newcommand{\medUtilTailImprove}{\Sexpr{round(medUtilTailImprove, 0)}\%\xspace}
