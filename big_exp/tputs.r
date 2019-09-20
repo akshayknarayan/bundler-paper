@@ -18,7 +18,7 @@ plt <- ggplot(df, aes(x=t, y=value, color=measurement)) +
     facet_wrap(~Traffic, ncol=1, strip.position="right") + 
     xlab("Time (seconds)") + 
     ylab(expression(atop("Throughput(Mbps)","Delay(ms)"))) +
-    scale_x_continuous(expand = c(0, 0), limits=c(0,180), breaks=c(0,60,120,180)) +
+    scale_x_continuous(expand = c(0, 0), limits=c(0,180), breaks=c(0,20,40,60,80,100,120,140,160,180)) +
     scale_fill_manual('Mode', values="black", labels=c("xtcp")) +
     scale_colour_brewer(type="qual", palette=2, limits=c("bundle", "cross", "delay"), labels=c("bundle"="Bundler Throughput", "cross"="Cross-Traffic Throughput", "delay"="In-Network Queueing Delay")) +
     theme_bw() + 

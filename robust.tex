@@ -60,7 +60,7 @@ This, combined with the queue built at the \name, results in the endhosts experi
 
 \input{e2e}
 \Para{Endhost congestion control} 
-We used Cubic congestion control at the endhosts for our experiments so far. When we configure endhosts to use Reno or BBR (as implemented in Linux $4.13$), \name's benefits remain.
+We used Cubic congestion control at the endhosts for our experiments so far. When we configure endhosts to use Reno or BBR (as implemented in Linux $4.13$), \name's benefits remain (Figure~\ref{fig:eval:traffic}).
 %: in Figure~\ref{fig:eval:traffic}, \name achieves 58\% lower FCTs in the median compared to the updated \baseline where the endhosts use BBR. 
 %This is primarily because in the \baseline using BBR causes endhosts to achieve 66\% worse median slowdown ($1.62$ with Cubic to $2.68$ with BBR); \name's slowdown is only 5\% worse when endhosts use BBR ($1.08$ with Cubic to $1.14$ with BBR). 
 This shows that \name is compatible with multiple endhost congestion control algorithms.
