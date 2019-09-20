@@ -21,7 +21,7 @@ On some high-performance datapaths, it may be difficult to measure this number~\
 We propose a simpler solution.
 Recall that bundles comprise of traditional end-host connections, with their own congestion controllers. 
 If we simply \emph{let the traffic pass}, \ie increase the pacing rate at the \inbox to stop controlling queues as described in \S\ref{s:design:key}, these end-host congestion controllers will naturally compete fairly with cross traffic, just as traffic in the Internet does today.
-Copa is not compatible with this approach because its TCP-compatible mode is designed for the context of a single connection. Therefore, we must use Nimbus for cross traffic detection.
+Copa is not compatible with this approach because its TCP-compatible mode is designed for the context of a single connection. Therefore, we must use Nimbus~\cite{nimbus} for cross traffic detection.
 
 \paragrapha{Active Probing}
 When does the \inbox know it is safe to resume delay-control and scheduling?
@@ -40,8 +40,8 @@ Instead, to support active probing while also letting the traffic pass, the \inb
 How many packets should this be? The \inbox should be able to generate enough packets for a Nimbus up-pulse, \ie the area under the up-pulse curve: 
 $A \int_0^{\frac{T}{4}} \sin(\frac{4\pi{}t}{T}) dt = \frac{AT}{2\pi}$.
 From Nimbus, we use $T = 0.2$ seconds and $A$ is as above, one-fourth the bottleneck bandwidth. By Little's law, we can calculate the amount of extra queueing: $\frac{T}{8\pi}$, or $8$ms.
-We configure the \inbox to hold back $10$ms of queueing for active probing; the additional queueing is a cushion against input variance.
-Note that this extra queueing is in addition to queueing in the network. As a result, the end-to-end Cubic connections will see RTT inflation, and experience slightly lower throughput due to RTT unfairness. 
+We thus configure the \inbox to hold back $10$ms of queueing for active probing; the additional queueing is a cushion against input variance.
+Note that this extra queueing is in addition to queueing in the network. As a result, the end-to-end Cubic connections will see RTT inflation and experience slightly lower throughput due to RTT unfairness. 
 In \S\ref{s:robust:cross} we show that this effect is not large; \name still achieves performance comparable to the status quo.
 
 How should we achieve this target queueing delay? 
