@@ -12,7 +12,7 @@ At time $t=120$sec, the buffer-filling flow stops and non-buffer-filling traffic
 \name correctly detects that it is safe to resume delay-control, and continues providing scheduling benefits.
 For the remainder of this subsection, we present three micro-benchmarks which dig deeper into the latter two scenarios, where cross traffic can affect \name's performance. 
 We present results with both Nimbus and Copa being used as the congestion control algorithm at the \inbox. 
-In \S\ref{s:eval:offeredload} we present further results on how well \name retains benefits with varying amounts of offered load.
+\cut{In \S\ref{s:eval:offeredload} we present further results on how well \name retains benefits with varying amounts of offered load.}
 
 \input{inelastic-cross}
 \paragrapha{Short-lived flows} We first consider the case where the cross traffic comprises of short-lived flows up to a few MBs.
@@ -26,7 +26,7 @@ We now evaluate how \name's throughput is impacted due to competition from varyi
 %\radhika{are these all longlived flows in the bundle?}\fc{yes, 20 flows inside, 10-50 flows outside}
 %As described in \S\ref{s:queue-ctl}, \name's congestion controller must push packets into the bottleneck queue to compete fairly, and thus it cannot retain packets at the \inbox for scheduling. 
 %Furthermore, recall that \name maintains a $10$ms queue at the \inbox in this case. 
-As discussed earlier, in this (rare) scenario, we expect component flows in a bundle to experience slightly higher RTTs compared to \baseline.
+As discussed in \S\ref{s:queue-ctl}, in this (rare) scenario, we expect component flows in a bundle to experience slightly higher RTTs compared to \baseline.
 Indeed, Figure~\ref{fig:robust:cr-elastic} shows that 
 the component flows in the bundle experience  \bundlerElasticTputWorseness less throughput on average. The impact (which stems from the extra queuing at the \inbox) varies from \bundlerElasticTputWorsenessTen lower throughput with 10 competing flows to \bundlerElasticTputWorsenessFifty lower with 50. 
 %\radhika{please fill -- the trend could be interesting.} 
@@ -47,20 +47,27 @@ Thus, \name provides benefits for both bundles, even when the amount of traffic 
 
 \subsection{Impact of Congestion Control}\label{s:eval:cc}
 
+%\an{I have cut down this subsection: removed the e2e congestion control figure and replaced with inline text}
 We now evaluate the impact of a different congestion control algorithm running at the \inbox and at the endhosts.
 
 \input{congestion-control}
 
-\Para{\capinbox congestion control} So far we have evaluated \name by running Copa~\cite{copa} at the \inbox.  
-Figure~\ref{fig:eval:cc} shows \name's performance with other congestion control algorithms (namely, Nimbus's BasicDelay~\cite{nimbus} and BBR~\cite{bbr}), and using SFQ scheduling. 
+\Para{\capinbox congestion control} So far we have evaluated \name by running Copa~\cite{copa} at the \inbox. 
+Figure~\ref{fig:eval:cc} shows \name's performance with other congestion control algorithms (namely, Nimbus's BasicDelay~\cite{nimbus-arxiv} and BBR~\cite{bbr}), and using SFQ scheduling. 
 We find that using BasicDelay provides similar benefits over \baseline as Copa. 
 BBR, on the other hand, performs slightly worse than \baseline. 
 This is because it pushes packets into the network more aggressively than the other schemes, resulting in a bigger in-network queue.
 This, combined with the queue built at the \name, results in the endhosts experiencing higher queueing delays than \baseline. This shows that the choice of congestion control algorithm, and its ability to maintain small queues in the network, plays an important role. 
 
+\Para{Endhost congestion control} We used Cubic congestion control at the endhosts for our experiments so far. When we configure endhosts to use Reno or BBR, \name's benefits remain: \name achieves 58\% lower FCTs in the median compared to the updated \baseline where the endhosts use BBR. 
+This shows that \name is compatible with multiple endhost congestion control algorithms.
+%This is primarily because in the \baseline, using BBR causes endhosts to achieve 66\% worse median slowdown ($1.62$ with Cubic to $2.68$ with BBR); \name's slowdown is only 5\% worse when endhosts use BBR ($1.08$ with Cubic to $1.14$ with BBR). 
+
+\cut{
 \input{e2e}
 \Para{Endhost congestion control} 
 We used Cubic congestion control at the endhosts for our experiments so far. When we configure endhosts to use Reno or BBR (as implemented in Linux $4.13$), \name's benefits remain (Figure~\ref{fig:eval:traffic}).
 %: in Figure~\ref{fig:eval:traffic}, \name achieves 58\% lower FCTs in the median compared to the updated \baseline where the endhosts use BBR. 
 %This is primarily because in the \baseline using BBR causes endhosts to achieve 66\% worse median slowdown ($1.62$ with Cubic to $2.68$ with BBR); \name's slowdown is only 5\% worse when endhosts use BBR ($1.08$ with Cubic to $1.14$ with BBR). 
 This shows that \name is compatible with multiple endhost congestion control algorithms.
+}

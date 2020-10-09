@@ -5,10 +5,11 @@
 Given \name's ability to move the in-network queues to the \inbox (as shown earlier in Figure~\ref{fig:design:shift-bottleneck}), we now explore:
 \begin{enumerate}[leftmargin=15pt]
     \item Where do \name's performance benefits come from? We discuss this in the context of improving the flow completion times of \name's component flows. (\S\ref{s:eval:fct})
-    \item Can \name effectively control the queues on real Internet paths? (\S\ref{s:eval:realworld})
     \item Do \name's performance benefits hold across different scenarios? (\S\ref{s:robust:cross})
-    \item Can \name work with different congestion control algorithms (\S\ref{s:eval:cc}) and enforce different scheduling policies \S\ref{s:eval:policies})?
+    \item Can \name work with different congestion control algorithms (\S\ref{s:eval:cc})?
     \item Are \name's core ideas still applicable with other design decisions? (\S\ref{s:eval:proxy})
+    \item Is \name's heuristic (\S\ref{s:queue-ctl:ecmp}) for detecting imbalanced multipath scenarios robust? (\S\ref{s:eval:ecmp})  
+    \item Can \name effectively control the queues on real Internet paths? (\S\ref{s:eval:realworld})
 \end{enumerate}
 
 \subsection{Experimental Setup}\label{s:eval:setup}
@@ -24,9 +25,56 @@ The workload is heavy-tailed: 97.6\% of requests are 10KB or shorter, and the la
 Each server then sends the requested amount of data to the client and we measure the flow completion time of each such request. 
 The link bandwidth at the mahimahi link is set to 96Mbps, and the RTT is set to 50ms. The requests result in an offered load of 84Mbps. 
 
-The endhost runs Cubic~\cite{cubic}, and the \inbox runs Copa~\cite{copa} (we test other schemes in \S\ref{s:eval:cc}) with the Nimbus~\cite{nimbus} cross traffic detection mechanism. 
-The \inbox schedules traffic using stochastic fair queueing~\cite{sfq} in our experiments by default (we show other policies in \S\ref{s:eval:policies}). 
+The endhost runs Cubic~\cite{cubic}, and the \inbox runs Copa~\cite{copa} (we test other schemes in \S\ref{s:eval:cc}) with Nimbus~\cite{nimbus-arxiv} for cross traffic detection. 
 Each experiment is comprised of 1,000,000 requests sampled from this distribution, across 10 runs each with a different random seed.
+%\an{new, short version of ``applying different scheduling policies''}:
+The \inbox schedules traffic using stochastic fair queueing~\cite{sfq} in our experiments. We additionally evaluated other scheduling policies. 
+For example, with CoDel~\cite{fq-codel}, \name can achieve 97\% lower median end-to-end RTTs and 89\% lower 99\%ile RTTs.
+
+\cut{
+\subsection{Applying Different Scheduling Policies}\label{s:eval:policies}
+%Per \S\ref{s:impl}, our \name implementation can implement any scheduling discipline available in Linux. 
+
+\an{Reduce this subsection to ~one paragraph and roll into 7.2}
+
+In addition to improving flow completion times, \name can achieve low packet delay, perform strict prioritization, and rate fairness.
+
+\paragrapha{Achieving Improved Flow Completion Times} \S\ref{s:eval:fct} shows how enabling SFQ at the \name improves the median slowdown by \overviewBenefitsBundlerMedianImprovement.
+
+\paragrapha{Achieving Low Packet Delays}
+We enable CoDel~\cite{fq-codel} at the \inbox to lower the packet delays, and test it for a single large backlogged flow using the setup described in \S\ref{s:eval}.
+CoDel adds ECN marks to packets in fair-queue buckets which exceed a queue length threshold. 
+As a result, endhosts cut their windows earlier, thus reducing their self-inflicted delay within their fair-queue bucket.
+We measure the resulting distribution of RTTs seen by the endhost connections with \name and \baseline in Table~\ref{t:eval:codel}.
+\input{lowdelays}
+As is expected from CoDel, \name in this experiment, achieves \delaysImprovement lower median packet delay than \baseline.
+
+\paragrapha{Strict Prioritization}\label{s:eval:strictprio}
+We uniformly divide the web request distribution described in \S\ref{s:eval:setup} into two equally sized classes, one of which is given a higher priority over the other. 
+%\radhika{what's the division ratio?}\an{specified equal ratio}  
+The results are presented in Table~\ref{t:eval:prio}.
+%of traffic transitting \name over a lower-priority class. 
+\input{strict-prio}
+Using a priority scheduler (we use the \texttt{pfifo\_fast} qdisc) at \inbox improves the flow completion times for the higher-priority class compared to \baseline.
+Furthermore, prioritization achieves \strictPrioTailImprovementOverFq lower $99$\%ile FCT for the higher priority traffic class, when compared to using fair queueing.
+
+\input{waterfall}
+\paragrapha{Rate Fairness and Stability}\label{s:eval:waterfall}
+We next use our default SFQ scheduler to achieve fairness and rate stability. We start three backlogged flows at different times (0s, 15s, and 30s). Figure~\ref{fig:eval:waterfall} shows that \name converges to fair and stable rates faster than the \baseline.
+
+\cut{
+\input{video-exp}
+\paragrapha{Rate Stability}\label{s:eval:ratestable}
+\fc{come back to this}
+In Figure~\ref{fig:eval:video}, we run a persistently backlogged flow over a 24Mbps link and then
+after 3 seconds start a client attempting to stream a 4k video from a server that supports adaptive
+bitrate selection. Without \name (a), the video stream experiences highly variable throughput and 
+takes 30 seconds to converge to a fair share of the link. In contrast, with \name (b), the video
+stream converges to its fair share within 2 seconds and is able to maintain that rate for the
+entirety of the stream. This stability provides the best scenario for the ABR algorithm to select
+the highest possible bitrate and thus maximize QoE.
+}
+}
 
 \subsection{Understanding Performance Benefits}\label{s:eval:fct}
 
@@ -69,23 +117,9 @@ Therefore, doing the FIFO scheduling at the \name, as is done by the \baseline, 
 % cut, combine with overview-benefits
 %\input{fifo-not-enough}
 
-\subsection{Real Internet Paths}\label{s:eval:realworld}
-\input{realworld}
-We next evaluate our prototype implementation on real Internet paths to answer three key questions that our emulated setup did not answer: (1) Does congestion (and queuing) actually occur in the middle of the network? (2) Is buffer-filling cross traffic rare enough in practice to ensure that \name provides a net improvement in performance? and (3) Is \name's design robust to multi-pathing effects in a real network?  
-Our results reveal an affirmative answer for all three questions. We explain our experiment setup and results below. 
-
-\Para{Experiment Setup} 
-We deploy \name (\inbox) in a GCP datacenter in Iowa and generate traffic from multiple different machines in this datacenter (as detailed below). The generated traffic is sent to multiple machines in five different GCP datacenters (in Belgium, Frankfurt, Oregon, South Carolina, and Tokyo).\footnote{We use GCP's ``Standard Networking'' option, since our focus is the public Internet.} We deploy a \name (\outbox) in each of these receiving datacenters, thus resulting in a total of five bundles spanning different regions of the globe.
-We evaluate two different workloads in this setup: (i) Each bundle comprising of 10 parallel closed-loop 40 bytes UDP requests, where the sender issues a new request every time it receives a response. We measure the request-response RTTs in this workload to use as a baseline (and call them Base RTTs). (ii) We add 20 backlogged (\texttt{iperf}) flows to the above workload in each bundle. We run this workload both with and without \name and measure the UDP request-response RTTs (represented as \name and \baseline respectively). Effective SFQ across all flows should not inflate the base request-response RTT.
-We verified that the backlogged senders achieve similar throughput in all cases (2-4Gbit/s on these paths) both with and without \name, and that the \name machine in Iowa is not a bottleneck itself. 
-
-\Para{Result} 
-Figure~\ref{fig:eval:realworld} shows, for each of the five bundles, the resulting RTT box-plots for each of the ten request-response loops (with the 5 tuples in UDP/IP headers differing across all ten). 
-We make the following key observations: (i) The \baseline RTTs are significantly higher than the Base RTT, which indicates significant in-network queueing. (ii) \name is able to move these queues and enforce SFQ scheduling effectively, resulting in request-response RTTs comparable to Base RTTs, and \realworldMedianLatencyImprovement smaller than \baseline at the median.
-(iii) The \baseline results further reveal that different request-response loops within a given bundle see different amounts of queueing in the network. This indicates possible ECMP load-balancing in the network based on the 5 tuples, and how \name is robust to its effects.
-
 \input{robust}
 
+\cut{
 \begin{Appendix}
 \section{Varying Offered Load}\label{s:eval:offeredload}
 Naturally, if a link is less congested, scheduling the packets that traverse it will have less benefit. Accordingly, as the offered load is reduced, we would expect the gains from scheduling to diminish. 
@@ -93,45 +127,6 @@ We now use the web request distribution described in \S\ref{s:eval:setup} to gen
 % At 87.5\% load, even without the load offered by a persistently backlogged connection, \name improves FCTs by \an{amount}. 
 % As the offered load decreases to 50\%, the benefit provided by \name decreases as well -- to \an{amount} at the 75th percentile.
 \end{Appendix}
-
-\subsection{Applying Different Scheduling Policies}\label{s:eval:policies}
-%Per \S\ref{s:impl}, our \name implementation can implement any scheduling discipline available in Linux. 
-In addition to improving flow completion times, \name can achieve low packet delay, perform strict prioritization, and rate fairness.
-
-\paragrapha{Achieving Improved Flow Completion Times} \S\ref{s:eval:fct} shows how enabling SFQ at the \name improves the median slowdown by \overviewBenefitsBundlerMedianImprovement.
-
-\paragrapha{Achieving Low Packet Delays}
-We enable CoDel~\cite{fq-codel} at the \inbox to lower the packet delays, and test it for a single large backlogged flow using the setup described in \S\ref{s:eval}.
-CoDel adds ECN marks to packets in fair-queue buckets which exceed a queue length threshold. 
-As a result, endhosts cut their windows earlier, thus reducing their self-inflicted delay within their fair-queue bucket.
-We measure the resulting distribution of RTTs seen by the endhost connections with \name and \baseline in Table~\ref{t:eval:codel}.
-\input{lowdelays}
-As is expected from CoDel, \name in this experiment, achieves \delaysImprovement lower median packet delay than \baseline.
-
-\paragrapha{Strict Prioritization}\label{s:eval:strictprio}
-We uniformly divide the web request distribution described in \S\ref{s:eval:setup} into two equally sized classes, one of which is given a higher priority over the other. 
-%\radhika{what's the division ratio?}\an{specified equal ratio}  
-The results are presented in Table~\ref{t:eval:prio}.
-%of traffic transitting \name over a lower-priority class. 
-\input{strict-prio}
-Using a priority scheduler (we use the \texttt{pfifo\_fast} qdisc) at \inbox improves the flow completion times for the higher-priority class compared to \baseline.
-Furthermore, prioritization achieves \strictPrioTailImprovementOverFq lower $99$\%ile FCT for the higher priority traffic class, when compared to using fair queueing.
-
-\input{waterfall}
-\paragrapha{Rate Fairness and Stability}\label{s:eval:waterfall}
-We next use our default SFQ scheduler to achieve fairness and rate stability. We start three backlogged flows at different times (0s, 15s, and 30s). Figure~\ref{fig:eval:waterfall} shows that \name converges to fair and stable rates faster than the \baseline.
-
-\cut{
-\input{video-exp}
-\paragrapha{Rate Stability}\label{s:eval:ratestable}
-\fc{come back to this}
-In Figure~\ref{fig:eval:video}, we run a persistently backlogged flow over a 24Mbps link and then
-after 3 seconds start a client attempting to stream a 4k video from a server that supports adaptive
-bitrate selection. Without \name (a), the video stream experiences highly variable throughput and 
-takes 30 seconds to converge to a fair share of the link. In contrast, with \name (b), the video
-stream converges to its fair share within 2 seconds and is able to maintain that rate for the
-entirety of the stream. This stability provides the best scenario for the ABR algorithm to select
-the highest possible bitrate and thus maximize QoE.
 }
 
 \subsection{Terminating TCP Connections}\label{s:eval:proxy}
@@ -150,3 +145,17 @@ For medium-to-long requests, terminating TCP connections yields additional benef
 Therefore, a domain benefit from proxying TCP connections at \name if its traffic pattern contains many medium-sized flows which benefit from fast ramp-up.
 
 \input{proxy}
+
+\subsection{Multipath Detection}\label{s:eval:ecmp}
+
+% TODO: after deadline should also run experiment where there are > 1 queues but no imbalance, and then suddenly a large flow comes in and creates imbalance, then leaves, heuristic should go above threshold and come back down correspondingly 
+As described in \S\ref{s:queue-ctl:ecmp}, when the ratio of out-of-order to in-order measurements is above a certain threshold, it indicates that \name's component flows are likely traversing multiple imbalanced paths. To evaluate the extent to which this heuristic corresponds with imbalance, we re-run the emulation experiment from Figure~\ref{fig:eval:bigexp} for a variety of network conditions (bottleneck bandwidth ranging from 12 to 96 Mbps, end-to-end RTTs ranging from 10 to 300 ms, and bottleneck load-balancing from 1 to 32 paths) and consider the average value reported by the heuristic over each experiment. The maximum value reported across all experiments with a single path was 0.4\%, while the minimum value reported across all experiments with 2-32 paths was 20\%, two orders of magnitude greater. Thus, this heuristic provides a very clear separation between single and multiple path scenarios and a simple threshold is sufficient. 
+
+% Motivated by these results, we use 0.05 as a threshold for our real-world experiments in the following section. We classified each path as single or multipath by whether or not the component flows experienced different min-RTTs (which we can do in this experiment since we control the flows but \name would not be able to do itself), and found that our chosen threshold correctly distinguished between single and multiple path in all cases. 
+
+% \begin{figure}
+%     \centering
+% \includegraphics[width=\maxwidth]{figure/eval:ecmp:ratio} 
+%     \caption{The queue imbalance heuristic as a function of number of queues. }
+%     \label{fig:eval:ecmp:ratio}
+% \end{figure}

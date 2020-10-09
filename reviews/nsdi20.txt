@@ -1,0 +1,114 @@
+
+NSDI '20 Fall Paper #45 Reviews and Comments
+===========================================================================
+Paper #45 Taking Control of Your Traffic By Living on the Edge
+
+
+Review #45A
+===========================================================================
+
+Overall merit
+-------------
+2. Weak reject
+
+Reviewer expertise
+------------------
+3. Knowledgeable
+
+Paper summary
+-------------
+The paper suggests deploying middle boxes at both ends of large flow aggregates between two domains and doing joint congestion control and packet scheduling across these flow aggregates. The core idea is to move any bottleneck queues from the network's middle to the sender side, where greater control can be exerted on them.
+
+Comments for author
+-------------------
+(Please make your paper readable in black and white print.)
+
+The paper's core idea of congestion control and scheduling at the granularity of bundles is nice, but also seems rather well explored in past work. 
+
+1. Similar ideas appear in reference [45], and it would seem that that reference's proposal is likely more deployable: if it's the big senders like Google we're targeting, then them modifying their sender-side logic on their end hosts is much more deployable than them modifying both ends (one residing within another domain). 
+
+2. [6] also proposed similar ideas, except with TCP proxy termination. It would help if the paper distinguished from [6] more broadly, otherwise, it seems like the main difference is avoiding TCP proxy based design by having an explicit out-of-band feedback mechanism, which is an incremental change. 
+
+3. More broadly, if one does deploy middleboxes at both ends, then it's not clear why the solutions developed for private WANs (like Google's B4, MS's SWAN) don't directly translate. There is also a long-existing line of WAN optimizer products that do joint congestion control optimizations, e.g., from Riverbed over such WAN flows. (See https://www.riverbed.com/document/fpo/TechOverview-Riverbed-RiOS_4_0.pdf)
+
+4. In the intra-data center context also similar ideas have been suggested (https://homes.cs.washington.edu/~arvind/papers/rackcc.pdf). 
+
+Separately, a big problem with the design is requiring changes to both ends of the bundles. For two independent domains, this seems like a large deployment barrier. 
+
+It's also unclear what the precise deployment target is: the bigger providers which the paper targets already deploy their own or leased WANs to reach edge networks themselves. Up to this point, intra-WAN solutions these companies have developed should suffice. But beyond this point, it is unclear how much opportunity there is, as you're likely already close to the last mile. 
+
+How does the proposal tackle domains that connect to each other with multiple links (on different entry-exits between them) and link groups with potentially different congestion levels?
+
+The paper also leaves unclear what hardware / software is needed to be able to do the scheduling / congestion control enforcement at the sendbox/rcvbox. 
+
+Lastly, this kind of work is difficult to assess because the case rests on a series of assumptions that probably lie outside the verification capabilities of anyone but the companies concerned, such as how often there is congestion against which Bundler would help (I didn't read reference [16] as indicating this kind of congestion is common; perhaps the paper will benefit from stating a concrete claim from that paper that the authors build on.) and the nature of cross-traffic.
+
+
+
+Review #45B
+===========================================================================
+
+Overall merit
+-------------
+1. Reject
+
+Reviewer expertise
+------------------
+3. Knowledgeable
+
+Paper summary
+-------------
+The paper proposes to deploy “bundlers” – special boxes that aggregate traffic between “domains”. Congestion control is performed on these aggregates to achieve various desirable properties.
+
+Comments for author
+-------------------
+I either do not understand the basic premise of this paper, or I am missing something. 
+
+What is a domain? Is it an ISP? Or some smaller administrative unit? If it is anything larger than a smallish subnet, it is nearly impossible to guarantee that all flows between two “domains” will travel the same internet path (anycast, ecmp, complex ISP policies, BGP protocol issues, … take your pick). When that happens, what is the point of bundling, since the implicit assumption is that the bottleneck for all flows in a bundle is the same? 
+
+There are dozens of papers that document the complexity of internet routing brought about by BGP issues, ISP routing policies, artifacts like Anycast addresses, CDNs etc. It 
+And if you deploy Bundlers on a finer scale, the benefits of bundling will rapidly decrease – e.g. I can imagine my home router serving as a bundler, and establishing sessions with Google, Amazon, Netflix, Akamai etc. But what would be the point of that? My total traffic volume is insignificant, and it would be best to let each connection do its thing. 
+
+BTW - you could indeed claim that bottleneck for most flows between "domains" (once you define it) lies either near the sender or the receiver or something of that sort. But then the burden is on you to prove that -- there are measurement studies out there that hint at this. Without this, the implicit assumption that you have made cannot be justified. 
+
+Nit -- your GCP experiment is a poor one – you traversed G’s backbone, not the general WAN.
+
+
+
+Review #45C
+===========================================================================
+
+Overall merit
+-------------
+2. Weak reject
+
+Reviewer expertise
+------------------
+2. Some familiarity
+
+Paper summary
+-------------
+This paper presents a traffic scheduling middlebox called Bundler designed to improve content delivery performance. The basic idea is to put one box (called send-box) at a content provider’s domain and to put another box (called receive-box) at a content receiver’s domain, so that the sender box aggregates the traffic from the sender’s domain, controls the congestion by adjusting the sending rates and schedules the traffic towards the receiver domain. They shift the queue from in-network bottleneck to the send-box by accurately calculating the send rates and by leveraging out-of-band congestion notification that is transparent to transport protocols. For accurate calculation of send rates, they use the previous results from delay-based congestion control schemes like BBR and Copa. Bundler turns off delay-based congestion control when it detects competing flows with loss-based congestion control. Evaluation shows Bundler improves the performance by 28-97%.
+
+Comments for author
+-------------------
+Enabling a content provider  to schedule their own flows and to enforce delay-based control congestion is an interesting idea. Flow scheduling at special middleboxes is plausible, and the key techniques such as moving the in-network bottleneck queue to a send-box and detecting cross-traffic and congestion signals are described well. 
+
+That said, I see two limitations with the proposed approach. (1) To benefit from the middlebox, all cross-traffic needs to use delay-based congestion control algorithms. While section 7.3 claims that buffer-filling cross traffic is rare in practice, I’m not fully convinced with only a small number of experiments. (2) One example deployment scenario is to put a senderbox at a content provider (e.g., Google, Amazon) and to put a receivebox at an enterprise. However, I’m not sure if an enterprise would want to deploy a receive-box that handles only the traffic from specific content providers where the box itself is controlled by external entities. 
+
+Most of popular content providers employ CDNs or their front-end servers are typically placed close to the clients. So, the experiments in Figure 7 (with large RTTs) do not seem to reflect the reality. I’m not sure if Google and Amazon can really benefit from Bundler beyond what they already have.
+
+Another problem with the paper is that it’s unclear if the paper brings enough research contribution. Core techniques that detect cross-traffic with loss-based congestion control or that enforce delay-based congestion control are borrowed from existing works (Nimbus, Copa). The Bundler system architecture and the interaction between a send-box and a receive-box could be new, but they look mostly straightforward to me. 
+
+Evaluation does not show the scalability of a Bundler middlebox itself. How many concurrent flows can a typical Bundler send-box handle? What would be the realistic throughput we expect from one box? The receive-box has to run the FNV hash function for every incoming packet, which poses an extra overhead even if FNV is a very simple scheme.
+
+All the experiments in the evaluation section are microbenchmarks. It would be beneficial to evaluate the performance with real applications.
+
+What if an attacker sends carefully-crafted packets that are hashed into a multiple of the sampling period? That is, can an outside attacker interfere with determining the right send rates?
+
+Typos:
+Page 1, each its customers
+
+Page 3, ...policy in it’s the
+
+Page 7, Our patche

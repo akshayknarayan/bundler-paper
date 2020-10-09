@@ -1,0 +1,439 @@
+SIGCOMM 2019 Paper #91 Reviews and Comments
+===========================================================================
+Paper #91 Taking Control of Your Traffic By Living on the Edge
+
+
+Review #91A
+===========================================================================
+
+Overall merit
+-------------
+3. Weak accept (top 30-15%)
+
+Confidence in review
+--------------------
+3. Confident
+
+Ability of work to inspire new research
+---------------------------------------
+2. May prompt follow-on work
+
+Paper summary
+-------------
+The overall idea in this paper is moving a bottleneck queue from
+some remote spot in the network path to close to the sender.  By
+doing this, the organization (e.g., big content provider) sending
+the traffic can manage the queue it is creating rather than that
+queue being managed (in unknown / suboptimal ways) by the random
+spot in the path.
+
+What are the best things about the paper?
+-----------------------------------------
+I found the idea cool and stimulating---even if not completely
+novel.  I.e., if we know our senders are going to build a queue then
+perhaps it's better that we manage it than someone else.
+
+What changes would most improve the paper?
+------------------------------------------
+I wasn't convinced by the non-bundled cross-traffic experiments.
+
+The paper provides first answers to a broad range of questions, but
+isn't particularly deep on any of them.
+
+Comments for author
+-------------------
+High-order bit: This was a fun paper to read.  It was stimulating
+and made me think.  I think it would do that for others, as well.
+
+This isn't the first time someone has aimed to manage queues that
+naturally build elsewhere.  This old paper does that, too:
+
+  Dan Ardelean, Ethan Blanton, Maxim Martynov. Remote Active Queue
+  Management. Proceedings of the ACM SIGMM NOSSDAV 2008. May 2008.
+
+There are a few places in the paper that didn't get a good edit
+pass.  E.g., see "Amount of Aggregation" where there are sentence
+snippets strewn about.
+
+In 'Congestion due to un-bundled cross-traffic' ...
+
+  - I am not sure this discussion is correct.  It seems like it
+    isn't really just big flows competing, but the aggregate of the
+    competing traffic.
+
+  - [5] is used weirdly.  [5] is a dataset and yet is used as a cite
+    for a conclusion.  I think you mean that you crunched the
+    dataset referenced and found the result.  But, [5] doesn't show
+    that.
+
+The discussion / design is really pretty comprehensive.  The paper
+hits on many, many aspects one needs to think about to build a
+system like this.  That is great.  It would have been nice to see a
+bit more perspective that this paper isn't the final word on lots of
+these things.
+
+5.1: My first reaction is that source IP, source port and IPID
+aren't great for determining the epoch because the first two are
+changed *all the time* as packets flow through the network.
+Footnote 5 addresses this a little.  But, there are also CGNs in
+paths these days.  My second reaction is that for the sorts of use
+cases you have in mind maybe you can assume those away.  But, for
+all the design buildup you do in this section, the nuts and bolts of
+your choice are given pretty short shrift.
+
+The biggest issue the Bundler has is dealing with cross-traffic.  As
+the paper sketches, there is an old problem whereby if some sender
+blindly assumes it is the reason for a queue and takes steps to
+reduce it, but its assumption is wrong then it will eventually
+starve.  The Bundler explicitly deals with this case by (a)
+detecting it and (b) giving up on managing the queue when it happens
+(i.e., letting the queue work as it does now).  This begs a couple
+of questions ...
+
+  (1) Is it really possible to detect this?  The submission leans on
+      [16] (a tech report) which in turn uses a modest set of
+      experiments to show it is possible to detect this situation.
+      While [16] looks like a reasonable start at first glance, I am
+      not sure I am convinced this is a solved problem.
+
+  (2) Stipulating that we can detect this case, how prevalent is it?
+      This seems like something we could much more readily deal with
+      than (1).  The paper argues in high-level terms that lots of
+      volume is moved by a few big players.  But, it sure would have
+      been nice to see the experiments more realistically partition
+      the traffic from the seed trace they used.  E.g., look for
+      Netflix traffic and bundle it, rather than partitioning
+      randomly.  It is reasonable to assume 86% of the traffic goes
+      in a bundle (figure 12, left side)?  Is 57% reasonable (figure
+      12, right side)?  Or, would we always be underwater?
+
+I presume you didn't label the tables on page 10 to save space.
+Stop.  It's annoying.
+
+The tables on page 10 ... I get that you're comparing Bundler and
+baseline because that is the option you're teeing up.  I.e., there
+is no queue management and so Bundler is taking it on.  But, it'd
+have been nice to also see the results from placing the queue
+management where the congestion naturally forms as a point of
+comparison.
+
+The experiments (mostly) all call out for more depth.  E.g., figure
+14 isn't a consideration of much of the parameter space.  I know as
+reviewers we always want "more", but at least calling this out would
+show some perspective.
+
+A wondering---which isn't a comment against this paper at all...
+Could you approximate the receivebox?  I.e., if you used the ACK
+stream of a "virtual bundle" of TCP connections, how close could you
+get to the precise feedback you get from the receivebox?  If you
+could get close enough, that would ease deployment.  And, if you
+could then that suggests by taking more into account the sender
+could end up devising a better congestion controller.
+
+
+
+Review #91B
+===========================================================================
+
+Overall merit
+-------------
+2. Weak reject (top 50-30%)
+
+Confidence in review
+--------------------
+3. Confident
+
+Ability of work to inspire new research
+---------------------------------------
+1. Unlikely to inspire new research
+
+Paper summary
+-------------
+The paper attempts to provide a system to allow for QoS across traffic flows in the WAN for content providers that cannot have control over the whole WAN path, and hence the bottlenecks. This is achieved by introducing a special middlebox at the source and receiver networks called bundler, that essentially attempts to understand whether there is queuing in the middle of the network. If queuing is introduced by the flows traversing Bunder, it can apply rate control to move the bottleneck to Bunder and apply QoS policies across the various flows there.
+
+What are the best things about the paper?
+-----------------------------------------
+Applying QoS policies across flows between source and destination networks in the WAN is a difficult problem without controlling the whole path, and this is what Bundler aims to achieve.
+
+What changes would most improve the paper?
+------------------------------------------
+Bundler fails to convince that it can achieve its main goal of applying policies across flows between source-destination pairs in the WAN. It appears to take a simplistic view of the WAN and similarly the evaluation only covers a simple emulated topology of a single hop.
+
+Comments for author
+-------------------
+Bunder is based on the well-explored idea of moving congestion towards the edge to allow for QoS policies without relying on the network do so. Endhosts or systems close to them can apply various policies assuming they are coordinated and that the network does not introduce congestion. Such ideas have been explored in enterprise or DC networks where the whole network is under a single administrative domain, and this makes the solution potentially feasible.
+
+Bundler attempts to extend this to the WAN, with the twist that content providers want to apply different policies depending on the receiver. To achieve this,  middleboxes in the source and receiver networks are introduced that attempt to understand whether the network is congested, and whether congestion is the result of Bundler traffic. If the latter, they can move the bottleneck to the edge, and then apply per-flow QoS policies.
+
+There are two main problems/challenges with this approach.
+First, Bundler needs to determine whether congestion is caused by Bundler flows or not. Bunder attempts to achieve this by loosely coordinating source and receiver Bundler middleboxes through packet sampling, and estimating the expected sending rates. Leaving the sampling problem aside, it is unclear that Bunder rate estimation mechanism can achieve this goal, especially given the complexity of the WAN.
+
+Second, it is further unclear whether Bundler will have any opportunities to apply QoS policies for flows, since essentially assumes an uncongested source-destination path. How often is that the case? If congestion only exists at the edges, potentially this could be the case, but the paper does not really offer any evidence to this end.
+
+Overall, again given the complicity of the WAN, it is hard to imagine that Bundler's simple rate estimation can indeed infer whether the bottleneck is at the edge or not. The evaluation does not help to this end, as it only presents a simple topology hiding away many of the WAN peculiarities.
+
+
+Detailed comments.
+
+Section 4.1 I am very in favor for handling congestion at the edge of the network as this greatly simplifies things. However, this is in controlled environments since all sources coordinate. Indeed, the key insight is true as presented, however it holds in a simple setup for one flow. What happens in more complicated WAN settings, where a flow might cross several bottleneck links or there are multiple flows multiplexed together across hops from different sources and receivers with widely different RTTs, etc. Without clearly motivating that this key insight generalises in more complex networks, it is hard to convince the reader that shifting the queue from the WAN to the edge is feasible (potentially other flows can occupy the bottleneck links while the shifting is happening).
+
+Section 5. I like the sampling idea and selecting fields in the packet to this end, which does not require synchronization between the Bundler boxes. It would help however to provide some intuition as to what short of epochs this type of sampling leads to. It is hard to understand whether epochs are really large or short, or how diverse the selected fields are (to allow for sufficient entropy). While an interesting idea, the selected fields appear somewhat ad-hoc without understanding the implications in a real network.
+
+I found the evaluation setup very limiting unfortunately. WAN is characterized by complexity, varying RTTs, path diversity and large mixing of flows. Your setup hardly captures any of the above, which adds further doubt as to whether  Bundler can indeed achieve what it promises. How about real WAN experiments, based for example a cloud deployment?
+
+Nits.
+Three are several problems with the text and writing, especially in the first half of the paper.
+
+
+
+Review #91C
+===========================================================================
+
+Overall merit
+-------------
+2. Weak reject (top 50-30%)
+
+Confidence in review
+--------------------
+3. Confident
+
+Ability of work to inspire new research
+---------------------------------------
+1. Unlikely to inspire new research
+
+Paper summary
+-------------
+This paper proposes rate limiting flows within the content providers network such that queue build ups in intermediate ISP networks are avoided, thus allowing the content provider to perform their own AQM schemes. Overall I felt like the idea of shifting the queue location was interesting, but the requirement to have a second middlebox in the receiving network seems prohibitive to deployment of the scheme. Especially in cases where content providers may peer directly with ISP networks containing the consumers of their content.
+
+What are the best things about the paper?
+-----------------------------------------
+I liked the idea of shifting the queue from the ISP network to the content provider network. Doing this via a middlebox at the network edge seems logical.
+
+What changes would most improve the paper?
+------------------------------------------
+Requiring an additional box in the receiving network seems prohibitive to deployment of this scheme. This is compounded by content providers peering with client networks and having simpler way to mitigate bottlenecks.
+
+I'd liked to have at least a sentence or two about the types of congestion control algorithms used in practice when the authors state that Bundler will have problems competing against cross traffic that relies on filling router buffers. 
+
+The writing is rough in places with incomplete/partial sentences.
+
+Comments for author
+-------------------
+Section 1:
+* Typo;  individual content *providers* [8, 10, 29, 38]. Content providers
+
+* I like that the send/receive boxes do not need to maintain per flow state. 
+
+Section 3:
+* Sentence fragment: "So a natural question is, traffic in practice
+to make a Bundler deployment beneficial?"
+
+* Sentence fragment: "In such cases,
+Bundler can result in significant improvements in performance,
+as it would then have control over the ."
+
+* Sentence fragment: " Bundler’s design for moving queues is effective when the
+component flows within a bundle share in-network bottlenecks.
+in most scenarios."
+
+* Assumption that flows with common sending and receiving domains will share paths depends on how you define domain(e.g., for geographically large domains the flows may not share the same interdomain link). It would help to be clearer about the scale/scope of the domain here. 
+
+Section 4:
+* 4.1 I feel like there's a lot of potential for interactions between the host congestion control and the send box congestion control. but ok. It'd be nice if you'd dug a bit more into these interactions in the evaluation.
+
+* 4.2 Sentence fragment: " This makes algorithms that use round-trip
+time (RTT) ." Makes these algorithms what?
+
+* 4.2 It would be good to state the dominant TCP variants in practice and if they have the buffer filling property or not. 
+
+Section 6:
+* It's a bit odd to refer to a part of the system as control plane when its functionality is quite different from traditional notions of control plane in networks. 
+
+Section 7:
+* Figure 7: would be helpful if the caption states what the slowdown is relative to. It also isn't clear that Bundler is significantly better than the alternatives here.
+
+* It's a bit confusing to call the case where packets are just forwarded "Status Quo" but then also refer to it as Bundler doing FIFO. Does this correspond to what you'd expect in today's networks? (modulo the altered path to go through the middleboxes it would seem so). 
+
+* The rate fairness and stability results are nice.  
+
+* Figure 12 is hard to follow with both the cross traffic and bundle sizes changing in each plot. I would also like to have seen results about the slow down/throughput for the cross traffic.
+
+
+
+Review #91D
+===========================================================================
+
+Overall merit
+-------------
+3. Weak accept (top 30-15%)
+
+Confidence in review
+--------------------
+2. Somewhat uncertain
+
+Ability of work to inspire new research
+---------------------------------------
+2. May prompt follow-on work
+
+Paper summary
+-------------
+The paper proposes, "Bundler", a solution that shifts queues from the middle
+of the network towards the content provider. The solution consists of deploying
+two middleboxes: one at the sender (sendbox) and one at the receiver
+(receivebox). The authors propose a novel mechanism to measure congestion
+signals independent of the transport layer protocol, and show that Bundler
+achieves faster flow completion times and lower packet delays in the absence of cross-traffic and falls back to status quo in the presence of other bundled
+traffic.
+
+What are the best things about the paper?
+-----------------------------------------
++ Novel hash-based technique to sample packets independently at the sending and receiving ends in order to measure congestion
+
++ The authors evaluate the proposed approach under different scenarios (no
+cross-traffic, short-lived flows cross-traffic, buffer-filling flows
+cross-traffic, and competing bundles) and show clear performance improvements
+
+What changes would most improve the paper?
+------------------------------------------
+- Detection of long-running TCP flows due to cross-traffic: Details on how to
+  identify these are thin; the authors refer the reader to existing work
+  ([16]).  I think this is an important part of the methodology, and for
+  someone unfamiliar with the existing work, it is unclear how the authors
+  measure if the cross-traffic changes rate in response to Bundler's congestion
+  control. It is unclear whether this cross-traffic measurement requires any
+  special packets? How much overhead does this add? 
+
+- Lack of details on the validation of congestion signals measurement methodology
+  (Section 5.4).
+
+Comments for author
+-------------------
+I enjoyed reading the paper. In general, it is well-written (minus some broken
+sentences that I mention at the end of review) and the authors provide detailed
+evaluation under different scenarios. Most of my comments below are minor:
+
+- What is the rationale behind the particular choice of epoch size? How does
+  this affect hash function choice for determining the boundary packets? How
+  frequently is the epoch size N updated?
+
+- Section 5.4: Accuracy of the RTT/receive rate measurement approach: "We pick
+  90 traces of Bundler's measurements from experiments in our evaluation across
+  a range of RTTs (20ms, 50ms, 100ms) and bottleneck rates (24Mbps, 48Mbps,
+  96Mbps)". It is unclear what is the maximum send rate in each of these
+  traces?
+
+- Evaluation: Section 7: Is there a reason why the traffic distribution is 
+  drawn from Internet core router traffic distribution?
+
+- Section 7.5: All the three scenarios have cross-traffic load less than bundle
+  load. Is this reflective of real-world traffic?
+
+- Choice of parameters: "additive probe factor" in the increased rate: what is
+  the rationale behind choosing one-sixteenth of the maximum receive rate seen
+  so far?
+
+- Minor: The introduction uses "component flows" without defining what it
+  means.
+
+- A number of broken / incomplete sentences that hinder reading. Some that caught my
+  eye:
+
+  Page 3: "So a natural question is, traffic in practice to make a Bundler
+  deployment beneficial? Past observations, since a majority.."
+
+  Page 3: "In such cases, Bundler can result in significant improvements in
+  performance, as it would then have control over the ."
+
+  Page 3: "We expect this to become common, ."
+
+  Page 3: " . in most scenarios. As"
+
+  Page 5: Figure 2 caption: "The show the trend in measured..."
+
+  Page 4: "This makes algorithms that use round-trip time (RTT) ."
+
+  Page 8: Missing words: "(5) It sends an out-of-band UDP message to the <missing> that contains..." 
+  Page 8: Missing words: "(6) The <missing> receives the UDP..."
+
+  Page 9: "We explore the effects of congestion due to other cross-traffic in
+  §7.4." Should be section §7.5 instead.
+
+  Page 11: benfits -> benefits
+
+
+
+Review #91E
+===========================================================================
+
+Overall merit
+-------------
+2. Weak reject (top 50-30%)
+
+Confidence in review
+--------------------
+2. Somewhat uncertain
+
+Ability of work to inspire new research
+---------------------------------------
+3. Suggests new directions in established area
+
+Paper summary
+-------------
+This paper proposes to place congestion control middleboxes, Bundlers, at the edges of a content provider network and the end-receiver network.
+This moves the packet queue bottlenecks from the Internet (typically on inter-domain links) to the content provider's edge, thereby allowing for different queuing disciplines to be applied to the traffic.
+Evaluations on emulated workloads using a prototype Bundler implementation show consistent improvements under varying load, cross-traffic and end-host congestion control.
+
+What are the best things about the paper?
+-----------------------------------------
+The paper proposes an interesting idea of taking control of a provider's send queues, rather than having traffic experience congestion on the Internet. 
+The proposed Bundler system's simplicity is its biggest appeal: It achieves edge congestion control without changes to endhosts/routers and scaling with the number of workloads (or queues) instead of the number of flows.
+While the intuition behind the idea is somewhat obvious, this reviewer is not aware of any prior that does explains this intuition clearly and proposes a system to implement the idea.
+
+What changes would most improve the paper?
+------------------------------------------
+If this paper is reviewed as a systems paper then much room for improvement exists in system implementation and evaluation.
+If looked at as a Networking paper, the contributions and insights are interesting but the experimental results with cross-traffic are unconvincing.
+Moreover, the paper ignores discussion on the impact of some common network configurations on Bundler--e.g. how would ECMP'ing traffic across the same or multiple adjacent provider impact Bundler's performance and effectiveness? How would demand routing co-exist with Bundler?  
+The paper has a few broken sentences and typographical errors, which should be fixed.
+
+Comments for author
+-------------------
+This paper proposes to tackle inter-domain congestion by moving queues into the edge of a content provider, by placing congestion control middleboxes at the edges of the provider's network and the customer's network. Moving these queues to the provider's edge allows application of queuing disciplines that are specific to the provider's workloads and customers. 
+The proposed system does not require changes to the network and is able to work without interfering with to the end-host congestion control algorithms. Having middleboxes on both ends inherently allows for simple RTT and bandwidth measurements, which are in turn used to perform per-bundle congestion control. A prototype implementation is created and evaluations are performed on emulated workloads, varying load and cross-traffic conditions, and different end-host congestion control algorithms.
+
+This reviewer enjoyed reading the paper, which explains the idea and its evaluation without unnecessary complication. Design choices for the Bundler system are also clearly articulated.
+Emulated evaluations are performed for different variants of traffic conditions and end-hosts. Improvements are reasonably consistent, with fallback to status quo accepted as a system principle rather than a degradation. It is also good to see that use of TCP proxies are complementary to the proposed approach.
+
+This reviewer's main criticism for the paper is how they estimate whether the congestion is caused by the provider's traffic or some other sources that are not in the provider's control. The technique for this is unproven and the experimental results do no inspire confidence.
+
+Another criticism is that it avoids discussion on some thorny aspects of content delivery from the edge. For instance, it is quite common for content providers to ECMP traffic across multiple interfaces towards the same upstream provider or towards different providers to enhance availability. While intuitively inter-domain congestion should exhibit itself similarly in these settings, a more explicit discussion is warranted because at the least the Bundler sendboxes will have to be scaled and some state might need to be replicated.  Similarly, demand routing to route customers to different PoPs based on server and network loads is commonly employed in content provider edges. Bundler's effectiveness in this setting is unclear.
+
+Finally, the implementation and evaluation setup are the weakest point of the paper. It is not clear why a qdisc based method with packet punting to userspace is being used, when an in-kernel (ebpf) implementation should have sufficed for this system. Similarly, the workloads are emulated, while the reviewer would have liked to see results with real-world workloads. 
+
+Writing of the paper can also be improved. Currently, the paper has many broken sentences and typographical errors--see some instances below.
+The reviewer also found the discussion on epoch and latency/rate computation to be excessively verbose. This discussion could be shortened, without compromising understandability.
+
+Typos and Broken Sentences:
+-----------------------------
+In such cases, Bundler can result in significant improvements in performance, as it would then have control over the .
+
+We expect this to become common, .
+
+within a bundle share in-network bottlenecks. in most scenarios. As discussed 
+
+as well as the effects potentially different path lengths between them
+
+It sends an out-of-band UDP message to the that contains the hash of the packet and its current state.
+
+
+
+Comment @A1 by Reviewer D
+---------------------------------------------------------------------------
+The paper was discussed at the PC meeting. While in general the PC 
+liked the paper and was in agreement that the work presents a bold step forward,
+the PC felt that the paper is not ready for publication at this stage for two
+major reasons: (i) detection of cross-traffic, a fundamental piece of the
+methodology, is not convincing, and (ii) interactions of congestion control
+algorithms are not clear.
+
+We hope the authors can take this feedback to improve the paper.
