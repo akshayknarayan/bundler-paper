@@ -2,23 +2,45 @@
 \label{s:related}
 
 %With our work sitting at the intersection of highly popular topics of scheduling, congestion control and middleboxes, one can produce a large body of past work related to each topic. However, this unique intersection of topics is also what adds significant novelty to our work. 
-%Our work is at the intersection of congestion control, scheduling, and middleboxes. 
-%We identify the most relevant related work in each of these areas below. 
 
-\Para{Aggregating congestion information} A recent proposal~\cite{fivecomps} observes that the majority of today's traffic is owned by a few entities.
-This observation implies that there are large bundles in practice, resulting in greater scheduling opportunities within a bundle. 
-The proposal uses its observation to advocate sharing congestion information across a given domains endhosts. 
-This is orthogonal to our goal of scheduling such traffic by introducing a middlebox without modifying end hosts.
+\Para{Aggregating congestion information} There have been multiple proposals to aggregate congestion control information in different contexts -- across flows sharing the same endpoint~\cite{cm}\cut{\radhika{is this correct?}}, across flows between two racks within a datacenter~\cite{rackcc}, and across flows originating from a large cloud/content provider~\cite{fivecomps}. The goal of these approaches is to share information among end-to-end congestion controllers, which allows them to better adapt to network conditions.  
+%to optimize end-to-end metrics such as latency or fairness. 
+%As traffic controllers, however, aggregate congestion control schemes cannot enforce precise traffic scheduling policies due to control overheads \fc{what does this mean?}.
+In contrast, \name uses aggregate congestion control in a different way (with a different goal): as a light-weight mechanism to shift the queues from the middle of the network to the edge, without interfering with the end-to-end congestion controllers of individual flows. It is orthogonal and complementary to prior proposals on aggregate congestion control. 
+%\fc{can we safely claim this is a "new way"? maybe better to just delete "in a.."}\an{removed new} 
+%Therefore, while the aforementioned aggregate congestion controllers are compatible with \name, they do not achieve the goal of traffic control in isolation. 
+%\fc{should we explicitly distinguish from cm?}
 
-\Para{Packet scheduling} There have been some recent efforts towards enabling the benefits of packet scheduling. Most are complementary with \name and could be used as its datapath.
-For example, PIFO~\cite{pifo} is a priority queue for programmable switching chips. 
+
+% There have been numerous proposals to aggregate congestion control information in the context of end-to-end congestion control~\cite{cm, rackcc, fivecomps}. The goal of these approaches is to share information among end-to-end congestion controllers to optimize end-to-end metrics such as latency or fairness. 
+% %As traffic controllers, however, aggregate congestion control schemes cannot enforce precise traffic scheduling policies due to control overheads \fc{what does this mean?}.
+% In contrast, \name uses congestion control in a different way: as a mechanism to take control of queues.
+% %\fc{can we safely claim this is a "new way"? maybe better to just delete "in a.."}\an{removed new} 
+% Therefore, while aggregate congestion controllers are compatible with \name, they do not achieve the goal of traffic control in isolation. \fc{should we explicitly distinguish from cm?}
+\Para{Using a middlebox for queue management} Remote Active Queue Management (AQM)~\cite{ardelean} aims reduce VoIP traffic latency by deploying a middlebox at a site's access link that drops packets or injects ECN marks for the remaining flows in order to manipulate their end-to-end congestion control loops. It makes a core assumption that the bottleneck is the site's access link.
+%, and because it relies on manipulating end-to-end congestion controllers, its component traffic must have specific characteristics, \ie those of VOIP traffic.
+In contrast, \name tackles arbitrary bottleneck locations in the middle of the network. Moreover, unlike Remote AQM, \name is not restricted to a specific queue management policy for a specific traffic class.
+
+%Remote Active Queue Management~\cite{ardelean} proposed to manipulate end-to-end congestion control loops to achieve a traffic control objective by dropping packets or injecting ECN marks. However, it makes the core assumption that the bottleneck is the site's access link, and because it relies on manipulating end-to-end congestion controllers, its component traffic must have specific characteristics, \ie those of VOIP traffic. 
+%Instead, \name works with arbitrary bottleneck locations in the middle of the network and imposes an out-of-band control loop which is compatible with any component traffic (\S\ref{s:design}). 
+%\radhika{not clear what remote AQM is, how its different from regular AQM, and why it is related. Lets quickly discuss} 
+%\fc{not sure if we can say arbitrary -- if bottleneck is outside of the pair, bundler won't do anything. maybe better distinction is just that we target different scenarios and are thus orthogonal.}\an{clarified middle of network}
+
+%A recent proposal~\cite{fivecomps} observes that the majority of today's traffic is owned by a few entities.
+%This observation implies that there are large bundles in practice, resulting in greater scheduling opportunities within a bundle. 
+%The proposal uses its observation to advocate sharing congestion information across a given domains endhosts. 
+%This is orthogonal to our goal of scheduling such traffic by introducing a middlebox without modifying end hosts.
+
+\Para{Overlay Networks} \name's motivation is closer to a proposal in overlay networks, OverQoS~\cite{overqos}, which aimed to provide QoS benefits in the Internet by enforcing traffic management policies at the nodes of an already-deployed overlay network~\cite{ron}. 
+\name's approach is more lightweight; instead of relying on an overlay network, \name only requires each site to deploy a middlebox, and uses a novel control loop between the middleboxes to facilitate traffic management at the sites. 
+%\fc{can we also say something about not modifying traffic so its incrementally deployable?}\an{overlay networks can also claim to not modify traffic and be incrementally deployable, right}
+%This simplifies the ``rendezvous'' problem, since \name initializes bundles dynamically (\S\ref{s:design}).
+%In addition, \name provides a novel mechanism to \emph{move} the in-network queues, and gain the power to schedule the bundled traffic. 
+
+%\Para{Packet scheduling} There have been some recent efforts towards enabling the benefits of packet scheduling. Most are complementary with \name and could be used as its datapath.
+%For example, PIFO~\cite{pifo} is a priority queue for programmable switching chips. 
+
 %However, not only does it require changing  in-network routers, but it also suffers from the issue of an ISP's limited visibility into the traffic to choose desired policies (and limited incentives to enforce them). 
 %UPS~\cite{ups} allows different scheduling policies to be expressed from the edge via header initialization, but also requires a change to the routers.
 %However, since queuing still occurs in the middle of the network, it relies on the customers targeting a common global objective, or on the network operators isolating different customers' traffic, both of which are difficult to realize. 
 %\name provides a solution that does not require any cooperation from downstream networks in other organizations.
-
-In that spirit, \name is closer to OverQoS~\cite{overqos}. Proposed more than a decade ago, OverQoS aimed to provide QoS benefits in the Internet by aggregating and managing traffic at the nodes of an already-deployed overlay network~\cite{ron}. 
-Given the aggregation opportunities today, where a few content providers generate a majority of the Internet traffic~\cite{fivecomps}, we observe that the time for reaping benefits from such designs may have arrived. 
-Recent trends enable a simpler and more deployable approach; instead of deploying an overlay network, \name{} proposes deploying a middlebox at the sending and the receiving domains to aggregate sufficient traffic. 
-This simplifies the ``rendezvous'' problem, since \name initializes bundles dynamically (\S\ref{s:design}).
-In addition, \name provides a novel mechanism to \emph{move} the in-network queues, and gain the power to schedule the bundled traffic. 

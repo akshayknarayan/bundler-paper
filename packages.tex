@@ -1,13 +1,12 @@
 \usepackage{subcaption}
 \usepackage{xspace}
 \usepackage{titlesec}
-\usepackage{titling}
 
 % use only if we need more space!
 %\titlespacing*{\section}{0pt}{1*\baselineskip}{1*\baselineskip}
 %\titlespacing*{\subsection}{0pt}{0.8*\baselineskip}{0.6*\baselineskip}
 % break glass in case of emergency
-%\titlespacing*{\section}{0pt}{0pt}{0pt}
+\titlespacing*{\section}{2pt}{2pt}{2pt}
 \titlespacing*{\subsection}{2pt}{2pt}{2pt}
 %\titlespacing*{\subsubsection}{0pt}{0pt}{0pt}
 
@@ -22,21 +21,31 @@
 \usepackage{comment}
 \usepackage{fancybox, fancyvrb, calc}
 \usepackage[inline]{enumitem}
-\usepackage{cite}
+%\usepackage{cite} % breaks citations with acmart
 \usepackage{url}
+\usepackage{ulem}
+\normalem
 \usepackage{pbox}
 \usepackage{wrapfig}
 %
-%\usepackage[T1]{fontenc}
-%\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
 %\usepackage{mathptmx}
 \usepackage{mathtools}
 \usepackage{enumitem}
 \setlist{nolistsep}
 \usepackage{hhline}
-\usepackage{appendix}
+%\usepackage{appendix}
 \usepackage{outlines}
 \usepackage[english]{babel}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,      % false: boxed links; true: colored links
+  linkcolor=blue,       % color of internal links
+  citecolor=magenta,    % color of links to bibliography
+  filecolor=cyan,       % color of file links
+  urlcolor=blue          % color of external links
+}
 %\usepackage{sparklines}
 %
 %% maxwidth is the original width if it is less than linewidth
@@ -95,13 +104,6 @@
 \captionsetup[figure]{skip=-1pt,font={small}}
 \addtolength{\belowcaptionskip}{-10pt}
 \Urlmuskip=0mu plus 1mu
-\hypersetup{%
-  colorlinks=true,      % false: boxed links; true: colored links
-  linkcolor=blue,       % color of internal links
-  citecolor=magenta,    % color of links to bibliography
-  filecolor=cyan,       % color of file links
-  urlcolor=blue          % color of external links
-}
 %
 %\usepackage{leading}
 %\leading{12pt}
@@ -162,10 +164,10 @@
 %
 \frenchspacing
 
+\newcommand{\bundle}{bundle\xspace}
 \newcommand{\name}{Bundler\xspace}
 \newcommand{\inbox}{sendbox\xspace}
 \newcommand{\outbox}{receivebox\xspace}
 \newcommand{\capinbox}{Sendbox\xspace}
 \newcommand{\capoutbox}{Receivebox\xspace}
 \newcommand{\pair}{\inbox-\outbox pair\xspace}
-

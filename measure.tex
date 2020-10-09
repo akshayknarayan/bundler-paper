@@ -1,4 +1,4 @@
-\section{Measuring Congestion}\label{s:measurement}
+\subsection{Measuring Congestion}\label{s:measurement}
 \begin{figure}
     \centering
     \includegraphics[width=\columnwidth]{img/rate-calculation}
@@ -34,7 +34,7 @@
 % \newcommand{\senttwo}{$sent_{i}$}
 % \newcommand{\recvdtwo}{$rcvd_{i}$}
 
-
+%\an{I think it would be possible to roll this into 4.5}
 Sending an out-of-band feedback message for every packet arriving at the \outbox would result in high communication overhead. 
 Furthermore, conducting measurements on every outgoing packet at the \inbox would require maintaining state for each of them, which can be expensive, especially at high bandwidth-delay products. 
 This overhead is unnecessary; reacting once per RTT is sufficient for congestion control algorithms~\cite{ccp}. 
@@ -46,7 +46,8 @@ However, where in the header should this flag bit be?
 Evolving packet headers has proved impractical~\cite{trotsky}, so perhaps we could use an encapsulation mechanism.
 Protocols at both L3 (\eg NVGRE~\cite{nvgre}, IP-in-IP~\cite{ipinip}) and L4 (\eg VXLAN~\cite{vxlan}) are broadly available and deployed in commodity routers today.
 
-However, packet modification is unnecessary; since the same packets pass through \inbox and \outbox, uniquely identifying a given pattern of packets is sufficient to meet our requirements. In this scheme, the \inbox and \outbox both hash a subset of header for every packet, and mark a packet as an epoch boundary if its hash is a multiple of the desired \emph{sampling period}. The \inbox computes the sampling period to produce about 4 samples per RTT and communicates it to the \outbox. We defer the details of sampling period computation to Appendix~\ref{app:epochs}. 
+Happily, we observe that such packet modification is unnecessary; since the same packets pass through \inbox and \outbox, uniquely identifying a given pattern of packets is sufficient to meet our requirements. In this scheme, the \inbox and \outbox both hash a subset of header for every packet, and mark a packet as an epoch boundary if its hash is a multiple of the desired \emph{sampling period}. The \inbox computes the sampling period to produce about 4 samples per RTT and communicates it to the \outbox. 
+%We defer the details of sampling period computation to Appendix~\ref{app:epochs}. 
 
 Upon identifying a packet $p_i$ as an epoch boundary packet the \inbox records: 
 (i) its hash, $h(p_i)$, 
@@ -56,26 +57,30 @@ When the \outbox sees $p_i$, it also identifies it as an epoch boundary and send
 The congestion ACK contains $h(p_i)$ and the running count of the total number of bytes received for that bundle. 
 Upon receiving the congestion ACK for $p_i$, the \inbox records the received information, and using its previously recorded state, computes the RTT and the rates at which packets are sent and received, as in Figure~\ref{fig:ratecalc}.
 %\radhika{don't think the figure helps much now}
+In a micro-benchmark evaluating the fidelity of our measurements, 80\% of our RTT estimates were within 1.2ms of the actual value and 80\% of our receive rate estimates were within 4Mbps of the actual value.
 
 The packet header subset that is used for identifying epoch boundaries must have the following properties:
 (i) It must be the same at both the \inbox and the \outbox.
 (ii) Its values must remain unchanged as a packet traverses the network from the \inbox to the \outbox (so, for example, the TTL field must be excluded)\footnote{Certain fields, that are otherwise unchanged within the network, can be changed by NATs deployed in a customer's domain. Ensuring that the \name boxes sit outside the NAT would allow them to make use of those fields.}.
 (iii) It differentiates individual \emph{packets} (and not just flows), to allow sufficient entropy in the computed hash values.
 (iv) It also differentiates a retransmitted packet from the original one, to prevent spurious samples from disrupting the measurements (this precludes, for example, the use of TCP sequence number).
-
+%
 We expect that the precise set of fields used will depend on specific deployment considerations.
 For example, in our prototype implementation (\S\ref{s:impl}) we use a header subset of the IPv4 IP ID field and destination IP and port. 
-We make this choice for simplicity; it does not require tunnelling mechanisms and is thus easily deployable, and if \name fails connections are unaffected. 
+We make this choice for simplicity; it does not require tunnelling mechanisms and is thus easily deployable, and if \name fails, connections are unaffected. 
 We note that previous proposals~\cite{ip-traceback} have used IP ID for unique packet identification. 
 The drawback of this approach is that it cannot be extended to IPv6.
-To support a wider set of scenarios, \name could use dedicated fields in an encapsulating header, analogous to AXE's ``deduplication filter''~\cite{axe}.
+To support a wider set of scenarios, \name could use dedicated fields in an encapsulating header (as in~\cite{axe}).
 %\radhika{can we cite something for schemes that have used this before?}
 
-Note that our congestion measurement technique is robust to a boundary packet being lost between the \inbox and the \outbox. In this case, the \inbox would not get a feedback for the lost boundary packet, and it would simply compute rates for the next boundary packet over a longer epoch once the next congestion ACK arrives. We present microbenchmarks evaluating the fidelity of our measurements in Appendix~\ref{app:epochs}.
+Note that our congestion measurement technique is robust to a boundary packet being lost between the \inbox and the \outbox. In this case, the \inbox would not get feedback for the lost boundary packet, and it would simply compute rates for the next boundary packet over a longer epoch once the next congestion ACK arrives.
+
+%We present microbenchmarks evaluating the fidelity of our measurements in Appendix~\ref{app:epochs}.
 
 % \subsection{Contents of Congestion ACKs}
 % \label{s:measure:compute}
 
+\cut{
 \begin{Appendix}
 \section{Epoch Selection Details}\label{app:epochs}
 \subsection{Choosing The Epoch Size}
@@ -96,3 +101,4 @@ We pick 90 traces of \name's measurements from experiments in our evaluation acr
 
 To visualize how these measurements impact the behavior of the signals over time we pick an experiment for which the median difference matches that of the entire distribution and plot a five second segment of our estimates compared to the actual values in Figure~\ref{fig:micro:time-thru}.
 \end{Appendix}
+}

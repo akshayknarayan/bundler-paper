@@ -1,42 +1,47 @@
-\documentclass[letterpaper,twocolumn,10pt]{article}
-
-\usepackage{usenix2019_v3}
+\documentclass[sigconf,anonymous,10pt]{acmart}
+\acmSubmissionID{657}
+\settopmatter{printacmref=false,printfolios=true}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+%\documentclass[letterpaper,twocolumn,10pt]{article}
+%\usepackage{usenix2019_v3}
 
 \input{packages}
-
 
 \titleformat{\section}
   {\normalfont\Large\bfseries}{\thesection}{1em}{\MakeUppercase}
 
 \begin{document}
-\setlength{\droptitle}{-1.5cm}
+\fancyhead{}
+%\setlength{\droptitle}{-1.5cm}
 
-\title{\LARGE Taking Control of Your Traffic By Living on the Edge}
-\author{Paper 45, \pageref{p:end} Pages}
+\title{\LARGE Site-to-Site Internet Traffic Control}
+%\author{Paper 45, \pageref{p:end} Pages}
 % TODO MAKE FINAL
-%Frank Cangialosi, 
-%Akshay Narayan, 
-%Prateesh Goyal,
-%Radhika Mittal,
-%Mohammad Alizadeh,
-%Hari Balakrishnan 
-%\\ MIT CSAIL}
-
+%\author{Paper 657, \pageref{p:end} Pages
+%%%Frank Cangialosi, 
+%%%Akshay Narayan, 
+%%%Prateesh Goyal \\
+%%%Radhika Mittal,
+%%%Mohammad Alizadeh,
+%%%Hari Balakrishnan \\
+%%%MIT CSAIL
+%}
+%
 \date{\vspace{-12mm}}
-
-\maketitle
-
-\begin{sloppypar}
+%
 \input{abstract}
+\maketitle
+\begin{sloppypar}
 \input{intro}
+\input{related}
 \input{deployment}
 \input{design}
-\input{measure}
+%\input{measure}
 \input{queue-control}
 \input{impl}
 \input{eval}
+\input{ecmp}
 \input{discussion}
-\input{related}
 \input{conclusion}
 \end{sloppypar}
 \label{p:end}
