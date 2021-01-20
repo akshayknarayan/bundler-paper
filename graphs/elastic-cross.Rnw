@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-<<robust:cr-elastic,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,message=FALSE,fig.width='\\columnwidth',fig.height=3>>=
+<<robust_cr-elastic,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,message=FALSE,fig.width='\\columnwidth',fig.height=3>>=
 library(ggplot2)
 library(showtext)
 font_add_google("Lato")

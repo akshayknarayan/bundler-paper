@@ -1,4 +1,4 @@
-\documentclass[sigconf,anonymous,10pt]{acmart}
+\documentclass[sigconf,10pt]{acmart}
 \acmSubmissionID{657}
 \settopmatter{printacmref=false,printfolios=true}
 \renewcommand\footnotetextcopyrightpermission[1]{}
@@ -14,23 +14,34 @@
 \fancyhead{}
 %\setlength{\droptitle}{-1.5cm}
 
-\title{\LARGE Site-to-Site Internet Traffic Control}
+\renewcommand*{\thefootnote}{\fnsymbol{footnote}}
+\title{\Huge Site-to-Site Internet Traffic Control}
 %\author{Paper 45, \pageref{p:end} Pages}
 % TODO MAKE FINAL
 %\author{Paper 657, \pageref{p:end} Pages
-%%%Frank Cangialosi, 
-%%%Akshay Narayan, 
-%%%Prateesh Goyal \\
-%%%Radhika Mittal,
-%%%Mohammad Alizadeh,
-%%%Hari Balakrishnan \\
-%%%MIT CSAIL
-%}
+%\authornotemark[1]
+\author{
+    \Large
+Frank Cangialosi\footnotemark[1]
+Akshay Narayan\footnotemark[1],
+Prateesh Goyal, \\
+Radhika Mittal,
+Mohammad Alizadeh,
+Hari Balakrishnan
+}
+\affiliation{MIT CSAIL}
+
+\renewcommand{\shortauthors}{Cangialosi and Narayan, et al.}
+
 %
 \date{\vspace{-12mm}}
 %
 \input{abstract}
 \maketitle
+\setcounter{footnote}{1}
+\footnotetext{Both authors contributed equally to this work.}
+\renewcommand*{\thefootnote}{\arabic{footnote}}
+\setcounter{footnote}{0}
 \begin{sloppypar}
 \input{intro}
 \input{related}

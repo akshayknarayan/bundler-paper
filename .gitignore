@@ -3,6 +3,7 @@
 *.out
 *.blg
 *.log
-bundler-sigcomm19.pdf
+bundler-main.pdf
+cache/
 _minted*/
 **/.DS_Store

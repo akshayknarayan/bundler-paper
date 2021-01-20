@@ -1,6 +1,6 @@
 ##
 
-TARGETS = bundler-nsdi20
+TARGETS = bundler-main
 
 TEXFILES = $(wildcard *.tex)
 KNITRFILES = $(wildcard graphs/*.Rnw)
@@ -10,7 +10,7 @@ PDFS = $(addsuffix .pdf,$(TARGETS))
 all: $(PDFS)
 
 final: $(PDFS)
-	./banal -judge -paper=letter -font=10 -leader=12 -width=7 -height=9 -cols=2 -pages=12 ./bundler-nsdi20.pdf
+	./banal -judge -paper=letter -font=10 -leader=12 -width=7 -height=9 -cols=2 -pages=12 ./bundler-main.pdf
 
 %.pdf: %.tex $(TEXFILES) $(KNITRTARGETS) usenix2019_v3.sty ref.bib imgs
 	pdflatex -shell-escape -shell-escape $*.tex
@@ -29,7 +29,7 @@ imgs: $(wildcard imgs/*.pdf)
 clean:
 	/bin/rm -f *.dvi *.aux *.ps *~ *.log *.out *.lot *.lof *.toc *.blg *.bbl url.sty
 	/bin/rm -rf cache
-	/bin/rm -rf $(PDFS) $(KNITRTARGETS)
+	/bin/rm -rf $(PDFS) # $(KNITRTARGETS)
 	/bin/rm -rf _minted-$(TARGETS)
 
 evince:

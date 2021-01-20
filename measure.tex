@@ -61,7 +61,7 @@ In a micro-benchmark evaluating the fidelity of our measurements, 80\% of our RT
 
 The packet header subset that is used for identifying epoch boundaries must have the following properties:
 (i) It must be the same at both the \inbox and the \outbox.
-(ii) Its values must remain unchanged as a packet traverses the network from the \inbox to the \outbox (so, for example, the TTL field must be excluded)\footnote{Certain fields, that are otherwise unchanged within the network, can be changed by NATs deployed in a customer's domain. Ensuring that the \name boxes sit outside the NAT would allow them to make use of those fields.}.
+(ii) Its values must remain unchanged as a packet traverses the network from the \inbox to the \outbox (so, for example, the TTL field must be excluded)\footnote{Certain fields, that are otherwise unchanged within the network, can be changed by NATs deployed within a site. Ensuring that the \name boxes sit outside the NAT would allow them to make use of those fields.}.
 (iii) It differentiates individual \emph{packets} (and not just flows), to allow sufficient entropy in the computed hash values.
 (iv) It also differentiates a retransmitted packet from the original one, to prevent spurious samples from disrupting the measurements (this precludes, for example, the use of TCP sequence number).
 %

@@ -17,7 +17,7 @@
 }
 
 \input{realworld}
-We next evaluate our prototype implementation on real Internet paths to answer three key questions that our emulated setup did not answer: (1) Does congestion (and queuing) actually occur in the middle of the network? (2) Is buffer-filling cross traffic rare enough in practice to ensure that \name provides a net improvement in performance? and (3) Is \name's design robust to multi-pathing effects in a real network?  
+We next evaluate our prototype implementation on real Internet paths to answer three key questions that our emulated setup did not answer: (1) Does congestion (and queuing) actually occur in the middle of the network? (2) Is buffer-filling cross traffic rare enough in practice to ensure that \name provides a net improvement in performance? and (3) Is \name's design robust to possible multi-pathing effects in a real network?  
 Our results reveal an affirmative answer for all three questions. We explain our experiment setup and results below. 
 
 \Para{Experiment Setup} 
@@ -30,5 +30,5 @@ We verified that the backlogged senders achieve similar throughput in all cases 
 \Para{Result} 
 Figure~\ref{fig:eval:realworld} shows, for each of the five bundles, the resulting RTT box-plots for each of the ten request-response loops (with the 5 tuples in UDP/IP headers differing across all ten). 
 We make the following key observations: (i) The \baseline RTTs are significantly higher than the Base RTT, which indicates significant in-network queueing. (ii) \name is able to move these queues and enforce SFQ scheduling effectively, resulting in request-response RTTs comparable to Base RTTs, and \realworldMedianLatencyImprovement smaller than \baseline at the median.
-(iii) The \baseline results further reveal that different request-response loops within a given bundle see different amounts of queueing in the network. This indicates possible ECMP load-balancing in the network based on the 5 tuples, and how \name is robust to its effects.
+% (iii) The \baseline results further reveal that different request-response loops within a given bundle see different amounts of queueing in the network. This indicates possible ECMP load-balancing in the network based on the 5 tuples, and how \name is robust to its effects.
 

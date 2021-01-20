@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-<<eval:e2e,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
+<<eval_e2e,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
 library(ggplot2)
 library(showtext)
 library(patchwork)
