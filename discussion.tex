@@ -1,6 +1,6 @@
 \section{Discussion}\label{s:discussion}
 
-\paragrapha{Composability} Bundles are naturally \emph{composable}: a subdomain of domain A can deploy its own \name to take control of its fraction of the in-network queues, with domain A's \name enforcing a scheduling policy across the bundled traffic from each subdomain.  
+\paragrapha{Composability} Bundles are naturally \emph{composable}: a sub-site within site A can deploy its own \name to take control of its fraction of the in-network queues, with the site A's \name enforcing a scheduling policy across the bundled traffic from each sub-site.  
 %\radhika{finally at the right place! but needs more exposition.}
 %\an{added some exposition below}
 For example, a department within an institute may bundle its traffic to a collaborating department in another institute, with the parent institutes bundling the aggregate traffic across multiple departments.
@@ -14,4 +14,4 @@ For example, a department within an institute may bundle its traffic to a collab
 \paragrapha{Scheduling across different bundles at a \inbox} We evaluate benefits of scheduling \emph{within} a bundle. In practice, a given \inbox will see traffic from multiple bundles. Extending different scheduling policies to multiple such bundles can be done trivially.
 %Different bundles may have different rates; recent work~\cite{carousel, eifel} has shown it is possible to implement such multi-rate, multi-scheduler datapaths efficiently.
 
-\paragrapha{Rate allocation across different competing bundles} When multiple bundles (belonging to different sending domains) compete at the same bottleneck, \name's congestion control would ensure a fair rate allocation across each of these bundles, irrespective of the amount of traffic in them. It, therefore, provides fairness on per-sending domain basis, as opposed to a per-flow basis, making it more robust to popular end-host strategies such as opening multiple connections to increase bandwidth share. 
+\paragrapha{Rate allocation across different competing bundles} When multiple bundles (belonging to different sites) compete at the same bottleneck, \name's congestion control would ensure a fair rate allocation across each of these bundles, irrespective of the amount of traffic in them. It, therefore, provides fairness on per-site basis, as opposed to a per-flow basis, making it more robust to popular end-host strategies such as opening multiple connections to increase bandwidth share. 

@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-<<eval:fifo,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
+<<eval_fifo,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
 library(ggplot2)
 library(showtext)
 library(patchwork)

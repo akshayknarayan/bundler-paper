@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-<<eval:waterfall,fig.showtext=TRUE,cache=TRUE,echo=FALSE,message=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
+<<eval_waterfall,fig.showtext=TRUE,cache=TRUE,echo=FALSE,message=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=3>>=
 library(ggplot2)
 library(showtext)
 font_add_google("Lato")

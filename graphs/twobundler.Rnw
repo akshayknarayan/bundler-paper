@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-<<robust:twobundler,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
+<<robust_twobundler,fig.showtext=TRUE,cache=TRUE,echo=FALSE,warning=FALSE,fig.width='\\columnwidth',fig.height=2.5>>=
 library(ggplot2)
 library(showtext)
 font_add_google("Lato")

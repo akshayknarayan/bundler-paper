@@ -1,6 +1,6 @@
 \begin{figure}
     \centering
-<<micro:time-thru,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=6>>=
+<<micro_time-thru,cache=TRUE,echo=FALSE,warning=TRUE,verbose=TRUE,fig.width='\\columnwidth',fig.height=6>>=
 
 library(patchwork)
 library(ggplot2)

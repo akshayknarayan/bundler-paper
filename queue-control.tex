@@ -124,7 +124,8 @@ $\alpha = 10, \beta = 10$ satisfy these constraints.
 }
 
 \subsection{Imbalanced Multipathing}\label{s:queue-ctl:ecmp}
-Since a \bundle contains many component connections, a load balancer may send them along different paths. If the load along different paths is well-balanced, \name will accurately treat a load-balanced bottleneck link as a single link with the aggregate rate of each sub-link. However, when the load along different paths is imbalanced, the series of measurements at the \name will be a random sampling of the different paths, which would confuse the delay-control algorithm and cause it to perform poorly. Fortunately, such cases are straight-forward to detect with our measurement technique. More specifically, load imbalance will result in many epoch measure packets arriving out-of-order at the \outbox (whenever epoch packet $i$ happens to traverse a path with a larger delay than epoch packet $i+1$), and consequently, out-of-order ``congestion ACKs'' at the \inbox. Therefore, we use the fraction of epoch measurement packets that arrive out-of-order as an indicator of load imbalance due to multipathing. 
+Since a \bundle contains many component connections, a load balancer may send them along different paths. If the load along different paths is well-balanced, \name will accurately treat a load-balanced bottleneck link as a single link with the aggregate rate of each sub-link. However, when the load along different paths is imbalanced, the series of measurements at the \name will be a random sampling of the different paths, which would confuse the delay-control algorithm and cause it to perform poorly. Fortunately, such cases are straight-forward to detect with our measurement technique. 
+More specifically, load imbalance will result in many epoch measure packets arriving out-of-order at the \outbox (whenever epoch packet $i$ happens to traverse a path with a larger delay than epoch packet $i+1$), and consequently, out-of-order ``congestion ACKs'' at the \inbox.  Figure~\ref{fig:queue-ctl:ecmp:motivation} shows this effect for an emulated imbalance scenario. Therefore, we use the fraction of epoch measurement packets that arrive out-of-order as an indicator of load imbalance due to multipathing. 
 If this number is small, the links are roughly balanced and \name will operate correctly.
 If it is large, it indicates load imbalance, in which case \name's rate-control would work incorrectly. 
 %While we believe that it is possible to design a rate controller that distinguishes RTT samples from different paths, and computes appropriate aggregate rates, we leave this for future research, and instead adopt a simpler
@@ -140,16 +141,13 @@ Therefore, if the reordering level is above 5\%, we disable rate control and rev
 
 %In extreme cases, there may be persistent imbalance in the level of queueing. 
 
-
-\fc{Reference corresponding fig~\ref{fig:queue-ctl:ecmp:motivation} in text as motivation for heuristic}
-
 \begin{figure}
     \centering
 \includegraphics[width=\maxwidth]{figure/ecmp_delay.pdf} 
-\caption{(Top) Delay at each of 4 ECMP queues observed at the bottleneck. (Bottom) Measurements observed by Bundler. Bundler's measurements cannot distinguish how many queues there are, but the relative number of out-of-order measurements is enough to detect the presence of RTT-imbalanced paths.}
+\vspace{2pt}
+\caption{(Top) True delay for all packets of \name's component flows based on which of 4 load-balanced paths they traversed (unknown to \name). (Bottom) Delay measurements observed by Bundler, colored based on whether they were derived from an in-order or out-of-order epoch packet. Bundler's measurements cannot distinguish how many paths there are, but the relative number of out-of-order measurements is enough to clearly indicate the presence of multiple RTT-imbalanced paths.}
 \label{fig:queue-ctl:ecmp:motivation}
 \end{figure}
-
 
 \cut{
 \begin{outline}

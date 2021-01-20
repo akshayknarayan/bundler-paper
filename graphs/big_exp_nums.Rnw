@@ -1,4 +1,4 @@
-<<eval:bigexp:fctnum,fig.showtext=TRUE,cache=TRUE,echo=FALSE,message=FALSE,warning=FALSE>>=
+<<eval_bigexp_fctnum,fig.showtext=TRUE,cache=TRUE,echo=FALSE,message=FALSE,warning=FALSE>>=
 df <- read.csv("../big_exp/big_exp_41/fcts.data", sep=" ")
 
 df$Duration <- df$Duration.usec. / 1e6
