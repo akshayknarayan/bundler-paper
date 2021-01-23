@@ -6,7 +6,7 @@ library(showtext)
 library(patchwork)
 font_add_google("Lato")
 showtext_auto()
-df <- read.csv("data/new/overview_benefits.data", sep=" ")
+df <- read.csv("data/overview_benefits.data", sep=" ")
 df$Duration <- df$Duration.usec. / 1e6
 bw <- 12e6
 df$ofct <- (df$Size / bw) + 0.05

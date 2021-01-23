@@ -7,8 +7,8 @@ font_add_google("Lato")
 showtext_auto()
 library(patchwork)
 
-df <- read.csv("data/new/bundler_cc_alg_choice.data", sep=" ")
-overview_df <- read.csv("data/new/overview_benefits.data", sep=" ")
+df <- read.csv("data/bundler_cc_alg_choice.data", sep=" ")
+overview_df <- read.csv("data/overview_benefits.data", sep=" ")
 overview_df <- overview_df[overview_df$sch == "fifo" & overview_df$alg == "nobundler",]
 
 df <- rbind(df, overview_df)
