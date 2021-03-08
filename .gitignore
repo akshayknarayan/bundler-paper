@@ -7,3 +7,5 @@ bundler-main.pdf
 cache/
 _minted*/
 **/.DS_Store
+graphs/data/*.data
+graphs/data/*.out
