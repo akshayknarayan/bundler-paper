@@ -126,9 +126,8 @@ Finally, from a practical standpoint, to avoid head-of-line blocking this approa
 Thus, we set aside TCP proxies for the remainder of this discussion, but explore their compatibility with \name in \S\ref{s:eval:proxy}. 
 %We but note that this approach is complementary with \name (see \S\ref{s:eval}).
 
-%\an{discuss non-terminating tcp tunnels?}
 \paragrapha{Out-of-band feedback} Having eliminated the options for using in-band feedback, we adopt an out-of-band feedback mechanism: the \outbox sends out-of-band congestion ACKs to the \inbox.
-This decouples congestion signalling from traditional ACKs used for reliability\footnote{The idea of an out-of-band congestion notification is similar to that in QCN~\cite{qcn}, although our goals differ.} and is thus indifferent to the underlying protocol (be it TCP, UDP, or QUIC).
+This decouples congestion signalling from traditional ACKs used for reliability and is thus indifferent to the underlying protocol (be it TCP, UDP, or QUIC).
 %We detail the congestion measurement strategy and contents of congestion ACKs in \S\ref{s:measurement}.
 
 \cut{
