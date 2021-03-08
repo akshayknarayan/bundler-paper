@@ -27,12 +27,14 @@ Our primary goal with \name is to provide control over \emph{self-inflicted} que
 In the remainder of this section, we detail the conditions in which \name can achieve this goal. Our high-level strategy is ``do no harm''; \name detects conditions in which it cannot operate and disables itself, reverting to status-quo performance.
 %\radhika{read again after intro has been written}
 
-\Para{Bottleneck in the middle of the network} 
-Network administrators already have control over packets which queue within their site. \name is thus useful for moving queues that build up due to congestion in the middle of the network (\ie between a \pair).
-%The next question that arises is, does such in-network congestion occur in practice? 
-A recent measurement study~\cite{inferring-interdomain-congestion} indicates that inter-domain bottlenecks (such as the red bottleneck link in Figure~\ref{fig:deploy:arch}) do exist.
-% \fc{seems like a weak statement, esp since we're starting with a question. can we say something stronger than exist? or delete the question sentence}\an{removed sentence}. 
-%We briefly discuss how the nature of this congestion influences \name's benefits (and provide detailed results in \S\ref{s:eval}).
+\Para{Non-edge Bottleneck} 
+Network administrators already have control over packets which queue within their site. \name is thus useful for moving queues that build up due to congestion in the ``middle'' of the network (\ie between a \pair).
+There is strong evidence that such non-edge bottlenecks exist.
+%
+Dhamdhere \etal found that~\cite{inferring-interdomain-congestion} inter-domain bottlenecks (such as the red bottleneck link in Figure~\ref{fig:deploy:arch}) do exist, and
+Zhu \etal found~\cite{bottleneck-of-china} that non-edge bottlenecks for transnational traffic to and from China are prevalent, and moreover that in many cases, the bottleneck for this traffic is an ISP deep inside China rather than a larger provider.
+An M-Lab technical report similarly found~\cite{mlab-tr} patterns of performance degradation linked to specific ISP interconnections in the middle of the network.
+Finally, Jin \etal found~\cite{blameit} that for for WAN traffic originating from Microsoft Azure, the ``middle'', \ie on-path ASes not including the source or destination AS, is to blame for between $40$-$50\%$ of persistent congestion incidents over a one-month period. 
 
 \Para{External congestion} Other than self-inflicted congestion, \name must coexist with traffic from external sources.
 %It can happen when a small carrier network does not have enough capacity to sustain the large volume of traffic sent by a content provider to a receiving domain, or due to explicit rate limiting commonly done by ISPs~\cite{isp-throttle-1, isp-throttle-2, isp-throttle-3}. 
