@@ -64,7 +64,7 @@ Correspondingly, we design a PI controller at the \inbox as part of the fairness
 It overlays a rate $r$ corresponding to $\dot{r}(t) = \alpha (q - q_T) + \beta (\dot{q})$, where $q$ is the queue size and $q_T$ is the target queue size computed above.
 We pick $\alpha = 10$ and $\beta = 10$ by solving for a convergence time of one RTT.% as per \S\ref{s:qctl:pi}.
 
-\cut{
+
 \begin{Appendix}
 \section{Queue Controller Stability}\label{s:qctl:pi}
 
@@ -121,7 +121,7 @@ r_1 = \frac{-\beta + \sqrt{\beta^2 - 4\alpha}}{2}, r_2 = \frac{-\beta - \sqrt{\b
 
 $\alpha = 10, \beta = 10$ satisfy these constraints.
 \end{Appendix}
-}
+
 
 \subsection{Imbalanced Multipathing}\label{s:queue-ctl:ecmp}
 Since a \bundle contains many component connections, a load balancer may send them along different paths. If the load along different paths is well-balanced, \name will accurately treat a load-balanced bottleneck link as a single link with the aggregate rate of each sub-link. However, when the load along different paths is imbalanced, the series of measurements at the \name will be a random sampling of the different paths, which would confuse the delay-control algorithm and cause it to perform poorly. Fortunately, such cases are straight-forward to detect with our measurement technique. 
