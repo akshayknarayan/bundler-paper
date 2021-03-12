@@ -31,9 +31,9 @@ med <- df[df$Size <= 1e6 & df$Size > 1e4,]
 big <- df[df$Size > 1e6,]
 
 durings <- c(
-    "empty" = "No Cross",
-    "elastic" = "Buffer-Filling Cross",
-    "inelastic" = "Non-Buffer-Filling Cross"
+    "empty" = "No Cross Traffic",
+    "elastic" = "Buffer-Filling Cross Traffc",
+    "inelastic" = "Non-Buffer-Filling Cross Traffic"
 )
 
 df$during_f <- factor(df$during, levels=c("empty", "elastic", "inelastic"))
@@ -63,12 +63,13 @@ allp <- ggplot(df, aes(x=sch, y=Slowdown)) + geom_boxplot(aes(fill=sch), outlier
     theme(
         text = element_text(angle=0,size=18, face="bold"),
         legend.title=element_blank(),
-        legend.position="left",
+        legend.position="none",
         axis.text.y=element_blank(),
-        axis.ticks.y=element_blank()
+        axis.ticks.y=element_blank(),
+        panel.background = element_rect(fill = NA, color = "black")
     )
 
-ggsave(paste(root_path, paste("big_exp_fct", "pdf", sep="."), sep="/"), allp, height=2, width=15)
+ggsave("fcts.pdf", allp, height=2, width=15)
 
 cat ("-> Stats\n")
 
