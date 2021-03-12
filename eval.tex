@@ -4,7 +4,7 @@
 %Given that this is possible, what benefits can \name achieve, and where do they come from?
 Given \name's ability to move the in-network queues to the \inbox (as shown earlier in Figure~\ref{fig:design:shift-bottleneck}), we now explore:
 \begin{enumerate}[leftmargin=15pt]
-    \item Where do \name's performance benefits come from? We discuss this in the context of improving the flow completion times of \name's component flows. (\S\ref{s:eval:fct})
+    \item Where do \name's performance benefits come from? We discuss this in the context of improving the FCTs of \name's component flows. (\S\ref{s:eval:fct})
     \item Do \name's performance benefits hold across different scenarios? (\S\ref{s:robust:cross})
     \item Can \name work with different congestion control algorithms (\S\ref{s:eval:cc})?
     \item Are \name's core ideas still applicable with other design decisions? (\S\ref{s:eval:proxy})
@@ -24,7 +24,7 @@ Nevertheless, throughout our experiments CPU utilization on the machines remaine
 Unless otherwise specified, we emulate the following scenario.
 A many-threaded client generates requests from a request size CDF drawn from an Internet core router~\cite{caida-dataset} and assigns them to one of $200$ server processes.
 The workload is heavy-tailed: 97.6\% of requests are 10KB or shorter, and the largest 0.002\% of requests are between $5$MB and $100$MB.
-Each server then sends the requested amount of data to the client and we measure the flow completion time of each such request. 
+Each server then sends the requested amount of data to the client and we measure the FCT of each such request. 
 The link bandwidth at the mahimahi link is set to 96Mbps, and the RTT is set to 50ms. The requests result in an offered load of 84Mbps. 
 
 The endhost runs Cubic~\cite{cubic}, and the \inbox runs Copa~\cite{copa} (we test other schemes in \S\ref{s:eval:cc}) with Nimbus~\cite{nimbus-arxiv} for cross traffic detection. 
@@ -71,7 +71,7 @@ Meanwhile, in the tail, \name's $99\%$ile slowdown is \overviewBenefitsBundlerTa
 
 \an{Reduce this subsection to ~one paragraph and roll into 7.2}
 
-In addition to improving flow completion times, \name can achieve low packet delay, perform strict prioritization, and rate fairness.
+In addition to improving FCTs, \name can achieve low packet delay, perform strict prioritization, and rate fairness.
 
 \paragrapha{Achieving Improved Flow Completion Times} \S\ref{s:eval:fct} shows how enabling SFQ at the \name improves the median slowdown by \overviewBenefitsBundlerMedianImprovement.
 

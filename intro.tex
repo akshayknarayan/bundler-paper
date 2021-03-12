@@ -94,7 +94,7 @@ We introduce a lightweight method for the coordination between the \inbox and th
 Our focus thus far has been to control traffic only within a given bundle and not across different bundles. 
 Furthermore, as we will discuss in \S\ref{s:deploy}, there may be instances where \name cannot improve performance for the bundled traffic, and falls back to the status quo; \ie the performance achieved today when queues build in the network instead of the edge. For example, when traffic between the two sites traverses different paths with different levels of congestion, \name will detect this and performance will revert to the status quo, but if all of these paths have the same rates, then performance will improve. 
  
-In emulated scenarios (\S\ref{s:eval}), \name reduces the median FCT of a representative flow size distribution between 28\% to 97\% across different scenarios and policies. Furthermore, performance benefits due to \name are within 15\% of what would be achievable if in-network scheduling were a possibility. 
+In emulated scenarios (\S\ref{s:eval}), \name reduces the median flow completion time (FCT) of a representative flow size distribution between 28\% to 97\% across different scenarios and policies. Furthermore, performance benefits due to \name are within 15\% of what would be achievable if in-network scheduling were a possibility. 
 In experiments over the public Internet (\S\ref{s:eval:realworld}), we find that \name reduces short-flow latencies by 57\%.
 
 %TODO: Add evaluation highlights
