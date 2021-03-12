@@ -522,7 +522,7 @@
       urlcolor=ACMDarkBlue,
       filecolor=ACMDarkBlue}
     \else
-    \hypersetup{hidelinks}
+    %\hypersetup{hidelinks}
   \fi
   \hypersetup{pdflang={en},
     pdfdisplaydoctitle}}
