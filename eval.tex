@@ -14,9 +14,11 @@ Given \name's ability to move the in-network queues to the \inbox (as shown earl
 
 \subsection{Experimental Setup}\label{s:eval:setup}
 
-We use network emulation via mahimahi~\cite{mahimahi} to evaluate our implementation of \name in a controlled setting; we also present results on real Internet paths in \S\ref{s:eval:realworld}.
-There are three $8$-core Ubuntu 18.04 machines in our emulated setup: one machine is a sender, an \inbox, and a  receiver. The \outbox runs on the same machine as the receiver.
-Since our \outbox implementation uses \texttt{libpcap}, GRO would change the packets before they are delivered to the \outbox, which would cause inconsistent epoch boundary identification between the two boxes. We, therefore, disable TSO and GRO.
+We use network emulation via mahimahi~\cite{mahimahi} to evaluate our implementation of \name in a controlled setting; we present results on real Internet paths in \S\ref{s:eval:realworld}.
+There are three $8$-core Ubuntu 18.04 machines in our emulated setup: (1) runs a sender, (2) runs a \inbox, and (3) runs both a \outbox and a receiver.
+% The \outbox runs on the same machine as the receiver.
+We disable both TCP segmentation offload (TSO) and generic receive offload (GRO) as they would change the packet headers in between the \inbox and \outbox, which would cause inconsistent epoch boundary identification between the two boxes.
+% Since our \outbox implementation uses \texttt{libpcap}, generic receive offload (GRO) would change the packets before they are delivered to the \outbox, which would cause inconsistent epoch boundary identification between the two boxes. We, therefore, disable TCP segmentation offload and generic receive offload.
 Nevertheless, throughout our experiments CPU utilization on the machines remained below $10$\%.
 
 Unless otherwise specified, we emulate the following scenario.
