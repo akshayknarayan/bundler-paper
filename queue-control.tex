@@ -27,7 +27,8 @@ In this section, we describe how \name can re-use the same measurements from \S\
 It is well known that delay-based congestion control algorithms (as \name uses) lose throughput when competing with traditional loss-based controllers~\cite{copa}. Therefore, in order to compete fairly with buffer-filling cross-traffic, \name must first detect the presence of such traffic and disable its use of a delay-based controller.  
 %\paragrapha{Competing Fairly}
 
-Prior work (Nimbus~\cite{nimbus-arxiv}) presents a method for detecting buffer-filling cross traffic, that \name employs. 
+Prior work (Nimbus~\cite{nimbus-arxiv}) presents a method for detecting buffer-filling cross traffic, that \name employs.
+\footnote{\cite{nimbus-arxiv} includes a detailed evaluation of Nimbus' accuracy of detecting buffer-filling cross traffic and speed of switching between the two modes, using both emulated and real-world experiments. Bundler's use of Nimbus does not impact its accuracy or speed of switching.}
 But what exactly should the \inbox do when it detects this condition?
 A naive approach might replace the delay-based control at \name with a loss-based buffer-filling congestion control such as Cubic. 
 However, with this approach, \name must measure the number of flows in a bundle, and should compete as aggressively in proportion to achieve an aggregate throughput equivalent to status quo~\cite{multcp}. On high-performance datapaths, it may be difficult to measure this number~\cite{heavy-hitters}.
