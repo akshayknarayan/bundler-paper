@@ -14,7 +14,7 @@ We now describe our prototype implementation of \name.
 \Para{\capinbox data plane} We implement it using Linux \texttt{tc}~\cite{tc}.
 We patch the TBF queueing discipline (qdisc)~\cite{tbf} to detect epoch boundary packets and to report them to the control plane using a netlink socket. 
 We use the FNV hash function~\cite{fnv-hash}, a non-cryptographic fast hash function with a low collision rate, to compute the packet header hash for identifying epoch boundaries.
-This hash function, comprising 4 integer multiplications, is the only additional per-packet work the data place must perform to support \name; in our experiments, it had negligible CPU overhead.
+This hash function, comprising 4 integer multiplications, is the only additional per-packet work the data plane must perform to support \name; in our experiments, it had negligible CPU overhead.
 
 We patch TBF's \texttt{inner\_qdisc} to support any qdisc-based traffic controller.
 \cut{SFQ~\cite{sfq}, FQ-CoDel~\cite{fq-codel} and strict prioritization, in addition to the default FIFO. }
