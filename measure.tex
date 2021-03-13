@@ -57,8 +57,15 @@ When the \outbox sees $p_i$, it also identifies it as an epoch boundary and send
 The congestion ACK contains $h(p_i)$ and the running count of the total number of bytes received for that bundle. 
 Upon receiving the congestion ACK for $p_i$, the \inbox records the received information, and using its previously recorded state, computes the RTT and the rates at which packets are sent and received, as in Figure~\ref{fig:ratecalc}.
 %\radhika{don't think the figure helps much now}
-In a micro-benchmark evaluating the fidelity of our measurements, 80\% of our RTT estimates were within 1.2ms of the actual value and 80\% of our receive rate estimates were within 4Mbps of the actual value.
+% In a micro-benchmark evaluating the fidelity of our measurements, 80\% of our RTT estimates were within 1.2ms of the actual value and 80\% of our receive rate estimates were within 4Mbps of the actual value.
 
+\input{micro-time-delay} % actually contains the distributions
+\paragrapha{Microbenchmarks}
+To evaluate the accuracy and robustness of this measurement technique, we picked 90 traces from our evaluation covering a range of link delays (20ms, 50ms, 100ms) and bottleneck rates (24Mbps, 48Mbps, 96Mbps), and computed the difference, at each time step, between \name's measurements (estimate) and the corresponding values measured at the bottleneck router (actual). 
+In Figure~\ref{fig:micro:time-delay} we focus on the RTT measurements: the bottom plot shows the distribution of the differences, and the top plot puts it into context by showing a five second segment from a trace where the median difference matched that of the full distribution. In Figure~\ref{fig:micro:time-thru}, we produce the same plots for the receive rate estimates.
+In summary, 80\% of our RTT estimates were within 1.2ms of the actual value, and 80\% of our receive rate estimates were within 4Mbps of the actual value.
+
+\paragrapha{Epoch Boundary Identification}
 The packet header subset that is used for identifying epoch boundaries must have the following properties:
 (i) It must be the same at both the \inbox and the \outbox.
 (ii) Its values must remain unchanged as a packet traverses the network from the \inbox to the \outbox (so, for example, the TTL field must be excluded).\footnote{Certain fields, that are otherwise unchanged within the network, can be changed by NATs deployed within a site. Ensuring that the \name boxes sit outside the NAT would allow them to make use of those fields.}
@@ -73,32 +80,15 @@ The drawback of this approach is that it cannot be extended to IPv6.
 To support a wider set of scenarios, \name could use dedicated fields in an encapsulating header (as in~\cite{axe}).
 %\radhika{can we cite something for schemes that have used this before?}
 
-Note that our congestion measurement technique is robust to a boundary packet being lost between the \inbox and the \outbox. In this case, the \inbox would not get feedback for the lost boundary packet, and it would simply compute rates for the next boundary packet over a longer epoch once the next congestion ACK arrives.
+To visualize how these measurements impact the behavior of the signals over time we pick an experiment for which the median difference matches that of the entire distribution and plot a five second segment of our estimates compared to the actual values in Figure~\ref{fig:micro:time-thru}.
 
-%We present microbenchmarks evaluating the fidelity of our measurements in Appendix~\ref{app:epochs}.
+\input{micro-time-thru} % actually contains the time series
 
-% \subsection{Contents of Congestion ACKs}
-% \label{s:measure:compute}
-
-\cut{
-\begin{Appendix}
-\section{Epoch Selection Details}\label{app:epochs}
-\subsection{Choosing The Epoch Size}
-\label{s:measure:epoch}
-
-Epochs should be such that measurements are collected approximately once per RTT~\cite{ccp}. 
+\paragrapha{Choosing The Epoch Size}
+In order to balance reaction speed and overhead, epoch packets should be spaced such that measurements are collected approximately once per RTT~\cite{ccp}.
 Therefore, for each bundle, we track the minimum observed RTT ($minRTT$) at the \inbox and set the epoch size $N = (0.25 \times minRTT \times send\_rate)$, where the $send\_rate$ is compute as described above. The measurements passed to the congestion control algorithms at the \inbox are then computed over a sliding window of epochs that corresponds to one RTT. Averaging over a window of multiple epochs also increases resilience to possible re-ordering of packets between the \inbox and the \outbox, which can result in them seeing different number of packets between two epochs.
 
 When the \inbox updates the epoch size $N$ for a bundle, it needs to send an out-of-band message to the \outbox communicating the new value. To keep our measurement technique resilient to potential delay and loss of this message, the epoch size $N$ is always rounded down to the nearest power of two. Doing this ensures that the epoch boundary packets sampled by the \outbox are either a strict superset or a strict subset of those sampled by the \inbox. The \inbox simply ignores the additional feedback messages in former case, and the recorded epoch boundaries for which no feedback has arrived in the latter.  
 
-\subsection{Microbenchmarks}
-\label{s:measure:microbench}
-\input{micro-time-delay} % actually contains the distributions
-\input{micro-time-thru} % actually contains the time series
-We now evaluate the accuracy of our measurement technique and its robustness to various network conditions. 
-
-We pick 90 traces of \name's measurements from experiments in our evaluation across a range of RTTs (20ms, 50ms, 100ms) and bottleneck rates (24Mbps, 48Mbps, 96Mbps) and compute the difference between our measured value of the RTT and receive rate at each time step compared to the values at the bottleneck router. We plot the distribution of these differences for all of the traces in Figure~\ref{fig:micro:time-delay}. 80\% of our RTT estimates are within 1.2ms of the actual value and 80\% of our receive rate estimates are within 4Mbps of the actual value. 
-
-To visualize how these measurements impact the behavior of the signals over time we pick an experiment for which the median difference matches that of the entire distribution and plot a five second segment of our estimates compared to the actual values in Figure~\ref{fig:micro:time-thru}.
-\end{Appendix}
-}
+\paragrapha{Robust To Packet Loss}
+Note that our congestion measurement technique is robust to a boundary packet being lost between the \inbox and the \outbox. In this case, the \inbox would not get feedback for the lost boundary packet, and it would simply compute rates for the next boundary packet over a longer epoch once the next congestion ACK arrives.
