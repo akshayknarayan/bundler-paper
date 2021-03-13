@@ -5,7 +5,7 @@
 Can \name successfully revert to status-quo performance in the presence of buffer-filling cross traffic, then resume providing benefits once that cross traffic leaves?
 In Figure~\ref{fig:eval:bigexp}, we show this scenario.
 At first, the link is occupied only by \name's traffic, similar to the setup described in \S\ref{s:eval:setup}.
-At time $t=60$sec, a buffer-filling cross traffic flow arrives.
+At time $t=60$~sec, a buffer-filling cross traffic flow arrives.
 \name detects its presence (indicated by the gray shading) and starts pushing more packets into the network to compete fairly, reverting back to performance that is slightly worse than Status Quo (median FCT for short flows is \bigexpElasticSlowdownWorseness higher). 
 Performance is slightly worse because of the $10$ms queue that \name continues to maintain at its \inbox for active probing to detect the cross-traffic's departure, as described in \S\ref{s:queue-ctl}.
 \footnote{We believe the benefits provided by \name in the more common regime with no competing buffer-filling cross traffic are substantial enough to make up for slight degradation in these specific scenarios.}
@@ -16,25 +16,27 @@ We present results with both Nimbus and Copa being used as the congestion contro
 \cut{In \S\ref{s:eval:offeredload} we present further results on how well \name retains benefits with varying amounts of offered load.}
 
 \input{inelastic-cross}
-\paragrapha{Short-lived flows} We first consider the case where the cross traffic comprises of short-lived flows up to a few MBs.
-We keep \name's offered load (comprising of web requests described in \S\ref{s:eval:setup}) constant, but vary the cross traffic's offered load.
-Figure~\ref{fig:robust:cr-inelastic} shows that \name continues to provide benefits for this case, since maintaining low in-network queues is still possible in the presence of such flows.
+\paragrapha{Mix of flow sizes} 
+We first consider in Figure~\ref{fig:robust:cr-inelastic} the case \name traffic is most likely to encounter, where the cross traffic comprises of finite-length flows up to a few MBs.
+We draw both \name's traffic and the cross traffic from the same measured distribution of web requests described in \S\ref{s:eval:setup}.
+We fix \name's offered load at a constant $48$ Mbit/s and vary the cross traffic's offered load from $6$ to $42$ Mbit/s.
+
+While flows are often short, they sometimes exit slow start. With sufficient offered load, they can cause queueing in the aggregate. 
+Observe that the \baseline FCTs increase steadily as the cross traffic's offered load increases: this is due to the aggregate queueing effect.
+When this happens, Bundler responds by temporarily reducing its sending rate to lower the delay, because the cross traffic has not been deemed elastic. 
+Importantly, this rate reduction is short-lived because these cross-traffic flows are short-lived, and long-term Bundler throughput is not reduced.
+We believe that this trade-off (short-term throughput reduction for better delay) is a good one. 
+The lower delay helps the short flows in the bundle, while the large flows in the bundle are not affected by the short-term throughput reduction. 
+``Mid-sized'' flows in the bundle can be affected if \name sacrifices throughput for too long. 
+By design, however, \name detects such cross-traffic and disables its delay-control mechanism in response.
 
 \input{elastic-cross}
-\paragrapha{Buffer-filling flows} 
-%Competition from persistent backlogged flows (recall from \S\ref{s:deploy} that this condition is rare) that fill the bottleneck link's buffer is the worst-case scenario for \name.
-We now evaluate how \name's throughput is impacted due to competition from varying amount of buffer-filling cross-traffic. 
-%\radhika{are these all longlived flows in the bundle?}\fc{yes, 20 flows inside, 10-50 flows outside}
-%As described in \S\ref{s:queue-ctl}, \name's congestion controller must push packets into the bottleneck queue to compete fairly, and thus it cannot retain packets at the \inbox for scheduling. 
-%Furthermore, recall that \name maintains a $10$ms queue at the \inbox in this case. 
-As discussed in \S\ref{s:queue-ctl}, in this (rare) scenario, we expect component flows in a bundle to experience slightly higher RTTs compared to \baseline.
+\paragrapha{Persistent elastic flows} 
+We now evaluate how \name's throughput is impacted due to competition from varying amounts of persistent elastic cross-traffic. 
+As discussed in \S\ref{s:queue-ctl}, we believe this synthetic scenario is rare in practice, but when it does occur, \name cannot provide benefits, and since it must ``hold back'' some queue to detect when the cross-traffic subsides, its traffic will experience RTT inflation.
 Indeed, Figure~\ref{fig:robust:cr-elastic} shows that 
-the component flows in the bundle experience  \bundlerElasticTputWorseness less throughput on average. The impact (which stems from the extra queuing at the \inbox) varies from \bundlerElasticTputWorsenessTen lower throughput with 10 competing flows to \bundlerElasticTputWorsenessFifty lower with 50. 
-%\radhika{please fill -- the trend could be interesting.} 
-%\an{filled}
-%Note that FCTs may not increase as much; in Figure~\ref{fig:eval:bigexp}, during the elastic cross traffic period the median short flow FCT is
-%\bigexpElasticSlowdownWorseness higher.
-%\radhika{edited this. basically wanted to bring up the `performance is worse point' sooner when we discuss Fig 8, as opposed to towards the end of section, as it would have confused readers.}
+the component flows in the bundle experience  \bundlerElasticTputWorseness less throughput on average. 
+The impact varies from \bundlerElasticTputWorsenessTen lower throughput with 10 competing flows to \bundlerElasticTputWorsenessFifty lower with 50. 
 
 \input{twobundler}
 \paragrapha{Competing Bundles} Last, we evaluate the case where flows from multiple bundles compete with one another. 
