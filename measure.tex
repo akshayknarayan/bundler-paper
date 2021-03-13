@@ -46,7 +46,7 @@ However, where in the header should this flag bit be?
 Evolving packet headers has proved impractical~\cite{trotsky}, so perhaps we could use an encapsulation mechanism.
 Protocols at both L3 (\eg NVGRE~\cite{nvgre}, IP-in-IP~\cite{ipinip}) and L4 (\eg VXLAN~\cite{vxlan}) are broadly available and deployed in commodity routers today.
 
-Happily, we observe that such packet modification is unnecessary; since the same packets pass through \inbox and \outbox, uniquely identifying a given pattern of packets is sufficient to meet our requirements. In this scheme, the \inbox and \outbox both hash a subset of header for every packet, and mark a packet as an epoch boundary if its hash is a multiple of the desired \emph{sampling period}. The \inbox computes the sampling period to produce about 4 samples per RTT and communicates it to the \outbox. 
+Happily, we observe that such packet modification is not inherently necessary; since the same packets pass through the \inbox and \outbox, uniquely identifying a given pattern of packets is sufficient to meet our requirements. In this scheme, the \inbox and \outbox both hash a subset of the header for every packet, and consider a packet as an epoch boundary if its hash is a multiple of the desired \emph{sampling period}. The \inbox computes the sampling period to produce about 4 samples per RTT and communicates it to the \outbox.
 %We defer the details of sampling period computation to Appendix~\ref{app:epochs}. 
 
 Upon identifying a packet $p_i$ as an epoch boundary packet the \inbox records: 
@@ -56,8 +56,6 @@ and (iii) the total number of bytes sent thus far including this packet, $b_{sen
 When the \outbox sees $p_i$, it also identifies it as an epoch boundary and sends a congestion ACK back to the \inbox. 
 The congestion ACK contains $h(p_i)$ and the running count of the total number of bytes received for that bundle. 
 Upon receiving the congestion ACK for $p_i$, the \inbox records the received information, and using its previously recorded state, computes the RTT and the rates at which packets are sent and received, as in Figure~\ref{fig:ratecalc}.
-%\radhika{don't think the figure helps much now}
-% In a micro-benchmark evaluating the fidelity of our measurements, 80\% of our RTT estimates were within 1.2ms of the actual value and 80\% of our receive rate estimates were within 4Mbps of the actual value.
 
 \input{micro-time-delay} % actually contains the distributions
 \paragrapha{Microbenchmarks}
