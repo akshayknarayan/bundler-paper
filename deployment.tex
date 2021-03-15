@@ -86,8 +86,8 @@ We expect a well-implemented load balancer will work to prevent persistent imbal
 
 %(2) from the bundle's perspective, multiple paths appear as multiple queues, with some aggregate bandwidth capacity (\ie the max-flow of the network paths between the sending and receiving domains). While queueing may be unevenly distributed among the paths, the distribution of flows onto paths is currently random (\eg via ECMP). With \name, all these queues are moved to the \inbox, so it can schedule bundled flows deliberately rather than randomly.
 
-\paragrapha{Litmus test for \name's applicability}
-Another way of understanding when \name is useful, which incorporates the three conditions above, is the following litmust test:
+\paragrapha{Intuition for \name's applicability}
+Another way of understanding when \name is useful, which incorporates the three conditions above, is the following litmus test:
 compare the queueing delay when all flows (\name's and cross-traffic) are in the network with the queueing delay when the \name’s flows are magically removed; if the latter is lower than the former, then \name can provide benefits.
 
 \cut{
