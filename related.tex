@@ -3,10 +3,20 @@
 
 %With our work sitting at the intersection of highly popular topics of scheduling, congestion control and middleboxes, one can produce a large body of past work related to each topic. However, this unique intersection of topics is also what adds significant novelty to our work. 
 
-\Para{Aggregating congestion information} There have been multiple proposals to aggregate congestion control information in different contexts -- across flows sharing the same endpoint~\cite{cm}\cut{\radhika{is this correct?}}, across flows between two racks within a datacenter~\cite{rackcc}, and across flows originating from a large cloud/content provider~\cite{fivecomps}. The goal of these approaches is to share information among end-to-end congestion controllers, which allows them to better adapt to network conditions.  
+\Para{Aggregating congestion information} 
+% something like:
+% - congestion control is xyz
+% - it is typically done independently by each flow
+% - however, many flows from the same sender often traverse the same bottleneck. each flow independently learning about the network is inefficient.
+% - as a result, there have been multiple proposals to aggregate cc information: 1,2,3
+End hosts of a connection typically employ a congestion control algorithm within their transport layer, \eg{} TCP or QUIC, aiming to achieve high throughput and low delay, while fairly sharing network resources with other users and avoiding congestion collapse~\cite{cc-overview?}. 
+Each flow independently runs this algorithm to learn about the network conditions and find the best sending rate.
+However, as noted in prior work, in cases where there are a large number of flows between the same sender and receiver, each flow independently learning about the network is inefficient, and it would make much more sense for them to share information.
+As a result, there have been multiple proposals to aggregate congestion control information in different contexts -- across flows sharing the same endpoint~\cite{cm}\cut{\radhika{is this correct?}}, across flows between two racks within a datacenter~\cite{rackcc}, and across flows originating from a large cloud/content provider~\cite{fivecomps}. 
+% The goal of these approaches is to share information among end-to-end congestion controllers, which allows them to better adapt to network conditions.  
 %to optimize end-to-end metrics such as latency or fairness. 
 %As traffic controllers, however, aggregate congestion control schemes cannot enforce precise traffic scheduling policies due to control overheads \fc{what does this mean?}.
-In contrast, \name uses aggregate congestion control in a different way (with a different goal): as a light-weight mechanism to shift the queues from the middle of the network to the edge, without interfering with the end-to-end congestion controllers of individual flows. It is orthogonal and complementary to prior proposals on aggregate congestion control. 
+In contrast, \name uses aggregate congestion control in a different way (with a different goal): as a light-weight mechanism to shift the queues from the middle of the network to the edge, without interfering with the end-to-end congestion controllers of individual flows. It is orthogonal and complementary to prior proposals on aggregate congestion control. \fc{<- how so?}
 %\fc{can we safely claim this is a "new way"? maybe better to just delete "in a.."}\an{removed new} 
 %Therefore, while the aforementioned aggregate congestion controllers are compatible with \name, they do not achieve the goal of traffic control in isolation. 
 %\fc{should we explicitly distinguish from cm?}
