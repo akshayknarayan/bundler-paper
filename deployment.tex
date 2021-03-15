@@ -18,7 +18,7 @@
 %%}
 
 Figure~\ref{fig:deploy:arch} describes \name's deployment model. 
-\name aggregates\footnote{\fc{draft:}\name's aggregation is passive. Rather than constructing bundles, it internally considers flows that traverse the same \pair to be part of the same bundle, and applies a unified rate limit and scheduling policy to those flows as a group.} traffic from Site A to Site B, and vice-versa, into two unidirectional bundles. 
+\name aggregates traffic from Site A to Site B, and vice-versa, into two unidirectional bundles. 
 In the egress path, the \inbox moves the in-network queues built by the bundled traffic to itself (illustrated in Figure~\ref{fig:design:shift-bottleneck}) (we describe the specific mechanism in \S\ref{s:design}). 
 It can thus enforce desired scheduling policies across the traffic in the bundle.
 
@@ -32,8 +32,7 @@ Network administrators already have control over packets which queue within thei
 % \name is thus useful for moving queues that build up due to congestion in the ``middle'' of the network (\ie \emph{anywhere} along the path between a \pair). 
 
 There is strong evidence that such non-edge bottlenecks exist.
-%
-Dhamdhere \etal found that~\cite{inferring-interdomain-congestion} inter-domain bottlenecks (such as the red bottleneck link in Figure~\ref{fig:deploy:arch}) do exist\fc{<-weak}, and
+Dhamdhere \etal measured~\cite{inferring-interdomain-congestion} inter-domain bottlenecks such as the red bottleneck link in Figure~\ref{fig:deploy:arch}, and
 Zhu \etal found~\cite{bottleneck-of-china} that non-edge bottlenecks for transnational traffic to and from China are prevalent, and moreover that in many cases, the bottleneck for this traffic is an ISP deep inside China rather than a larger provider.
 An M-Lab technical report similarly found~\cite{mlab-tr} patterns of performance degradation linked to specific ISP interconnections in the middle of the network.
 Finally, Jin \etal found~\cite{blameit} that for for WAN traffic originating from Microsoft Azure, the ``middle'', \ie on-path ASes not including the source or destination AS, is to blame for between $40$-$50\%$ of persistent congestion incidents over a one-month period. 
