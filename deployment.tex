@@ -18,20 +18,22 @@
 %%}
 
 Figure~\ref{fig:deploy:arch} describes \name's deployment model. 
-\name aggregates traffic from Site A to Site B, and vice-versa, into two unidirectional bundles. 
+\name aggregates\footnote{\fc{draft:}\name's aggregation is passive. Rather than constructing bundles, it internally considers flows that traverse the same \pair to be part of the same bundle, and applies a unified rate limit and scheduling policy to those flows as a group.} traffic from Site A to Site B, and vice-versa, into two unidirectional bundles. 
 In the egress path, the \inbox moves the in-network queues built by the bundled traffic to itself (illustrated in Figure~\ref{fig:design:shift-bottleneck}) (we describe the specific mechanism in \S\ref{s:design}). 
 It can thus enforce desired scheduling policies across the traffic in the bundle.
 
 Our primary goal with \name is to provide control over \emph{self-inflicted} queueing, \ie when traffic from a single bundle causes a queue to build up at the bottleneck links in the network, even without any other cross-traffic.
 %cases when traffic within the same bundle should be reordered according to the site administrator's policy.
-In the remainder of this section, we detail the conditions in which \name can achieve this goal. Our high-level strategy is ``do no harm''; \name detects conditions in which it cannot operate and disables itself, reverting to status-quo performance.
+In the remainder of this section, we detail the conditions in which \name can achieve this goal. Our high-level strategy is ``do no harm''; \name detects conditions in which it cannot operate and temporarily disables itself until favorable conditions return, reverting to status-quo performance in the meantime.
 %\radhika{read again after intro has been written}
 
 \Para{Non-edge Bottleneck} 
-Network administrators already have control over packets which queue within their site. \name is thus useful for moving queues that build up due to congestion in the ``middle'' of the network (\ie between a \pair).
+Network administrators already have control over packets which queue within their site. \name is capable of taking control over queues that build up anywhere between a \pair. Thus, deploying \name at the edge of each site captures any potential build up outside of either site's control. Such congestion might occur at an inter-domain link, within either site's ISP, or, if a site is managed by a cloud provider, it could even occur within its datacenter (\eg{} at the cloud provider's rate limiter, \S\ref{s:eval:realworld}). 
+% \name is thus useful for moving queues that build up due to congestion in the ``middle'' of the network (\ie \emph{anywhere} along the path between a \pair). 
+
 There is strong evidence that such non-edge bottlenecks exist.
 %
-Dhamdhere \etal found that~\cite{inferring-interdomain-congestion} inter-domain bottlenecks (such as the red bottleneck link in Figure~\ref{fig:deploy:arch}) do exist, and
+Dhamdhere \etal found that~\cite{inferring-interdomain-congestion} inter-domain bottlenecks (such as the red bottleneck link in Figure~\ref{fig:deploy:arch}) do exist\fc{<-weak}, and
 Zhu \etal found~\cite{bottleneck-of-china} that non-edge bottlenecks for transnational traffic to and from China are prevalent, and moreover that in many cases, the bottleneck for this traffic is an ISP deep inside China rather than a larger provider.
 An M-Lab technical report similarly found~\cite{mlab-tr} patterns of performance degradation linked to specific ISP interconnections in the middle of the network.
 Finally, Jin \etal found~\cite{blameit} that for for WAN traffic originating from Microsoft Azure, the ``middle'', \ie on-path ASes not including the source or destination AS, is to blame for between $40$-$50\%$ of persistent congestion incidents over a one-month period. 
@@ -50,8 +52,9 @@ Finally, Jin \etal found~\cite{blameit} that for for WAN traffic originating fro
 \vspace{2pt}
 \paragraphi{Congestion due to un-bundled cross-traffic} We now consider the scenario where the cross-traffic includes un-bundled flows. If all such \emph{un-bundled} competing flows are short-lived (up to a few MBs) or application-limited (\eg a paced video stream), the bundled traffic still sees significant performance benefits, because there are not enough packets in such short-lived flows to fill up the queues or claim a greater share of network bandwidth.
 %\radhika{Likewise, \name continues to provide performance benefits in the presence long-lived rate-controlled cross-traffic (e.g. a paced video stream) that also does not fill up queues.} 
-However, if the cross traffic is long lasting, and employs a loss-based congestion controller to send back-logged bulk data, it aggressively fills up all available buffer space at the bottleneck link. Naively using a delay-based congestion controller at \name against such aggressive \emph{buffer-filling} cross-traffic would severely degrade the throughput of the bundled traffic. Therefore, \name's congestion controller detects the presence of buffer-filling cross-traffic and, to compete fairly, pushes more packets into the network. 
-It thus relinquishes most of its control (and scheduling opportunities) over the bundled traffic, while still maintaining a small queue for continued detection of cross-traffic (as detailed in \S\ref{s:queue-ctl}). 
+However, if the cross traffic is long lasting, and employs a loss-based congestion controller to send back-logged bulk data, it aggressively fills up all available buffer space at the bottleneck link. Naively using a delay-based congestion controller at \name against such aggressive \emph{buffer-filling} cross-traffic would severely degrade the throughput of the bundled traffic. Therefore, \name's congestion controller detects the presence of buffer-filling cross-traffic;
+% to compete fairly, pushes more packets into the network. 
+to compete fairly, it relinquishes most of its control (and scheduling opportunities) over the bundled traffic, while still maintaining a small queue for continued detection of cross-traffic (detailed in \S\ref{s:buffer-filling}). 
 %\radhika{cut:/*} This extra queueing results in a slight latency increase that we evaluate in \S\ref{s:robust:cross}.\radhika{*/}
 %However, in these cases, \name chooses to create extra queueing as described in \S\ref{s:queue-ctl} to be able to detect when the cross traffic leaves.
 %Therefore, the bundle's aggregate throughput will decrease slightly due to RTT unfairness.
@@ -83,6 +86,10 @@ We expect a well-implemented load balancer will work to prevent persistent imbal
 %Another common scenario is for the bottleneck to be at the edge of the receiving domain, which will again be shared across the bundled flows. Finally, even if an in-network load balancing mechanism splits the bundled flows across multiple congested paths with multiple in-network queues, \name would account for the aggregate network bandwidth and move all of these queues to the sender's domain. 
 
 %(2) from the bundle's perspective, multiple paths appear as multiple queues, with some aggregate bandwidth capacity (\ie the max-flow of the network paths between the sending and receiving domains). While queueing may be unevenly distributed among the paths, the distribution of flows onto paths is currently random (\eg via ECMP). With \name, all these queues are moved to the \inbox, so it can schedule bundled flows deliberately rather than randomly.
+
+\paragrapha{Litmus test for \name's applicability}
+Another way of understanding when \name is useful, which incorporates the three conditions above, is the following litmust test:
+compare the queueing delay when all flows (\name's and cross-traffic) are in the network with the queueing delay when the \name’s flows are magically removed; if the latter is lower than the former, then \name can provide benefits.
 
 \cut{
 \vspace{0.05in}
