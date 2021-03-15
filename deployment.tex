@@ -27,7 +27,7 @@ Our primary goal with \name is to provide control over \emph{self-inflicted} que
 In the remainder of this section, we detail the conditions in which \name can achieve this goal. Our high-level strategy is ``do no harm''; \name detects conditions in which it cannot operate and temporarily disables itself until favorable conditions return, reverting to status-quo performance in the meantime.
 %\radhika{read again after intro has been written}
 
-\Para{Non-edge Bottleneck} 
+\Para{Non-edge bottleneck}
 Network administrators already have control over packets which queue within their site. \name is capable of taking control over queues that build up anywhere between a \pair. Thus, deploying \name at the edge of each site captures any potential build up outside of either site's control. Such congestion might occur at an inter-domain link, within either site's ISP, or, if a site is managed by a cloud provider, it could even occur within its datacenter (\eg{} at the cloud provider's rate limiter, \S\ref{s:eval:realworld}). 
 % \name is thus useful for moving queues that build up due to congestion in the ``middle'' of the network (\ie \emph{anywhere} along the path between a \pair). 
 
