@@ -23,8 +23,8 @@ We fix \name's offered load at a constant $48$ Mbit/s and vary the cross traffic
 
 While flows are often short, they sometimes exit slow start. With sufficient offered load, they can cause queueing in the aggregate. 
 Observe that the \baseline FCTs increase steadily as the cross traffic's offered load increases: this is due to the aggregate queueing effect.
-When this happens, Bundler responds by temporarily reducing its sending rate to lower the delay, because the cross traffic has not been deemed elastic. 
-Importantly, this rate reduction is short-lived because these cross-traffic flows are short-lived, and long-term Bundler throughput is not reduced.
+When this happens, Bundler's delay-based rate controller could temporarily lower its rate below the aggregate fair share of the bundled traffic.
+Importantly, this throughput reduction is short-lived because the queueing is short-lived, and long-term Bundler throughput is not reduced.
 We believe that this trade-off (short-term throughput reduction for better delay) is a good one. 
 The lower delay helps the short flows in the bundle, while the large flows in the bundle are not affected by the short-term throughput reduction. 
 ``Mid-sized'' flows in the bundle can be affected if \name sacrifices throughput for too long. 

@@ -4,9 +4,10 @@
 %With our work sitting at the intersection of highly popular topics of scheduling, congestion control and middleboxes, one can produce a large body of past work related to each topic. However, this unique intersection of topics is also what adds significant novelty to our work. 
 
 \Para{Traditional congestion control}
-End hosts employ congestion control algorithms which aim to achieve high throughput and low delay while fairly sharing network resources with other users~\cite{Jacobson88}. 
+End hosts employ congestion control algorithms that aim to achieve high throughput and low delay while fairly sharing network resources with other users~\cite{Jacobson88}. 
 Each connection runs such an algorithm independently to learn about the network conditions and find the best sending rate.
-In \name, a \inbox uses such an algorithm to determine the aggregate's sending rate, rather than the rate of an individual connection.
+In \name, a \inbox uses such an algorithm to determine the aggregate's sending rate, rather than the rate of an individual connection. 
+The end-hosts continue to use unmodified end-to-end congestion controllers for each connection.
 
 \Para{Aggregating congestion information} 
 % something like:
