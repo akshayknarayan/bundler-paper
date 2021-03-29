@@ -36,7 +36,7 @@ In contrast, \name tackles arbitrary bottleneck locations in the middle of the n
 %The proposal uses its observation to advocate sharing congestion information across a given domains endhosts. 
 %This is orthogonal to our goal of scheduling such traffic by introducing a middlebox without modifying end hosts.
 
-\Para{Overlay Networks} \name's motivation is closer to a proposal in overlay networks, OverQoS~\cite{overqos}, which aimed to provide QoS benefits in the Internet by enforcing traffic management policies at the nodes of an already-deployed overlay network~\cite{ron}. 
+\Para{Overlay networks} \name's motivation is closer to a proposal in overlay networks, OverQoS~\cite{overqos}, which aimed to provide QoS benefits in the Internet by enforcing traffic management policies at the nodes of an already-deployed overlay network~\cite{ron}. 
 \name's approach is more lightweight; instead of relying on an overlay network, \name only requires each site to deploy a middlebox, and uses a novel control loop between the middleboxes to facilitate traffic management at the sites. 
 %\fc{can we also say something about not modifying traffic so its incrementally deployable?}\an{overlay networks can also claim to not modify traffic and be incrementally deployable, right}
 %This simplifies the ``rendezvous'' problem, since \name initializes bundles dynamically (\S\ref{s:design}).
