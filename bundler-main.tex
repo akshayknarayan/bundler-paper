@@ -4,7 +4,6 @@
 \renewcommand\footnotetextcopyrightpermission[1]{}
 %\documentclass[letterpaper,twocolumn,10pt]{article}
 %\usepackage{usenix2019_v3}
-
 \input{packages}
 
 \titleformat{\section}
@@ -15,21 +14,26 @@
 %\setlength{\droptitle}{-1.5cm}
 
 \renewcommand*{\thefootnote}{\fnsymbol{footnote}}
+
+\newcommand{\beaver}{\includegraphics[width=15pt]{img/noun_Beaver_1046547}}
+\newcommand{\corn}{\includegraphics[width=15pt]{img/noun_Corn_1493381}}
+
 \title{\Huge Site-to-Site Internet Traffic Control}
 %\author{Paper 45, \pageref{p:end} Pages}
 % TODO MAKE FINAL
 %\author{Paper 657, \pageref{p:end} Pages
 %\authornotemark[1]
 \author{
+    \vspace{-10pt}
     \Large
-Frank Cangialosi\footnotemark[1]
-Akshay Narayan\footnotemark[1],
-Prateesh Goyal, \\
-Radhika Mittal,
-Mohammad Alizadeh,
-Hari Balakrishnan
+Frank Cangialosi\footnotemark[1]\beaver,
+Akshay Narayan\footnotemark[1]\beaver,
+Prateesh Goyal\beaver, \\
+Radhika Mittal\corn,
+Mohammad Alizadeh\beaver,
+Hari Balakrishnan\beaver
 }
-\affiliation{MIT CSAIL}
+\affiliation{\beaver MIT CSAIL \corn UIUC}
 
 \renewcommand{\shortauthors}{Cangialosi and Narayan, et al.}
 
