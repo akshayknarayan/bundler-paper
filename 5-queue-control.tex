@@ -61,63 +61,6 @@ It overlays a rate $r$ corresponding to $\dot{r}(t) = \alpha (q - q_T) + \beta (
 We pick $\alpha = 10$ and $\beta = 10$ by solving for a convergence time of one RTT (Appendix~\ref{app:derive-ab}).
 % as per \S\ref{s:qctl:pi}.
 
-\begin{Appendix}
-\section{Queue Controller Stability}\label{app:derive-ab}
-
-We control the queues with the update function 
-\begin{equation} 
-    \dot{r}(t) = \alpha (q - q_T) + \beta (\dot{q})
-\end{equation}
-
-How should we set $\alpha$ and $\beta$? This decision is related to the size of the Nimbus pulse. 
-If the queue controller is too aggressive (\ie it reacts quickly to maintain the queue target), it will nullify the Nimbus pulse with its overlaid rate control.
-If it is too timid, it will not be able to effectively control the queues.
-
-Therefore, we want the target queue length to be $A \sin(\frac{2\pi{}t}{T})$. 
-We can write how the queue length varies with time as (where $\mu$ is the link bandwidth):
-\begin{equation} 
-    \dot{q}(t) = \mu - r(t) - A \sin(\frac{2\pi{}t}{T})
-\end{equation}
-
-\noindent Thus, 
-
-\begin{equation}
-    \ddot{q}(t) = - \dot{r}(t) - A \frac{2\pi{}t}{T} \cos(\frac{2\pi{}t}{T})
-\end{equation}
-
-\noindent Combining with the rate update rule:
-
-\begin{equation}
-    \ddot{q}(t) - \beta \dot{q}(t) + \alpha (q(t) - q_T) = A \frac{2\pi{}t}{T} \cos(\frac{2\pi{}t}{T})
-\end{equation}
-
-\noindent Substituting the pulse parameters from Nimbus and using $y(t) = q(t) - q_T$, we write a second-order ordinary differential equation (ODE) with sinusoidal input:
-
-\begin{equation}
-    \ddot{y}(t) - \beta \dot{y}(t) + \alpha y(t) = 10\pi{}A \cos(10\pi{}t)
-\end{equation}
-
-    \noindent This has the standard-form solution:
-
-\begin{equation}
-    y(t) = c_1 e^{r_1 t} + c_2 e^{r_2 t} + \frac{10\pi{}A}{|p(10\pi{}i)|} \cos(10\pi{}i - \phi)
-\end{equation}
-        
-where $p$ is the characteristic polynomial and $r_1, r_2$ are its roots;
-\ie, 
-\begin{equation}
-r_1 = \frac{-\beta + \sqrt{\beta^2 - 4\alpha}}{2}, r_2 = \frac{-\beta - \sqrt{\beta^2 - 4\alpha}}{2}
-\end{equation}
-
-\noindent We want: (1) the $r_1$, $r_2$ to be large, so the queue converges quickly, and (2) the pulse amplitude to be approximately the Nimbus pulse amplitude, so:
-
-\begin{equation}
-\frac{10\pi{}A}{|p(10\pi{}i)|} \approx \frac{A}{5\pi}
-\end{equation}
-
-$\alpha = 10, \beta = 10$ satisfy these constraints.
-\end{Appendix}
-
 \subsection{Imbalanced Multipathing}\label{s:queue-ctl:ecmp}
 Since a \bundle contains many component connections, a load balancer may send them along different paths. If the load along different paths is well-balanced, \name will accurately treat a load-balanced bottleneck link as a single link with the aggregate rate of each sub-link. However, when the load along different paths is imbalanced, the series of measurements at the \name will be a random sampling of the different paths, which would confuse the delay-control algorithm and cause it to perform poorly. Fortunately, such cases are straight-forward to detect with our measurement technique. 
 More specifically, load imbalance will result in many epoch measure packets arriving out-of-order at the \outbox (whenever epoch packet $i$ happens to traverse a path with a larger delay than epoch packet $i+1$), and consequently, out-of-order ``congestion ACKs'' at the \inbox.  Figure~\ref{fig:queue-ctl:ecmp:motivation} shows this effect for an emulated imbalance scenario. Therefore, we use the fraction of epoch measurement packets that arrive out-of-order as an indicator of load imbalance due to multipathing. 

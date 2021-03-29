@@ -35,7 +35,7 @@
 \usepackage{enumitem}
 \setlist{nolistsep}
 \usepackage{hhline}
-%\usepackage{appendix}
+\usepackage{appendix}
 \usepackage{outlines}
 \usepackage[english]{babel}
 \usepackage{hyperref}
@@ -133,20 +133,20 @@
 \newcommand{\ie}{i.e., }
 \newcommand{\etal}{\emph{et al.}\xspace}
 
-\usepackage{expl3}
-\usepackage{environ}
-\ExplSyntaxOn
-\seq_new:N \g_appendices_seq% define a sequence for holding the appendices
-\NewEnviron{Appendix}{\seq_gput_right:No \g_appendices_seq \BODY}
-\newcommand\AddAppendices{% regurgitate the appendices
-  \appendix% turn all subsequent sections into appendices
-  \seq_map_inline:Nn \g_appendices_seq {##1}
-}
-\ExplSyntaxOff
-
-% automatically print the appendices at the end of the document
-\usepackage{etoolbox}
-\AtEndDocument{\AddAppendices}
+%\usepackage{expl3}
+%\usepackage{environ}
+%\ExplSyntaxOn
+%\seq_new:N \g_appendices_seq% define a sequence for holding the appendices
+%\NewEnviron{Appendix}{\seq_gput_right:No \g_appendices_seq \BODY}
+%\newcommand\AddAppendices{% regurgitate the appendices
+%  \appendix% turn all subsequent sections into appendices
+%  \seq_map_inline:Nn \g_appendices_seq {##1}
+%}
+%\ExplSyntaxOff
+%
+%% automatically print the appendices at the end of the document
+%\usepackage{etoolbox}
+%\AtEndDocument{\AddAppendices}
 
 %
 \newcommand{\an}[1]{{\color{teal}\bf AN: {#1}}}
