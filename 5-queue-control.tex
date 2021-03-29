@@ -143,27 +143,3 @@ Therefore, if the reordering level is above 5\%, we disable rate control and rev
 \caption{(Top) True delay for all packets of \name's component flows based on which of 4 load-balanced paths they traversed (unknown to \name). (Bottom) Delay measurements observed by Bundler, colored based on whether they were derived from an in-order or out-of-order epoch packet. Bundler's measurements cannot distinguish how many paths there are, but the relative number of out-of-order measurements is enough to clearly indicate the presence of multiple RTT-imbalanced paths.}
 \label{fig:queue-ctl:ecmp:motivation}
 \end{figure}
-
-\cut{
-\begin{outline}
-
-\1 Since a \bundle contains many component connections, a load balancer may send them along different paths.
-\1 In this case, a naive implementation of the measurement sub-system would report erratic measurements.
-    \2 The delay controller would correspondingly set suboptimal rates.
-    \2 In many cases, this is ok; the delay controller will yield too much queue to the bottleneck, but there will still be a partial queue at the \inbox to schedule.
-    \2 We evaluate this system in~\S\ref{s:eval:realworld} and find that \name can cope with multipath in real scenarios.
-\1 In extreme cases, which we can detect by looking at the amount of reordering, we can disable the delay controller and revert to status quo performance. We evaluate this in~\S\ref{s:eval:ecmp}.
-\end{outline}
-
-Alternative outline if we want to get into more detail:
-\begin{outline}
-\1 In reality, different flows traveling between the same inbox and outbox may traverse different paths across the internet.
-\1 What matters is how different (heterogenous?) these paths are (because if they're all exactly the same it'd be equivalent to one link from the perspective of rtt and recv\_rate).
-\1 First, consider the possibility that packets take a truly different path (defined as sequence of distinct routers) across the internet between inbox and outbox. Our measurements in X show this does not often happen in practice.
-\1 Of course, even if they follow the same sequence of routers, these routers may be connected by multiple physical links which are load balanced via ECMP.
-\1 In this case, the ECMP’d links act the same as one with the sum of their capacity, but the issue is different packets may experience different latencies depending on the load of the link they happen to get hashed to.
-\1 In both this case, and the case where they take totally different paths, the symptoms are similar -- the measurement sub-system would report erratic measurements that the CC scheme is unprepared to handle. It turns out, although we may not be able to distinguish which case it is, we can reliably detect this symptom (briefly explain re-ordering heuristic), and in these cases we can disable bundler to ensure we revert back to status quo performance. We evaluate this in Y.
-\1 Thus, even in the worst case, bundler does at least as good as status quo. But when there is opportunity to do so, it achieves benefits.
-We believe it would be possible to modify our congestion control scheme to incorporate out of order measurements, which may increase the set of scenarios in which Bundler can provide benefits, but we leave this as an area of future work.
-\end{outline}
-}
