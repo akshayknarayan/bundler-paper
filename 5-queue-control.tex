@@ -1,11 +1,5 @@
 %\section{Coping with Cross Traffic}
 \section{\cut{Handling }Unfavorable Conditions}\label{s:queue-ctl}
-\begin{figure*}[t]
-    \centering
-    \includegraphics[width=2\columnwidth]{img/bundler-diagram}
-    \vspace{-10pt}
-    \caption{\name Implementation Overview. Box shading corresponds to the roles described in Figure~\ref{fig:design:block-diag}.}\label{fig:bundler}
-\end{figure*}
 
 Recall from \S\ref{s:deploy} that \name can reliably shift queue build up from the bottleneck to itself when, (a) the cross-traffic is not buffer-filling, and (b) all of its component traffic shares the same bottleneck in the network.
 In practice, either of these conditions may break. 

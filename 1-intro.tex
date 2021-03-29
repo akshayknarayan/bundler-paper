@@ -16,6 +16,16 @@ But what about the first issue? The bottleneck for all the traffic between Amazo
 %a coworking space might want fairness between the traffic of resident companies to different cloud datacenters. A company may want to prioritize video conferencing traffic over other traffic (e.g., bulk backup). 
 
 %% Example objectives
+\begin{figure*}[ht!]
+    \centering
+    \includegraphics[width=\textwidth]{img/deployment-arch.pdf}
+    \caption{An example deployment scenario for \name in sites A and B.
+    Traffic between the two boxes is aggregated into a single bundle, shown as shaded boxes. The \inbox schedules the traffic within the bundle according to the policy the administrator specifies (\S\ref{s:design}).
+    \an{site a and site b should be flipped}
+    }
+    \label{fig:deploy:arch}
+\end{figure*}
+
 
 We propose a system, {\em \name}, that solves this problem. \name enables flexible control of a traffic {\em bundle} between a source site and a destination site by {\em shifting} the queues that would otherwise have accumulated elsewhere to the source's site (Figure~\ref{fig:design:shift-bottleneck}) \cut{\radhika{should we instead refer to Fig 2 here?}}. It then schedules packets from this shifted queue using standard techniques~\cite{diffserv, fair-queueing, sfq, pie, CoDel, fifoplus, virtualClocks, csfq, drr, red, ecn} to reduce mean flow-completion times, ensure low packet delays, isolate classes of traffic from each other, etc.
 
@@ -68,16 +78,6 @@ We leverage this trend to reduce a content provider's dependence on the ISPs wit
 
 %bringing the content provider's traffic bundle(s) under its own control by \emph{moving the packet queues from the in-network bottleneck to the provider's edge}. 
 %The natural question that arises is, how can the queues be ``moved''? 
-
-\begin{figure*}[t]
-    \centering
-    \includegraphics[width=\textwidth]{img/deployment-arch.pdf}
-    \caption{An example deployment scenario for \name in sites A and B.
-    Traffic between the two boxes is aggregated into a single bundle, shown as shaded boxes. The \inbox schedules the traffic within the bundle according to the policy the administrator specifies (\S\ref{s:design}).
-    \an{site a and site b should be flipped}
-    }
-    \label{fig:deploy:arch}
-\end{figure*}
 
 %We further note that middleboxes are now prevalent in the Internet architecture~\cite{aplomb}. They are often deployed at the egress and ingress of a network domain, to ensure traffic transits them for intrusion detection, packet inspection, filtering etc. They thus provide an effective vantage point for aggregating and managing traffic. 
 

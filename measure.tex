@@ -58,6 +58,8 @@ When the \outbox sees $p_i$, it also identifies it as an epoch boundary and send
 The congestion ACK contains $h(p_i)$ and the running count of the total number of bytes received for that bundle. 
 Upon receiving the congestion ACK for $p_i$, the \inbox records the received information, and using its previously recorded state, computes the RTT and the rates at which packets are sent and received, as in Figure~\ref{fig:ratecalc}.
 
+\input{micro-time-thru} % actually contains the time series
+
 \paragrapha{Epoch boundary identification}
 The packet header subset that is used for identifying epoch boundaries must have the following properties:
 (i) It must be the same at both the \inbox and the \outbox.
@@ -75,7 +77,7 @@ To support a wider set of scenarios, \name could use dedicated fields in an enca
 
 To visualize how these measurements impact the behavior of the signals over time we pick an experiment for which the median difference matches that of the entire distribution and plot a five second segment of our estimates compared to the actual values in Figure~\ref{fig:micro:time-thru}.
 
-\input{micro-time-thru} % actually contains the time series
+\input{micro-time-delay} % actually contains the distributions
 
 \paragrapha{Choosing the epoch size}
 In order to balance reaction speed and overhead, epoch packets should be spaced such that measurements are collected approximately once per RTT~\cite{ccp}.
@@ -86,7 +88,6 @@ When the \inbox updates the epoch size $N$ for a bundle, it needs to send an out
 \paragrapha{Robust to packet loss}
 Note that our congestion measurement technique is robust to a boundary packet being lost between the \inbox and the \outbox. In this case, the \inbox would not get feedback for the lost boundary packet, and it would simply compute rates for the next boundary packet over a longer epoch once the next congestion ACK arrives.
 
-\input{micro-time-delay} % actually contains the distributions
 \paragrapha{Microbenchmarks}
 To evaluate the accuracy and robustness of this measurement technique, we picked 90 traces from our evaluation covering a range of link delays (20ms, 50ms, 100ms) and bottleneck rates (24Mbps, 48Mbps, 96Mbps), and computed the difference, at each time step, between \name's measurements (estimate) and the corresponding values measured at the bottleneck router (actual). 
 In Figure~\ref{fig:micro:time-delay} we focus on the RTT measurements: the bottom plot shows the distribution of the differences, and the top plot puts it into context by showing a five second segment from a trace where the median difference matched that of the full distribution. In Figure~\ref{fig:micro:time-thru}, we produce the same plots for the receive rate estimates.
