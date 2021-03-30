@@ -24,6 +24,11 @@ final: $(PDFS)
 	$(info $?)
 	Rscript -e "library(knitr); knit('$?')"
 
+ecmp_delay.tex: figure/ecmp_delay.pdf
+
+figure/ecmp_delay.pdf: graphs/ecmp_delay_rolling.r
+	Rscript graphs/ecmp_delay_rolling.r
+
 imgs: $(wildcard imgs/*.pdf)
 
 clean:
