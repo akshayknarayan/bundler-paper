@@ -1,6 +1,6 @@
 \section{Introduction}\label{s:intro}
 
-This paper introduces the idea of {\em site-to-site} Internet traffic control. By ``site'', we mean a single physical location with tens to many thousands of endpoints sharing access links to rest of the Internet. Examples of sites include a company office, a coworking office building, a university campus, a single datacenter, and a point-of-presence (PoP) of a regional Internet Service Provider (ISP). 
+This paper introduces the idea of {\em site-to-site} Internet traffic control. By ``site'', we mean a single physical location with tens to many thousands of endpoints sharing access links to the rest of the Internet. Examples of sites include a company office, a coworking office building, a university campus, a single datacenter, and a point-of-presence (PoP) of a regional Internet Service Provider (ISP). 
 
 %When a site originates traffic, the administrator of the site often has high-level objectives for their traffic, but cannot achieve those objectives today because the bottlenecks are elsewhere. 
 
@@ -11,7 +11,7 @@ Cloud computing has made the second issue manageable. Because the cloud has beco
 
 %e.g., ensuring that video sessions get adequate rates, de-prioritizing bulk backup traffic, prioritizing interactive web sessions, etc.
 
-But what about the first issue? The bottleneck for all the traffic between Amazon US-West and the company may not be the site's access link or at Amazon, but elsewhere, e.g., within the company's ISP; indeed, that may be the common case~\cite{inferring-interdomain-congestion, isp-throttle-1, isp-throttle-2, isp-throttle-3}. Unfortunately, the company cannot control traffic when the queues are inside its ISP. And the ISP can't help because it does not know what the company's objectives are.\footnote{Interdomain QoS mechanisms~\cite{braden1997resource, wroclawski1997use} have not succeeded in the Internet despite years of effort.}
+But what about the first issue? The bottleneck for all the traffic between Amazon US-West and the company may not be the site's access link or at Amazon, but elsewhere, e.g., within the company's ISP; indeed, that may be the common case~\cite{inferring-interdomain-congestion, isp-throttle-1, isp-throttle-2, isp-throttle-3}. Unfortunately, the company cannot control traffic when the queues build inside its ISP. And the ISP can't help because it does not know what the company's objectives are.\footnote{Interdomain QoS mechanisms~\cite{braden1997resource, wroclawski1997use} have not succeeded in the Internet despite years of effort.}
 
 %a coworking space might want fairness between the traffic of resident companies to different cloud datacenters. A company may want to prioritize video conferencing traffic over other traffic (e.g., bulk backup). 
 
