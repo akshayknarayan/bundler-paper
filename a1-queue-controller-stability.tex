@@ -1,9 +1,9 @@
 \begin{appendix}
 \section{Queue Controller Stability}\label{app:derive-ab}
 
-We control the queues with the update function 
+\name{} controls the queues by updating its sending rate according to the following equation:
 \begin{equation} 
-    \dot{r}(t) = \alpha (q - q_T) + \beta (\dot{q})
+    \dot{r}(t) = \alpha (q(t) - q_T) + \beta (\dot{q}(t))
 \end{equation}
 %
 How should we set $\alpha$ and $\beta$? This decision is related to the size of the Nimbus pulse. 
@@ -12,6 +12,7 @@ If it is too timid, it will not be able to effectively control the queues.
 
 Therefore, we want the target queue length to be $A \sin(\frac{2\pi{}t}{T})$. 
 We can write how the queue length varies with time as (where $\mu$ is the link bandwidth):
+    \vspace{-5pt}
 \begin{equation} 
     \dot{q}(t) = \mu - r(t) - A \sin(\frac{2\pi{}t}{T})
 \end{equation}
@@ -52,5 +53,5 @@ r_1 = \frac{-\beta + \sqrt{\beta^2 - 4\alpha}}{2}, r_2 = \frac{-\beta - \sqrt{\b
 \frac{10\pi{}A}{|p(10\pi{}i)|} \approx \frac{A}{5\pi}
 \end{equation}
 
-$\alpha = 10, \beta = 10$ satisfy these constraints.
+\noindent $\alpha = 10, \beta = 10$ satisfy these constraints.
 \end{appendix}
