@@ -1,6 +1,7 @@
 ##
 
 TARGETS = bundler-main
+FINAL = bundler-eurosys21-camera-ready.pdf
 
 TEXFILES = $(wildcard *.tex)
 KNITRFILES = $(wildcard graphs/*.Rnw)
@@ -10,7 +11,18 @@ PDFS = $(addsuffix .pdf,$(TARGETS))
 all: $(PDFS)
 
 final: $(PDFS)
-	./banal -judge -paper=letter -font=10 -leader=12 -width=7 -height=9 -cols=2 -pages=12 ./bundler-main.pdf
+	gs \
+		-dCompatibilityLevel=1.4 \
+	   -dPDFSETTINGS=/screen \
+	   -dCompressFonts=true \
+	   -dSubsetFonts=true \
+	   -dNOPAUSE \
+	   -dBATCH \
+	   -sDEVICE=pdfwrite \
+	   -sOutputFile=$(FINAL) \
+	   -c ".setpdfwrite <</NeverEmbed [ ]>> setdistillerparams" \
+	   -f $(PFDS)
+	./banal -judge -paper=letter -font=10 -leader=12 -width=7 -height=9 -cols=2 -pages=12 $(FINAL)
 
 %.pdf: %.tex $(TEXFILES) $(KNITRTARGETS) usenix2019_v3.sty ref.bib imgs
 	pdflatex -shell-escape -shell-escape $*.tex
