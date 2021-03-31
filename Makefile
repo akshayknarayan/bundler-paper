@@ -21,8 +21,7 @@ final: $(PDFS)
 	   -sDEVICE=pdfwrite \
 	   -sOutputFile=$(FINAL) \
 	   -c ".setpdfwrite <</NeverEmbed [ ]>> setdistillerparams" \
-	   -f $(PFDS)
-	./banal -judge -paper=letter -font=10 -leader=12 -width=7 -height=9 -cols=2 -pages=12 $(FINAL)
+	   -f $?
 
 %.pdf: %.tex $(TEXFILES) $(KNITRTARGETS) usenix2019_v3.sty ref.bib imgs
 	pdflatex -shell-escape -shell-escape $*.tex
