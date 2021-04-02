@@ -1,7 +1,13 @@
 \begin{appendix}
 \section{Queue Controller Stability}\label{app:derive-ab}
 
-\name{} controls the queues by updating its sending rate according to the following equation:
+% - If you increase $\alpha$ and $\beta$
+% r(t) will go immediately target, but you don't want to change so fast that it cancels 
+% want your controller to be fast, but not nullify nimbus pulse
+% it's a tradeoff 
+
+
+We control the queues with the update function 
 \begin{equation} 
     \dot{r}(t) = \alpha (q(t) - q_T) + \beta (\dot{q}(t))
 \end{equation}
@@ -13,6 +19,11 @@ If it is too timid, it will not be able to effectively control the queues.
 Therefore, we want the target queue length to be $A \sin(\frac{2\pi{}t}{T})$. 
 We can write how the queue length varies with time as (where $\mu$ is the link bandwidth):
     \vspace{-5pt}
+% WRONG, rewrite:
+% Therefore, we want the target queue length to be $A \sin(\frac{2\pi{}t}{T})$. 
+% We can write how the queue length varies with time as (where $\mu$ is the link bandwidth):
+% why are we using mu / a constant here? probably should be (unknown) s(t)
+% we are trying to set a rule assuming s(t) is constant
 \begin{equation} 
     \dot{q}(t) = \mu - r(t) - A \sin(\frac{2\pi{}t}{T})
 \end{equation}
@@ -26,13 +37,13 @@ We can write how the queue length varies with time as (where $\mu$ is the link b
 \noindent Combining with the rate update rule:
 %
 \begin{equation}
-    \ddot{q}(t) - \beta \dot{q}(t) + \alpha (q(t) - q_T) = A \frac{2\pi{}t}{T} \cos(\frac{2\pi{}t}{T})
+    \ddot{q}(t) + \alpha (q(t) - q_T) + \beta \dot{q}(t) = - A \frac{2\pi{}t}{T} \cos(\frac{2\pi{}t}{T})
 \end{equation}
 %
 \noindent Substituting the pulse parameters from Nimbus and using $y(t) = q(t) - q_T$, we write a second-order ordinary differential equation (ODE) with sinusoidal input:
 %
 \begin{equation}
-    \ddot{y}(t) - \beta \dot{y}(t) + \alpha y(t) = 10\pi{}A \cos(10\pi{}t)
+    \ddot{y}(t) + \beta \dot{y}(t) + \alpha y(t) = - 10\pi{}A \cos(10\pi{}t)
 \end{equation}
 %
 \noindent This has the standard-form solution:
