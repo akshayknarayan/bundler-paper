@@ -16,11 +16,11 @@ In this section, we describe how \name can re-use the same measurements from \S\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % As described in \S\ref{4.3}, \name uses a delay-based congestion control algorithm to control queues in the middle of the network. 
-It is well known that delay-based congestion control algorithms (as \name uses) lose throughput when competing with buffer-filling algorithms~\cite{copa}. 
+It is well known that delay-based congestion control algorithms (as \name uses) lose throughput when competing with buffer-filling algorithms~\cite{copa, nimbus-arxiv}. 
 To prevent this, \name utilizes prior work, Nimbus~\cite{nimbus-arxiv}, which provides a mechanism for detecting the presence of buffer-filling\footnote{In particular, Nimbus detects ``elastic'' cross-traffic~\cite{nimbus-arxiv}, a superset of buffer-filling traffic. \cite{nimbus-arxiv} provides an explanation of this distinction
 and a detailed evaluation of Nimbus' accuracy of detecting elastic cross traffic and speed of switching between the two modes, using both emulated and real-world experiments. \name{}'s use of Nimbus does not impact its accuracy or speed of switching.} 
 cross traffic, and proposes temporarily switching to a buffer-filling scheme to compete fairly whenever such cross traffic is present.
-At a high-level, the detection mechanism works as follows: given a desired sending rate $r(t)$ (from an underlying congestion control algorithm), Nimbus superimposes an asymmetric sinusoid onto $r(t)$ to compute the actual sending rate. Then, it monitors the ACK receive rate in the frequency domain; the sinusoidal variations in the sending rate will be visible in the receive rate only if some buffer-filling cross traffic is sharing the same bottleneck queue. 
+At a high-level, the detection mechanism works as follows: given a desired sending rate $r(t)$ (from an underlying congestion control algorithm), Nimbus superimposes an asymmetric sinusoid onto $r(t)$ to determine the sending rate. Then, it monitors the measured send and receive rate, estimates the cross-traffic's rate, and monitors the cross traffic's rate in the frequency domain. The sinusoidal variations in the sending rate will be visible in the cross-traffic's rate only if buffer-filling cross traffic is sharing the same bottleneck queue. 
 
 What exactly should the \inbox do when it detects buffer-filling traffic? Using a buffer-filling scheme for the bundle as in Nimbus would be fraught: since a bundle is comprised of many individual flows, the \inbox would need to know the number of flows in the bundle to know how aggressively it should compete in order to receive its fair share (as in the status quo)~\cite{multcp}. 
 This number may vary significantly over time and would be difficult to measure, especially on high-performance datapaths~\cite{heavy-hitters}.
@@ -68,7 +68,7 @@ In \S\ref{s:robust:cross} we show that this effect is not large; \name still ach
 Thus, to achieve the target queueing delay $q_T$
 we use a PI controller at the \inbox which determines how the base sending rate $r(t)$ should be updated:
 $\dot{r}(t) = \alpha (q(t) - q_T) + \beta (\dot{q}(t))$, where $\dot{r}(t)$ is the update to $r(t)$ before imposing the Nimbus pulse, $q(t)$ is the current queue size at the \inbox in milliseconds, and $\alpha$ and $\beta$ are both positive.
-If $q(t) > q_T$, the first term will be positive and the rate will increase, which will decrease the queueing delay. Similarly, if the queue size is growing, the second term will be positive and the queueing delay will decrease. 
+If $q(t) > q_T$, the first term will be positive and the rate will increase, which will drain the queue. Similarly, if the queue size is growing, the second term will be positive and the queue will grow. 
 Setting $\alpha$ and $\beta$ controls a tradeoff: with larger values the controller will approach the target queueing delay faster, but if they are too large the controller's variations will dominate the Nimbus pulse. 
 If they are too small, it will take too long to reach the target delay. 
 We found that $\alpha=10$ and $\beta = 10$ work well for the scenarios in our evaluation (\S\ref{s:eval} and \S\ref{s:eval:realworld}).
