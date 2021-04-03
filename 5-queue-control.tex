@@ -17,29 +17,21 @@ In this section, we describe how \name can re-use the same measurements from \S\
 
 % As described in \S\ref{4.3}, \name uses a delay-based congestion control algorithm to control queues in the middle of the network. 
 It is well known that delay-based congestion control algorithms (as \name uses) lose throughput when competing with buffer-filling algorithms~\cite{copa}. 
-% However, it is well-known that such algorithms lose throughput when competing with buffer-filling algorithms~\cite{copa}.
-% Therefore, in order to compete fairly with buffer-filling cross-traffic, \name must first detect the presence of such traffic and disable its use of a delay-based controller.
-To prevent this, \name utilizes prior work, Nimbus~\cite{nimbus-arxiv}, which provides a mechanism for detecting the presence of buffer-filling cross traffic,
-\footnote{In particular, Nimbus actually detects ``elastic'' traffic (defined in~\cite{nimbus-arxiv}), which includes, but is not limited to, buffer-filling traffic. \cite{nimbus-arxiv} provides an explanation of this distinction and a justification that it is a reasonable approach.}
-and proposes temporarily switching to a buffer-filling scheme to compete fairly whenever such cross traffic is present.
-% and proposes switching between two modes: using a buffer-filling scheme when buffer-filling cross traffic is present and using a delay-control scheme otherwise.
-At a high-level, the detection mechanism works as follows: given a desired sending rate $r(t)$ (computed according to the underlying congestion control algorithm), Nimbus superimposes an asymmetric sinusoid onto $r(t)$ to compute the actual sending rate. Then, it monitors the ACK receive rate in the frequency domain; the sinusoidal variations in the sending rate will be visible in the receive rate only if some buffer-filling cross traffic is sharing the same bottleneck queue. %  buffer-filling cross traffic will cause an ``echo'' of these variations in the receive rate, while non-buffer-filling traffic will not.
-\footnote{\cite{nimbus-arxiv} includes a detailed evaluation of Nimbus' accuracy of detecting elastic cross traffic and speed of switching between the two modes, using both emulated and real-world experiments. \name{}'s use of Nimbus does not impact its accuracy or speed of switching.}
+To prevent this, \name utilizes prior work, Nimbus~\cite{nimbus-arxiv}, which provides a mechanism for detecting the presence of buffer-filling\footnote{In particular, Nimbus detects ``elastic'' cross-traffic~\cite{nimbus-arxiv}, a superset of buffer-filling traffic. \cite{nimbus-arxiv} provides an explanation of this distinction
+and a detailed evaluation of Nimbus' accuracy of detecting elastic cross traffic and speed of switching between the two modes, using both emulated and real-world experiments. \name{}'s use of Nimbus does not impact its accuracy or speed of switching.} 
+cross traffic, and proposes temporarily switching to a buffer-filling scheme to compete fairly whenever such cross traffic is present.
+At a high-level, the detection mechanism works as follows: given a desired sending rate $r(t)$ (an input from an underlying congestion control algorithm), Nimbus superimposes an asymmetric sinusoid onto $r(t)$ to compute the actual sending rate. Then, it monitors the ACK receive rate in the frequency domain; the sinusoidal variations in the sending rate will be visible in the receive rate only if some buffer-filling cross traffic is sharing the same bottleneck queue. 
 
-But what exactly should the \inbox do when it detects buffer-filling traffic? Using a buffer-filling scheme for the bundle as in Nimbus would be fraught: since a bundle is comprised of many individual flows, the \inbox would need to know the number of flows in the bundle to know how aggressively it should compete in order to receive its fair share (as in the status quo)~\cite{multcp}. Especially on high-performance datapaths this number may vary significantly over time and would be difficult to measure~\cite{heavy-hitters}.
-% to use a buffer-filling scheme for the bundle, \name{} would need to 
-% But what exactly should the \inbox do when it detects this condition?
-% A naive approach might replace the delay-based control at \name with a loss-based buffer-filling congestion control such as Cubic. 
-% However, with this approach, \name must 
-% in order to know the fair share of throughput that the component flows measure the number of flows in a bundle in order to compete as aggressively in proportion to achieve an aggregate throughput equivalent to the status quo~\cite{multcp}. Especially on high-performance datapaths, this number may vary significantly over time and be difficult to measure~\cite{heavy-hitters}.
+What exactly should the \inbox do when it detects buffer-filling traffic? Using a buffer-filling scheme for the bundle as in Nimbus would be fraught: since a bundle is comprised of many individual flows, the \inbox would need to know the number of flows in the bundle to know how aggressively it should compete in order to receive its fair share (as in the status quo)~\cite{multcp}. 
+This number may vary significantly over time and would be difficult to measure, especially on high-performance datapaths~\cite{heavy-hitters}.
 
 Instead, we propose a simpler solution.
-Since each connection in a bundle is already employing their own congestion controllers, \name{} can simply \emph{let the traffic pass}, \ie{} increase the pacing rate at the \inbox to stop controlling queues.
-% Since the bundleach employing their own congestion controllers, \name can simply \emph{let the traffic pass}, \ie increase the pacing rate at the \inbox to stop controlling queues.
+Since each connection in a bundle is already employing its own congestion controller, \name{} can simply \emph{let the traffic pass}, \ie{} increase the pacing rate at the \inbox to stop controlling queues.
 Then, the end-host congestion control loops will naturally compete fairly with the buffer-filling cross traffic, just as they would without \name{}.
 
 However, letting the traffic pass creates a new challenge. 
-In order to determine when it is safe to resume delay-control while in buffer-filling mode, Nimbus must superimpose the sinusoid in both modes. But if we let the traffic pass, the \inbox queue will never build and thus there will not be sufficient packets in the queue to satisfy the momentary rate increases necessary for the up-pulse. Without this, once the \inbox{} switches to the buffer-filling mode, it would not be able to gather sufficient information to switch back to delay-control mode.
+To determine when it is safe to resume delay-control while in the traffic-passing mode, Nimbus requires a superimposed pulse in both modes. If we naively let the traffic pass, the \inbox queue would never build. As a result, there would not be sufficient packets in the queue to perform the rate increase for the up-pulse. 
+Without the up-pulse, once the \inbox{} switched to the buffer-filling mode, it would not be able to gather sufficient information to switch back to delay-control mode once the buffer-filling cross traffic subsided.
 
 %\paragrapha{Active Probing}
 % This brings us to the next natural question: how can the \inbox know when it is safe to resume delay-control (and scheduling) after disabling it?
@@ -62,27 +54,24 @@ In order to determine when it is safe to resume delay-control while in buffer-fi
 % However, if the \inbox entirely drains its queues into the network, it will no longer be possible for Nimbus to overlay pulses onto the traffic pattern, and it will be unable to determine the nature of the cross traffic.
 % Practically, this would mean that once \inbox switches to compete with cross traffic, it would never gain the information necessary to switch back.
 
-In order to support the Nimbus pulses while also letting the traffic pass,
-% Instead, to support active probing while also letting the traffic pass,
+To support the Nimbus pulses while also letting the traffic pass,
 the \inbox must maintain sufficient queueing for the up-pulse,
-%queueing.
-% How many packets should this be? The \inbox should be able to generate enough packets for the up-pulse,
 \ie the area under the up-pulse curve: 
 $A \int_0^{\frac{T}{4}} \sin(\frac{4\pi{}t}{T}) dt = \frac{AT}{2\pi}$.
-From \cite{nimbus-arxiv}, we use $T = 0.2$ seconds and $A =$ one-fourth the bottleneck bandwidth. Then, by Little's law, the amount of extra queueing necessary is equivalent to
-% By Little's law, we can calculate the amount of extra queueing: 
+From Nimbus, we use $T = 0.2$ seconds and $A =$ one-fourth the bottleneck bandwidth. Then, by Little's law, the amount of extra queueing necessary is equivalent to
 $\frac{T}{8\pi}$, or $8$ms. % We call this the target queueing delay, or $q_T$. 
 We thus configure the \inbox to maintain a target queueing delay of $q_T = 10$ms (the additional $2$ms is a cushion against input variance).
-\footnote{This extra queueing is in addition to normal queueing in the network. As a result, the end-to-end connections will see mild RTT inflation, but in \S\ref{s:robust:cross} we show that this effect is not large; \name still achieves performance comparable to the status quo.}
+Because bundled connections will experience this queueing in addition to other queueing in the network, 
+most traditional congestion control algorithms (\eg Cubic) will observe RTT inflation. 
+In \S\ref{s:robust:cross} we show that this effect is not large; \name still achieves performance comparable to the status quo. Nevertheless, it is desirable to be as close to $q_T$ as possible. 
 
-% In order to achieve this target queueing delay,
-Of course, while any additional delay beyond $q_T$ would provide sufficient queue for the up-pulse, it would also add unnecessary delay to the end-to-end connections. Thus, we want to stay as close to $q_T$ as possible. In order to achieve this,
-we design a PI controller for the \inbox which determines how the base sending rate $r(t)$ should be updated
-\footnote{Note that $\dot{r}(t)$ is an update to the base sending rate \emph{before} superimposing the Nimbus pulse.}
-at each time step to move to the target:\footnote{This is similar to the PIE AQM mechanism~\cite{pie}, however, unlike PIE, there is no feedback delay between setting $r(t)$ and observing its effect on $q(t)$.}
-$\dot{r}(t) = \alpha (q(t) - q_T) + \beta (\dot{q}(t))$, where $q(t)$ is the current queue size at the \inbox in ms and $\alpha$ and $\beta$ are both positive.
-If the current queueing delay is greater than the target, the first term will be positive, causing the rate to increase, and the queue to drain faster, ultimately decreasing the queueing delay. Similarly, if the queue size is growing, the second term will be positive and again ultimately decrease the queueing delay. The scale of $\alpha$ and $\beta$ represent a tradeoff: the larger they are, the faster the controller will approach the target queueing delay. If they are too large, the controller's variations will nullify the Nimbus pulse. If they are too small, it will take too long to reach the target delay. Experimentally, we found that $\alpha=10$ and $\beta = 10$ provide a good balance for the types of scenarios included in our evaluation and thus used these values for all of our experiments.
-
+Thus, to achieve the target queueing delay $q_T$
+we use a PI controller at the \inbox which determines how the base sending rate $r(t)$ should be updated:
+$\dot{r}(t) = \alpha (q(t) - q_T) + \beta (\dot{q}(t))$, where $\dot{r}(t)$ is the update to $r(t)$ before imposing the Nimbus pulse, $q(t)$ is the current queue size at the \inbox in milliseconds, and $\alpha$ and $\beta$ are both positive.
+If $q(t) > q_T$, the first term will be positive and the rate will increase, which will decrease the queueing delay. Similarly, if the queue size is growing, the second term will be positive and the queueing delay will decrease. 
+Setting $\alpha$ and $\beta$ controls a tradeoff: with larger values the controller will approach the target queueing delay faster, but if they are too large the controller's variations will dominate the Nimbus pulse. 
+If they are too small, it will take too long to reach the target delay. 
+We found that $\alpha=10$ and $\beta = 10$ work well for the scenarios in our evaluation (\S\ref{s:eval} and \S\ref{s:eval:realworld}).
 
 % This problem is similar to the role of the PIE AQM mechanism~\cite{pie}, which also seeks to maintain a queueing delay target.
 % Correspondingly, we design a PI controller at the \inbox as part of the fairness control module. 
