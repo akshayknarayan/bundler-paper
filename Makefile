@@ -13,7 +13,7 @@ all: $(PDFS)
 final: $(PDFS)
 	gs \
 		-dCompatibilityLevel=1.4 \
-	   -dPDFSETTINGS=/screen \
+	   -dPDFSETTINGS=/default \
 	   -dCompressFonts=true \
 	   -dSubsetFonts=true \
 	   -dNOPAUSE \
