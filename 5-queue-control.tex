@@ -33,47 +33,25 @@ However, letting the traffic pass creates a new challenge.
 To determine when it is safe to resume delay-control while in the traffic-passing mode, Nimbus requires a superimposed pulse in both modes. If we naively let the traffic pass, the \inbox queue would never build. As a result, there would not be sufficient packets in the queue to perform the rate increase for the up-pulse. 
 Without the up-pulse, once the \inbox{} switched to the buffer-filling mode, it would not be able to gather sufficient information to switch back to delay-control mode once the buffer-filling cross traffic subsided.
 
-%\paragrapha{Active Probing}
-% This brings us to the next natural question: how can the \inbox know when it is safe to resume delay-control (and scheduling) after disabling it?
-%It is important to distinguish between \emph{self-inflicted} queueing delay and queueing delay due to cross traffic.
-%When the queueing delay is purely self-inflicted, it is safe to resume control over the queues at the \inbox.
-% One approach is to send passive probes along the network to detect the presence/absence of queuing. However, such passive measurements cannot distinguish between the self-inflicted queuing due to \name's traffic and the queuing due to cross-traffic. If the bottleneck queue is entirely self-inflicted, it is safe (and desirable) to resume delay-control and scheduling.
-%Passive probing is insufficient to determine this state, since passive measurements of the bottleneck will be identical in the case of self-inflicted queueing and queueing driven by cross traffic.
-% Therefore, it is important to \emph{actively probe}, that is, change the rate of bundled traffic and observe the response of the cross traffic. 
-% This is exactly what the Nimbus mechanism does.
-% At a high level,
-% TODO: r(t) is the desired sending rate, A sint is super-imposed on top
-% r(t) is the rate you are trying 
-% something calculates r(t), calculate based on sending and receiving rate, using e.g. basic delay rule  
-% now we are trying to deicde, when we want to let the pas
-% we are trying to figure out the change to r(t) from the basic delay rule
-% if its too large you'll converge too quickly and cant superimpose sinusoid on top of it
-% given a desired sending rate $r(t)$, Nimbus superimposes an asymmetric sinusoid on top of $r(t)$, and measures the cross traffic's response in the frequency domain.
-% Nimbus sinusoidally varies the sending rate $r(t) = A sin(\frac{4\pi{}t}{T})$ during the up-pulse, where $A$ is the pulse amplitude (set to one-fourth of the estimated bottleneck bandwidth) and $T$ is the pulse duration, and measures the cross traffic's response in the frequency domain.
-% The \inbox can use the Nimbus algorithm to detect when to relinquish control over the queue by interposing this sending pattern over the delay-controller's rate decisions.
-% However, if the \inbox entirely drains its queues into the network, it will no longer be possible for Nimbus to overlay pulses onto the traffic pattern, and it will be unable to determine the nature of the cross traffic.
-% Practically, this would mean that once \inbox switches to compete with cross traffic, it would never gain the information necessary to switch back.
-
 To support the Nimbus pulses while also letting the traffic pass,
 the \inbox must maintain sufficient queueing for the up-pulse,
 \ie the area under the up-pulse curve: 
 $A \int_0^{\frac{T}{4}} \sin(\frac{4\pi{}t}{T}) dt = \frac{AT}{2\pi}$.
 From Nimbus, we use $T = 0.2$ seconds and $A =$ one-fourth the bottleneck bandwidth. Then, by Little's law, the amount of extra queueing necessary is equivalent to
-$\frac{T}{8\pi}$, or $8$ms. % We call this the target queueing delay, or $q_T$. 
+$\frac{T}{8\pi}$, or $8$ms. 
 We thus configure the \inbox to maintain a target queueing delay of $q_T = 10$ms (the additional $2$ms is a cushion against input variance).
 Because bundled connections will experience this queueing in addition to other queueing in the network, 
 most traditional congestion control algorithms (\eg Cubic) will observe RTT inflation. 
 In \S\ref{s:robust:cross} we show that this effect is not large; \name still achieves performance comparable to the status quo. Nevertheless, it is desirable to be as close to $q_T$ as possible. 
 
-Thus, to achieve the target queueing delay $q_T$
+Thus, to achieve the target queue $q_T$
 we use a PI controller at the \inbox which determines how the base sending rate $r(t)$ should be updated:
 $\dot{r}(t) = \alpha (q(t) - q_T) + \beta (\dot{q}(t))$, where $\dot{r}(t)$ is the update to $r(t)$ before imposing the Nimbus pulse, $q(t)$ is the current queue size at the \inbox in milliseconds, and $\alpha$ and $\beta$ are both positive.
 If $q(t) > q_T$, the first term will be positive and the rate will increase, which will drain the queue. Similarly, if the queue size is growing, the second term will be positive and the queue will grow. 
-Setting $\alpha$ and $\beta$ controls a tradeoff: with larger values the controller will approach the target queueing delay faster, but if they are too large the controller's variations will dominate the Nimbus pulse. 
+Setting $\alpha$ and $\beta$ controls a tradeoff: with larger values the controller will approach the target faster, but if they are too large the controller's variations will dominate the Nimbus pulse. 
 If they are too small, it will take too long to reach the target delay. 
 We found that $\alpha=10$ and $\beta = 10$ work well for the scenarios in our evaluation (\S\ref{s:eval} and \S\ref{s:eval:realworld}).
 
-% This problem is similar to the role of the PIE AQM mechanism~\cite{pie}, which also seeks to maintain a queueing delay target.
 % Correspondingly, we design a PI controller at the \inbox as part of the fairness control module. 
 % It overlays a rate $r$ corresponding to , where $q$ is the queue size and $q_T$ is the target queue size computed above.
 % We pick $\alpha = 10$ and $\beta = 10$ by solving for a convergence time of one RTT (Appendix~\ref{app:derive-ab}).
