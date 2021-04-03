@@ -37,19 +37,21 @@ To support the Nimbus pulses while also letting the traffic pass,
 the \inbox must maintain sufficient queueing for the up-pulse,
 \ie the area under the up-pulse curve: 
 $A \int_0^{\frac{T}{4}} \sin(\frac{4\pi{}t}{T}) dt = \frac{AT}{2\pi}$.
-From Nimbus, we use $T = 0.2$ seconds and $A =$ one-fourth the bottleneck bandwidth. Then, by Little's law, the amount of extra queueing necessary is equivalent to
-$\frac{T}{8\pi}$, or $8$ms. 
-We thus configure the \inbox to maintain a target queueing delay of $q_T = 10$ms (the additional $2$ms is a cushion against input variance).
+From Nimbus, we use $T = 0.2$ seconds and $A =$ one-fourth the bottleneck bandwidth ($\mu$),
+which yields
+% Then, by Little's law, the amount of extra queueing necessary is equivalent to
+$\frac{T\mu}{8\pi}$, or $8\text{ms}\cdot \mu$ of queueing. 
+We thus configure the \inbox to maintain a target queue $q_T$ of $10$ms (the additional $2$ms is a cushion against input variance).
 Because bundled connections will experience this queueing in addition to other queueing in the network, 
 most traditional congestion control algorithms (\eg Cubic) will observe RTT inflation. 
-In \S\ref{s:robust:cross} we show that this effect is not large; \name still achieves performance comparable to the status quo. Nevertheless, it is desirable to be as close to $q_T$ as possible. 
+In \S\ref{s:robust:cross} we show that this effect is not large; \name still achieves performance comparable to the status quo. Nevertheless, it is desirable minimize this inflation and be as close to $q_T$ as possible. 
 
 Thus, to achieve the target queue $q_T$
 we use a PI controller at the \inbox which determines how the base sending rate $r(t)$ should be updated:
-$\dot{r}(t) = \alpha (q(t) - q_T) + \beta (\dot{q}(t))$, where $\dot{r}(t)$ is the update to $r(t)$ before imposing the Nimbus pulse, $q(t)$ is the current queue size at the \inbox in milliseconds, and $\alpha$ and $\beta$ are both positive.
-If $q(t) > q_T$, the first term will be positive and the rate will increase, which will drain the queue. Similarly, if the queue size is growing, the second term will be positive and the queue will grow. 
+$\dot{r}(t) = \alpha (q(t) - q_T) + \beta (\dot{q}(t))$, where $\dot{r}(t)$ is the update to $r(t)$ before imposing the Nimbus pulse, $q(t)$ is the current queue size at the \inbox, and $\alpha$ and $\beta$ are both positive.
+If $q(t) > q_T$, the first term will be positive and the rate will increase, causing the queue to shrink. Similarly, if the queue size is growing, the second term will be positive, which means the rate will increase and the queue will shrink. 
 Setting $\alpha$ and $\beta$ controls a tradeoff: with larger values the controller will approach the target faster, but if they are too large the controller's variations will dominate the Nimbus pulse. 
-If they are too small, it will take too long to reach the target delay. 
+If they are too small, it will take too long to reach the target. 
 We found that $\alpha=10$ and $\beta = 10$ work well for the scenarios in our evaluation (\S\ref{s:eval} and \S\ref{s:eval:realworld}).
 
 % Correspondingly, we design a PI controller at the \inbox as part of the fairness control module. 
