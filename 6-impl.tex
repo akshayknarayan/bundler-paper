@@ -3,7 +3,7 @@
     \centering
     \includegraphics[width=2\columnwidth]{img/bundler-diagram}
     \vspace{-10pt}
-    \caption{\name Implementation Overview. Box shading corresponds to the roles described in Figure~\ref{fig:design:block-diag}.}\label{fig:bundler}
+    \caption{\name Implementation Overview. Box colors correspond to the roles described in Figure~\ref{fig:design:block-diag}. Shaded packets are those that meet the epoch boundary condition. Dashed arrows represent communication via IPC, while solid arrows represent communication over the network.}\label{fig:bundler}
 \end{figure*}
 \name boxes can be implemented as described below (although the specific implementations could vary across deployments).
 
