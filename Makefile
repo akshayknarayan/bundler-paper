@@ -8,12 +8,6 @@ KNITRFILES = $(wildcard graphs/*.Rnw)
 KNITRTARGETS = $(subst graphs/,,$(KNITRFILES:.Rnw=.tex))
 PDFS = $(addsuffix .pdf,$(TARGETS))
 
-arxiv:
-	pdflatex --shell-escape "\\def\\forArxiv{1} \\input{bundler-main.tex}"
-	bibtex bundler-main
-	pdflatex --shell-escape "\\def\\forArxiv{1} \\input{bundler-main.tex}"
-	pdflatex --shell-escape "\\def\\forArxiv{1} \\input{bundler-main.tex}"
-
 all: $(PDFS)
 
 final: $(PDFS)
@@ -28,6 +22,12 @@ final: $(PDFS)
 	   -sOutputFile=$(FINAL) \
 	   -c ".setpdfwrite <</NeverEmbed [ ]>> setdistillerparams" \
 	   -f $?
+
+arxiv:
+	pdflatex --shell-escape "\\def\\forArxiv{1} \\input{bundler-main.tex}"
+	bibtex bundler-main
+	pdflatex --shell-escape "\\def\\forArxiv{1} \\input{bundler-main.tex}"
+	pdflatex --shell-escape "\\def\\forArxiv{1} \\input{bundler-main.tex}"
 
 %.pdf: %.tex $(TEXFILES) $(KNITRTARGETS) usenix2019_v3.sty ref.bib imgs
 	pdflatex -shell-escape -shell-escape $*.tex
