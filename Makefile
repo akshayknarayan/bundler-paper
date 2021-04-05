@@ -8,6 +8,12 @@ KNITRFILES = $(wildcard graphs/*.Rnw)
 KNITRTARGETS = $(subst graphs/,,$(KNITRFILES:.Rnw=.tex))
 PDFS = $(addsuffix .pdf,$(TARGETS))
 
+arxiv:
+	pdflatex --shell-escape "\\def\\forArxiv{1} \\input{bundler-main.tex}"
+	bibtex bundler-main
+	pdflatex --shell-escape "\\def\\forArxiv{1} \\input{bundler-main.tex}"
+	pdflatex --shell-escape "\\def\\forArxiv{1} \\input{bundler-main.tex}"
+
 all: $(PDFS)
 
 final: $(PDFS)

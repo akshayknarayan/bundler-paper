@@ -15,6 +15,15 @@
 \fancyhead{}
 %\setlength{\droptitle}{-1.5cm}
 
+\ifdefined\forArxiv
+\begin{textblock}{13.5}(1,0.25)\fbox{
+\begin{minipage}{\dimexpr\textwidth-2\fboxsep-2\fboxrule\relax}
+        \scriptsize
+        If you cite this paper, please use the EuroSys reference:
+        Frank Cangialosi, Akshay Narayan, Prateesh Goyal, Radhika Mittal, Mohammad Alizadeh, and Hari Balakrishnan. 2021. Site-to-Site Internet Traffic Control. In \emph{EuroSys '21, April 26--28, 2021, Online, United Kingdom}. ACM, New York, NY,  USA, 16 pages. https://doi.org/10.1145/3447786.3456260
+\end{minipage}}\end{textblock}
+\fi
+
 \copyrightyear{2021}
 \acmYear{2021}
 \acmConference[EuroSys '21]{Sixteenth European Conference on Computer Systems}{April 26--28, 2021}{Online, United Kingdom}
