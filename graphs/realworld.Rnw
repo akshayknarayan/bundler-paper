@@ -30,7 +30,7 @@ ggplot(df_iowa, aes(
     ylab("Latency") +
     xlab("Request-Response Loops With Unique 5-Tuples") +
     scale_fill_brewer(type="qual", palette=2, aesthetics=c("colour", "fill"),
-        limit=c("control", "iperf", "bundler"),
+        limit=c("bundler", "iperf", "control"),
         labels=c(
             "control" = "Base RTT",
             "bundler" = "Bundler",
