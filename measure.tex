@@ -58,7 +58,8 @@ When the \outbox sees $p_i$, it also identifies it as an epoch boundary and send
 The congestion ACK contains $h(p_i)$ and the running count of the total number of bytes received for that bundle. 
 Upon receiving the congestion ACK for $p_i$, the \inbox records the received information, and using its previously recorded state, computes the RTT and the rates at which packets are sent and received, as in Figure~\ref{fig:ratecalc}.
 
-\input{micro-time-thru} % actually contains the time series
+% actually contains the time series
+\input{micro-time-thru} 
 
 \paragrapha{Epoch boundary identification}
 The packet header subset that is used for identifying epoch boundaries must have the following properties:
@@ -77,7 +78,8 @@ To support a wider set of scenarios, \name could use dedicated fields in an enca
 
 To visualize how these measurements impact the behavior of the signals over time we pick an experiment for which the median difference matches that of the entire distribution and plot a five second segment of our estimates compared to the actual values in Figure~\ref{fig:micro:time-thru}.
 
-\input{micro-time-delay} % actually contains the distributions
+% actually contains the distributions
+\input{micro-time-delay}
 
 \paragrapha{Choosing the epoch size}
 In order to balance reaction speed and overhead, epoch packets should be spaced such that measurements are collected approximately once per RTT~\cite{ccp}.
