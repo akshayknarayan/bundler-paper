@@ -24,6 +24,9 @@ files=[
     "https://people.csail.mit.edu/akshayn/bundler-project/endhost_cc_alg_choice.data",
     "https://people.csail.mit.edu/akshayn/bundler-project/84-10000-nimbus-sfq-62-pl-mixed-diff.data",
     "https://people.csail.mit.edu/akshayn/bundler-project/84-10000-nimbus-sfq-62-pl-mixed-epochs.data",
+    "https://people.csail.mit.edu/akshayn/bundler-project/test-fork-4-4q.inbox",
+    "https://people.csail.mit.edu/akshayn/bundler-project/test-fork-4-4q.mm",
+    "https://people.csail.mit.edu/akshayn/bundler-project/big_exp_41/fcts.data",
 ]
 
 def get_file(url):
@@ -36,3 +39,5 @@ def get_file(url):
 ts = [threading.Thread(target=get_file, args=(f,)) for f in files]
 [t.start() for t in ts]
 [t.join() for t in ts]
+
+sh.run('mv ./fcts.data ../../big_exp/big_exp_41/ || true', shell=True)
