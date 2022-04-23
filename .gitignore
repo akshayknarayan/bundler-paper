@@ -9,3 +9,5 @@ _minted*/
 **/.DS_Store
 graphs/data/*.data
 graphs/data/*.out
+graphs/data/*.inbox
+graphs/data/*.mm

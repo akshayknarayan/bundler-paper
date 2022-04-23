@@ -2,13 +2,13 @@
     \centering
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
-\includegraphics[width=\maxwidth]{figure/eval_best-1} 
+\includegraphics[width=\maxwidth]{bundler/figure/eval_best-1} 
 
 \end{knitrout}
-    \caption{\name achieves 28\% lower median slowdown. 
+    \caption{Bundler achieves 28\% lower median slowdown. 
 The three graphs show FCT distributions for the indicated request sizes: smaller than 10KB, between 10KB and 1MB, and greater than 1MB.  Note the different y-axis scales for each group of request sizes. Whiskers show $1.25 \times$ the inter-quartile range. 
-For both \name and In-Network, performance benefits come from preventing short flows from queueing behind long ones.
-Thus, \name's aggregate congestion control by itself is not enough; if we configure \name to use FIFO scheduling, the FCTs worsen compared to the status quo.
+For both Bundler and In-Network, performance benefits come from preventing short flows from queueing behind long ones.
+Thus, Bundler's aggregate congestion control by itself is not enough; if we configure \name to use FIFO scheduling, the FCTs worsen compared to the status quo.
     %\fc{Status quo whiskers are too large to fit on plot, mention the number here.}
     }\label{fig:eval:best}
 \end{figure}
